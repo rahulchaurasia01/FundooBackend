@@ -30,16 +30,28 @@ namespace FundooRepositoryLayer.Service
         /// </summary>
         /// <param name="forgetPassword">Email-Id</param>
         /// <returns></returns>
-        public bool ForgetPassword(ForgetPasswordRequest forgetPassword)
+        public ResponseModel ForgetPassword(ForgetPasswordRequest forgetPassword)
         {
             try
             {
                 var data = context.UserDetails.FirstOrDefault(user => user.EmailId == forgetPassword.EmailId);
 
-                if (data == null)
-                    return false;
-                else
-                    return true;
+                if (data != null)
+                {
+                    var userData = new ResponseModel()
+                    {
+                        UserId = data.UserId,
+                        FirstName = data.FirstName,
+                        LastName = data.LastName,
+                        EmailId = data.EmailId,
+                        Type = data.Type,
+                        IsActive = data.IsActive,
+                        CreatedAt = data.CreatedAt,
+                        ModifiedAt = data.ModifiedAt
+                    };
+                    return userData;
+                }
+                return null;
             }
             catch(Exception e)
             {
@@ -121,6 +133,19 @@ namespace FundooRepositoryLayer.Service
         {
             try
             {
+                UserDetails userDetails = context.UserDetails.FirstOrDefault(usr => usr.UserId == resetPassword.UserId);
+
+                if (userDetails != null)
+                {
+                    resetPassword.Password = EncodeDecode.EncodePasswordToBase64(resetPassword.Password);
+                    userDetails.Password = resetPassword.Password;
+                    userDetails.ModifiedAt = DateTime.Now;
+
+                    var user = context.UserDetails.Attach(userDetails);
+                    user.State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                    context.SaveChanges();
+                    return true;
+                }
                 return false;
             }
             catch(Exception e)

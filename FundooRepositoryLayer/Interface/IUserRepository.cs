@@ -12,7 +12,7 @@ namespace FundooRepositoryLayer.Interface
 
         ResponseModel Login(LoginRequest login);
 
-        bool ForgetPassword(ForgetPasswordRequest forgetPassword);
+        ResponseModel ForgetPassword(ForgetPasswordRequest forgetPassword);
 
         bool ResetPassword(ResetPasswordRequest resetPassword);
 

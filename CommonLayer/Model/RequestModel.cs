@@ -17,8 +17,7 @@ namespace FundooCommonLayer.Model
 
     public class ResetPasswordRequest
     {
-        [Required]
-        public string ResetToken { set; get; }
+        public int UserId { set; get; }
 
         [Required]
         public string Password { set; get; }

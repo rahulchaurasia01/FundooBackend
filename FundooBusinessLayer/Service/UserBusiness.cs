@@ -16,12 +16,12 @@ namespace FundooBusinessLayer.Service
             _userRepository = userRepository;
         }
 
-        public bool ForgetPassword(ForgetPasswordRequest forgetPassword)
+        public ResponseModel ForgetPassword(ForgetPasswordRequest forgetPassword)
         {
             try
             {
                 if (string.IsNullOrWhiteSpace(forgetPassword.EmailId))
-                    return false;
+                    return null;
                 else
                     return _userRepository.ForgetPassword(forgetPassword);
             }
@@ -65,7 +65,7 @@ namespace FundooBusinessLayer.Service
         {
             try
             {
-                if (resetPassword.ResetToken == null || resetPassword.Password == null)
+                if (resetPassword.UserId == 0 || resetPassword.Password == null)
                     return false;
                 else
                     return _userRepository.ResetPassword(resetPassword);

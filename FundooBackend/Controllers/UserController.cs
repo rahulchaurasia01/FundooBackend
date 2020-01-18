@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using FundooBusinessLayer.Interface;
 using FundooCommonLayer.Model;
 using FundooCommonLayer.ModelDB;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -22,6 +23,10 @@ namespace FundooAppBackend.Controllers
 
         private readonly IUserBusiness _userBusiness;
         private IConfiguration _configuration;
+
+        private static readonly string _forgetPassword = "ForgetPassword";
+        private static readonly string _login = "Login";
+
 
         public UserController(IUserBusiness userBusiness, IConfiguration configuration)
         {
@@ -49,11 +54,11 @@ namespace FundooAppBackend.Controllers
                 {
                     status = true;
                     message = "User Account Created Successfully";
-                    token = GenerateToken(data);
-                    return Ok(new {status, message, data, token });
+                    token = GenerateToken(data, "Registration");
+                    return Ok(new { status, message, data, token });
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 return BadRequest(new { e.Message });
             }
@@ -79,11 +84,11 @@ namespace FundooAppBackend.Controllers
                 {
                     status = true;
                     message = "User Successfully Logged In";
-                    token = GenerateToken(data);
+                    token = GenerateToken(data, _login);
                     return Ok(new { status, message, data, token });
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 return BadRequest(new { e.Message });
             }
@@ -96,10 +101,11 @@ namespace FundooAppBackend.Controllers
         {
             try
             {
-                bool flag = _userBusiness.ForgetPassword(forgetPassword);
+                ResponseModel data = _userBusiness.ForgetPassword(forgetPassword);
                 bool status;
                 string message;
-                if(!flag)
+                string token;
+                if (data == null)
                 {
                     status = false;
                     message = "No User Found with this Email-Id: " + forgetPassword.EmailId;
@@ -107,13 +113,24 @@ namespace FundooAppBackend.Controllers
                 }
                 else
                 {
-                    status = true;
-                    message = "An Password Reset Link has been Send to the above Email";
-                    return Ok(new { status, message });
+                    token = GenerateToken(data, _forgetPassword);
+                    MsmqSender.SendToMsmq(token);
+                    status = MsmqReceiver.ReceiveMsmq(forgetPassword);
+                    if (status)
+                    {
+                        message = "An Password Reset Link has been Send to the above Email";
+                        return Ok(new { status, message, token });
+                    }
+                    else
+                    {
+                        message = "Unable to Send the Email.";
+                        return NotFound(new { status, message });
+                    }
+
                 }
-                
+
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 return BadRequest(new { e.Message });
             }
@@ -121,37 +138,42 @@ namespace FundooAppBackend.Controllers
 
 
         [HttpPost]
+        [Authorize]
         [Route("ResetPassword")]
         public IActionResult ResetPassword([FromBody] ResetPasswordRequest resetPassword)
         {
             try
             {
-                bool flag = _userBusiness.ResetPassword(resetPassword);
+
+                var user = HttpContext.User;
                 bool status;
                 string message;
-                if (!flag)
+                if (user.HasClaim(c => c.Type == "TokenType"))
                 {
-                    status = false;
-                    message = "No User Found with this Token: " + resetPassword.ResetToken;
-                    return NotFound(new { status, message });
+                    if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _forgetPassword)
+                    {
+                        resetPassword.UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+                        status = _userBusiness.ResetPassword(resetPassword);
+                        if(status)
+                        {
+                            status = true;
+                            message = "Your Password Has been Successfully Changed";
+                            return Ok(new { status, message });
+                        }
+                    }
                 }
-                else
-                {
-                    status = true;
-                    message = "Your Password Has been Successfully Changed";
-                    return Ok(new { status, message });
-                }
+                status = false;
+                message = "Invalid Token.";
+                return NotFound(new { status, message });
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 return BadRequest(new { e.Message });
             }
         }
 
 
-
-
-        private string GenerateToken(ResponseModel userToken)
+        private string GenerateToken(ResponseModel userToken, string type)
         {
             try
             {
@@ -161,15 +183,16 @@ namespace FundooAppBackend.Controllers
                 var claims = new[]
                 {
                     new Claim("UserId", userToken.UserId.ToString()),
-                    new Claim("EmailId", userToken.EmailId.ToString())
+                    new Claim("EmailId", userToken.EmailId.ToString()),
+                    new Claim("TokenType", type)
                 };
 
                 var token = new JwtSecurityToken(_configuration["Jwt:Issuer"], _configuration["Jwt:Issuer"],
-                    claims, expires: DateTime.Now.AddMinutes(10), signingCredentials: credentials);
+                    claims, expires: DateTime.Now.AddDays(1), signingCredentials: credentials);
 
                 return new JwtSecurityTokenHandler().WriteToken(token);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 throw new Exception(e.Message);
             }

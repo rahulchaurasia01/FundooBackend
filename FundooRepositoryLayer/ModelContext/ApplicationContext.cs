@@ -22,7 +22,6 @@ namespace FundooRepositoryLayer.ModelContext
                 .HasIndex(user => user.EmailId)
                 .IsUnique();
 
-           
         }
     }
 }

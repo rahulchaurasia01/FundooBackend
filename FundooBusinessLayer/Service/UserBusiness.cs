@@ -16,6 +16,11 @@ namespace FundooBusinessLayer.Service
             _userRepository = userRepository;
         }
 
+        /// <summary>
+        /// If User Forget their Password
+        /// </summary>
+        /// <param name="forgetPassword">Forget Password Model</param>
+        /// <returns>It return Response Model if Successfull or else null</returns>
         public ResponseModel ForgetPassword(ForgetPasswordRequest forgetPassword)
         {
             try
@@ -31,6 +36,11 @@ namespace FundooBusinessLayer.Service
             }
         }
 
+        /// <summary>
+        /// Login the user
+        /// </summary>
+        /// <param name="login">Login Model</param>
+        /// <returns>It Return Response Model, If Login successfull or else null</returns>
         public ResponseModel Login(LoginRequest login)
         {
             try
@@ -45,7 +55,12 @@ namespace FundooBusinessLayer.Service
                 throw new Exception(e.Message);
             }
         }
-
+        
+        /// <summary>
+        /// It Register the User.
+        /// </summary>
+        /// <param name="userDetails"></param>
+        /// <returns>Return ResponseModel if Successfull or else Null</returns>
         public ResponseModel Registration(UserDetails userDetails)
         {
             try
@@ -61,6 +76,11 @@ namespace FundooBusinessLayer.Service
             }
         }
 
+        /// <summary>
+        /// Reset the User Password
+        /// </summary>
+        /// <param name="resetPassword">Reset Password Model</param>
+        /// <returns>It Return true if reset is successfull or else false.</returns>
         public bool ResetPassword(ResetPasswordRequest resetPassword)
         {
             try

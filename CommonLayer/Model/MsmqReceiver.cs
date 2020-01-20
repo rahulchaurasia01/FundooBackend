@@ -1,16 +1,27 @@
-﻿using Experimental.System.Messaging;
+﻿/*
+ *  Purpose: This class will Receive the forgetPassword Email token from Msmq and
+ *           Send the Email to the request User.
+ * 
+ *  Author: Rahul Chaurasia
+ *  Date: 18-01-2020
+ */
+
+using Experimental.System.Messaging;
 using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Mail;
-using System.Text;
 
 namespace FundooCommonLayer.Model
 {
     public class MsmqReceiver
     {
 
-
+        /// <summary>
+        /// It will Receive the forgetPassword Email token from Msmq and
+        /// Send the Email to the request User.
+        /// </summary>
+        /// <param name="forgetPassword">ForgetPassword user Email-Id</param>
+        /// <returns>Return True if Email Send Successfully or else False</returns>
         public static bool ReceiveMsmq(ForgetPasswordRequest forgetPassword)
         {
             try

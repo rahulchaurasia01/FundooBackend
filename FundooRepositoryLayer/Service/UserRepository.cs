@@ -29,7 +29,7 @@ namespace FundooRepositoryLayer.Service
         /// It will check whether the Provided Email id is present in the database or not.
         /// </summary>
         /// <param name="forgetPassword">Email-Id</param>
-        /// <returns></returns>
+        /// <returns>It return the Response Model to be Send as Response</returns>
         public ResponseModel ForgetPassword(ForgetPasswordRequest forgetPassword)
         {
             try
@@ -60,10 +60,10 @@ namespace FundooRepositoryLayer.Service
         }
 
         /// <summary>
-        /// It Return True if the login is successfull.
+        /// It Check whether the login data send by the user is correct or not.
         /// </summary>
         /// <param name="login">login parameter like email-id or password</param>
-        /// <returns></returns>
+        /// <returns>It return the Response Model to be Send as Response</returns>
         public ResponseModel Login(LoginRequest login)
         {
             try
@@ -98,7 +98,7 @@ namespace FundooRepositoryLayer.Service
         /// It Register the new User.
         /// </summary>
         /// <param name="userDetails">User Data</param>
-        /// <returns></returns>
+        /// <returns>It return the Response Model to be Send as Response</returns>
         public ResponseModel Registration(UserDetails userDetails)
         {
             try
@@ -129,6 +129,11 @@ namespace FundooRepositoryLayer.Service
             }
         }
 
+        /// <summary>
+        /// It Reset the User Password From the Database.
+        /// </summary>
+        /// <param name="resetPassword">ResetPassword Model</param>
+        /// <returns>Return True if reset is successfull or else false</returns>
         public bool ResetPassword(ResetPasswordRequest resetPassword)
         {
             try
@@ -153,5 +158,6 @@ namespace FundooRepositoryLayer.Service
                 throw new Exception(e.Message);
             }
         }
+    
     }
 }

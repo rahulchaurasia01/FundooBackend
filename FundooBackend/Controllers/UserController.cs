@@ -22,7 +22,7 @@ namespace FundooAppBackend.Controllers
     {
 
         private readonly IUserBusiness _userBusiness;
-        private IConfiguration _configuration;
+        private readonly IConfiguration _configuration;
 
         private static readonly string _forgetPassword = "ForgetPassword";
         private static readonly string _login = "Login";
@@ -34,6 +34,11 @@ namespace FundooAppBackend.Controllers
             _configuration = configuration;
         }
 
+        /// <summary>
+        /// Api for Registration
+        /// </summary>
+        /// <param name="userDetails">User Detials Model</param>
+        /// <returns>It return 200 and Data If registration is Successfull or else 404</returns>
         [HttpPost]
         [Route("Registration")]
         public IActionResult Registration([FromBody] UserDetails userDetails)
@@ -64,6 +69,11 @@ namespace FundooAppBackend.Controllers
             }
         }
 
+        /// <summary>
+        /// Api For Login
+        /// </summary>
+        /// <param name="login">Login Model</param>
+        /// <returns>It return 200 and Data If Login is Successfull or else 404</returns>
         [HttpPost]
         [Route("Login")]
         public IActionResult Login([FromBody] LoginRequest login)
@@ -94,7 +104,11 @@ namespace FundooAppBackend.Controllers
             }
         }
 
-
+        /// <summary>
+        /// Api for ForgetPassword
+        /// </summary>
+        /// <param name="forgetPassword">Forget Password Model</param>
+        /// <returns>It Return 200 Reponse if sending mail to the user is successfull or else 404 not Found</returns>
         [HttpPost]
         [Route("ForgetPassword")]
         public IActionResult ForgetPassword([FromBody] ForgetPasswordRequest forgetPassword)
@@ -126,9 +140,7 @@ namespace FundooAppBackend.Controllers
                         message = "Unable to Send the Email.";
                         return NotFound(new { status, message });
                     }
-
                 }
-
             }
             catch (Exception e)
             {
@@ -136,7 +148,11 @@ namespace FundooAppBackend.Controllers
             }
         }
 
-
+        /// <summary>
+        /// Api for Reseting the Password
+        /// </summary>
+        /// <param name="resetPassword">Reset Password Model</param>
+        /// <returns>It return 200 Response, If Reset is Successfull or else 404 Not Found</returns>
         [HttpPost]
         [Authorize]
         [Route("ResetPassword")]
@@ -144,7 +160,6 @@ namespace FundooAppBackend.Controllers
         {
             try
             {
-
                 var user = HttpContext.User;
                 bool status;
                 string message;
@@ -173,6 +188,12 @@ namespace FundooAppBackend.Controllers
         }
 
 
+        /// <summary>
+        /// It Generate the token.
+        /// </summary>
+        /// <param name="userToken">Response Model</param>
+        /// <param name="type">Token Type</param>
+        /// <returns>it return Token</returns>
         private string GenerateToken(ResponseModel userToken, string type)
         {
             try
@@ -197,5 +218,6 @@ namespace FundooAppBackend.Controllers
                 throw new Exception(e.Message);
             }
         }
+    
     }
 }

@@ -8,11 +8,11 @@ namespace FundooRepositoryLayer.Interface
     public interface IUserRepository
     {
 
-        ResponseModel Registration(UserDetails userDetails);
+        UserResponseModel Registration(UserDetails userDetails);
 
-        ResponseModel Login(LoginRequest login);
+        UserResponseModel Login(LoginRequest login);
 
-        ResponseModel ForgetPassword(ForgetPasswordRequest forgetPassword);
+        UserResponseModel ForgetPassword(ForgetPasswordRequest forgetPassword);
 
         bool ResetPassword(ResetPasswordRequest resetPassword);
 

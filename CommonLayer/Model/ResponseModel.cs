@@ -6,8 +6,6 @@
  *  Date: 17-01-2020
  */
 
-
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -16,7 +14,7 @@ using System.Text;
 namespace FundooCommonLayer.Model
 {
     
-    public class ResponseModel
+    public class UserResponseModel
     {
 
         public int UserId { set; get; }
@@ -37,5 +35,7 @@ namespace FundooCommonLayer.Model
         public DateTime ModifiedAt { set; get; }
 
     }
+
+
 
 }

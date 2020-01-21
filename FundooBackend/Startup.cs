@@ -56,6 +56,7 @@ namespace FundooBackend
             services.AddSwaggerGen(swag =>
             {
                 swag.SwaggerDoc("User", new OpenApiInfo {Title = "User Api", Version = "v1.0" });
+                swag.SwaggerDoc("Notes", new OpenApiInfo { Title = "Notes Api", Version = "v1.0" });
 
                 swag.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
@@ -86,8 +87,12 @@ namespace FundooBackend
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
             services.AddDbContextPool<ApplicationContext>(options => options.UseSqlServer(Configuration["ConnectionStrings:sqlConnection"]));
+            
             services.AddScoped<IUserBusiness, UserBusiness>();
             services.AddScoped<IUserRepository, UserRepository>();
+
+            services.AddScoped<INotesBusiness, NotesBusiness>();
+            services.AddScoped<INotesRepository, NotesRepository>();
 
         }
 
@@ -97,6 +102,7 @@ namespace FundooBackend
             app.UseSwagger();
             app.UseSwaggerUI(c => {
                 c.SwaggerEndpoint("/swagger/User/swagger.json", "User Account Api");
+                c.SwaggerEndpoint("/swagger/Notes/swagger.json", "Notes Api");
                 c.RoutePrefix = string.Empty;
             });
 

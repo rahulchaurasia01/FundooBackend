@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FundooRepositoryLayer.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    [Migration("20200115133542_SeedUserDataEmailCheck")]
-    partial class SeedUserDataEmailCheck
+    [Migration("20200121052415_UserDetailsAndNotesDetailsTableCreated")]
+    partial class UserDetailsAndNotesDetailsTableCreated
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -21,10 +21,42 @@ namespace FundooRepositoryLayer.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
+            modelBuilder.Entity("FundooCommonLayer.ModelDB.NotesDetails", b =>
+                {
+                    b.Property<int>("NotesId")
+                        .ValueGeneratedOnAdd()
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("Color");
+
+                    b.Property<string>("Description");
+
+                    b.Property<string>("Image");
+
+                    b.Property<bool>("IsArchived");
+
+                    b.Property<bool>("IsDeleted");
+
+                    b.Property<bool>("IsPin");
+
+                    b.Property<DateTime>("Reminder");
+
+                    b.Property<string>("Title");
+
+                    b.Property<int>("UserId");
+
+                    b.HasKey("NotesId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("NotesDetails");
+                });
+
             modelBuilder.Entity("FundooCommonLayer.ModelDB.UserDetails", b =>
                 {
-                    b.Property<Guid>("UserId")
-                        .ValueGeneratedOnAdd();
+                    b.Property<int>("UserId")
+                        .ValueGeneratedOnAdd()
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<DateTime>("CreatedAt");
 
@@ -53,11 +85,14 @@ namespace FundooRepositoryLayer.Migrations
                         .IsUnique();
 
                     b.ToTable("UserDetails");
+                });
 
-                    b.HasData(
-                        new { UserId = new Guid("af1e0f0a-f4d8-404a-b346-d2970c4079fb"), CreatedAt = new DateTime(2020, 1, 15, 19, 5, 42, 677, DateTimeKind.Local), EmailId = "rahulchaurasia@hotmail.com", FirstName = "Rahul", IsActive = true, LastName = "Chaurasia", ModifiedAt = new DateTime(2020, 1, 15, 19, 5, 42, 677, DateTimeKind.Local), Password = "123456789", Type = "Basic" },
-                        new { UserId = new Guid("7cc7fcb3-d6c0-4984-96d7-b4459ac0cc2f"), CreatedAt = new DateTime(2020, 1, 15, 19, 5, 42, 677, DateTimeKind.Local), EmailId = "rahulchaurasia92@hotmail.com", FirstName = "Rahul", IsActive = true, LastName = "Chaurasia", ModifiedAt = new DateTime(2020, 1, 15, 19, 5, 42, 677, DateTimeKind.Local), Password = "123456789", Type = "Advanced" }
-                    );
+            modelBuilder.Entity("FundooCommonLayer.ModelDB.NotesDetails", b =>
+                {
+                    b.HasOne("FundooCommonLayer.ModelDB.UserDetails")
+                        .WithMany("Notes")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 #pragma warning restore 612, 618
         }

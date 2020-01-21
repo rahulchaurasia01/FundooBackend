@@ -30,7 +30,7 @@ namespace FundooRepositoryLayer.Service
         /// </summary>
         /// <param name="forgetPassword">Email-Id</param>
         /// <returns>It return the Response Model to be Send as Response</returns>
-        public ResponseModel ForgetPassword(ForgetPasswordRequest forgetPassword)
+        public UserResponseModel ForgetPassword(ForgetPasswordRequest forgetPassword)
         {
             try
             {
@@ -38,7 +38,7 @@ namespace FundooRepositoryLayer.Service
 
                 if (data != null)
                 {
-                    var userData = new ResponseModel()
+                    var userData = new UserResponseModel()
                     {
                         UserId = data.UserId,
                         FirstName = data.FirstName,
@@ -64,7 +64,7 @@ namespace FundooRepositoryLayer.Service
         /// </summary>
         /// <param name="login">login parameter like email-id or password</param>
         /// <returns>It return the Response Model to be Send as Response</returns>
-        public ResponseModel Login(LoginRequest login)
+        public UserResponseModel Login(LoginRequest login)
         {
             try
             {
@@ -73,7 +73,7 @@ namespace FundooRepositoryLayer.Service
 
                 if (data != null)
                 {
-                    var userData = new ResponseModel()
+                    var userData = new UserResponseModel()
                     {
                         UserId = data.UserId,
                         FirstName = data.FirstName,
@@ -99,7 +99,7 @@ namespace FundooRepositoryLayer.Service
         /// </summary>
         /// <param name="userDetails">User Data</param>
         /// <returns>It return the Response Model to be Send as Response</returns>
-        public ResponseModel Registration(UserDetails userDetails)
+        public UserResponseModel Registration(UserDetails userDetails)
         {
             try
             {
@@ -109,7 +109,7 @@ namespace FundooRepositoryLayer.Service
                 context.UserDetails.Add(userDetails);
                 context.SaveChanges();
 
-                var data = new ResponseModel()
+                var data = new UserResponseModel()
                 {
                     UserId = userDetails.UserId,
                     FirstName = userDetails.FirstName,

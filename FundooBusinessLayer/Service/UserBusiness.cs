@@ -21,7 +21,7 @@ namespace FundooBusinessLayer.Service
         /// </summary>
         /// <param name="forgetPassword">Forget Password Model</param>
         /// <returns>It return Response Model if Successfull or else null</returns>
-        public ResponseModel ForgetPassword(ForgetPasswordRequest forgetPassword)
+        public UserResponseModel ForgetPassword(ForgetPasswordRequest forgetPassword)
         {
             try
             {
@@ -41,7 +41,7 @@ namespace FundooBusinessLayer.Service
         /// </summary>
         /// <param name="login">Login Model</param>
         /// <returns>It Return Response Model, If Login successfull or else null</returns>
-        public ResponseModel Login(LoginRequest login)
+        public UserResponseModel Login(LoginRequest login)
         {
             try
             {
@@ -61,7 +61,7 @@ namespace FundooBusinessLayer.Service
         /// </summary>
         /// <param name="userDetails"></param>
         /// <returns>Return ResponseModel if Successfull or else Null</returns>
-        public ResponseModel Registration(UserDetails userDetails)
+        public UserResponseModel Registration(UserDetails userDetails)
         {
             try
             {

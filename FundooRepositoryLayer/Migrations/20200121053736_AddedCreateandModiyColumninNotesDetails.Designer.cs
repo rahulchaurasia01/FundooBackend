@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FundooRepositoryLayer.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    [Migration("20200117051253_AddUserIdColumnWithIntDataType")]
-    partial class AddUserIdColumnWithIntDataType
+    [Migration("20200121053736_AddedCreateandModiyColumninNotesDetails")]
+    partial class AddedCreateandModiyColumninNotesDetails
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -20,6 +20,41 @@ namespace FundooRepositoryLayer.Migrations
                 .HasAnnotation("ProductVersion", "2.1.14-servicing-32113")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+            modelBuilder.Entity("FundooCommonLayer.ModelDB.NotesDetails", b =>
+                {
+                    b.Property<int>("NotesId")
+                        .ValueGeneratedOnAdd()
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("Color");
+
+                    b.Property<DateTime>("CreatedAt");
+
+                    b.Property<string>("Description");
+
+                    b.Property<string>("Image");
+
+                    b.Property<bool>("IsArchived");
+
+                    b.Property<bool>("IsDeleted");
+
+                    b.Property<bool>("IsPin");
+
+                    b.Property<DateTime>("ModifiedAt");
+
+                    b.Property<DateTime>("Reminder");
+
+                    b.Property<string>("Title");
+
+                    b.Property<int>("UserId");
+
+                    b.HasKey("NotesId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("NotesDetails");
+                });
 
             modelBuilder.Entity("FundooCommonLayer.ModelDB.UserDetails", b =>
                 {
@@ -54,6 +89,14 @@ namespace FundooRepositoryLayer.Migrations
                         .IsUnique();
 
                     b.ToTable("UserDetails");
+                });
+
+            modelBuilder.Entity("FundooCommonLayer.ModelDB.NotesDetails", b =>
+                {
+                    b.HasOne("FundooCommonLayer.ModelDB.UserDetails")
+                        .WithMany("Notes")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 #pragma warning restore 612, 618
         }

@@ -45,7 +45,7 @@ namespace FundooAppBackend.Controllers
         {
             try
             {
-                ResponseModel data = _userBusiness.Registration(userDetails);
+                UserResponseModel data = _userBusiness.Registration(userDetails);
                 bool status;
                 string message;
                 string token;
@@ -80,7 +80,7 @@ namespace FundooAppBackend.Controllers
         {
             try
             {
-                ResponseModel data = _userBusiness.Login(login);
+                UserResponseModel data = _userBusiness.Login(login);
                 bool status;
                 string message;
                 string token;
@@ -115,7 +115,7 @@ namespace FundooAppBackend.Controllers
         {
             try
             {
-                ResponseModel data = _userBusiness.ForgetPassword(forgetPassword);
+                UserResponseModel data = _userBusiness.ForgetPassword(forgetPassword);
                 bool status;
                 string message;
                 string token;
@@ -194,7 +194,7 @@ namespace FundooAppBackend.Controllers
         /// <param name="userToken">Response Model</param>
         /// <param name="type">Token Type</param>
         /// <returns>it return Token</returns>
-        private string GenerateToken(ResponseModel userToken, string type)
+        private string GenerateToken(UserResponseModel userToken, string type)
         {
             try
             {

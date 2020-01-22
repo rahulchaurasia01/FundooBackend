@@ -1,5 +1,5 @@
 ﻿/*
- *  Purpose: This layer interact with the Database.
+ *  Purpose: This layer interact with the Database of user Table .
  * 
  *  Author: Rahul Chaurasia
  *  Date: 16/1/2020

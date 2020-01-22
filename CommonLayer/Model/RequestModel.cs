@@ -51,6 +51,9 @@ namespace FundooCommonLayer.Model
 
     }
 
+    /// <summary>
+    /// Create Note Request: When Authenicated User tries to Create a Note
+    /// </summary>
     public class CreateNoteRequest
     {
         public string Title { set; get; }

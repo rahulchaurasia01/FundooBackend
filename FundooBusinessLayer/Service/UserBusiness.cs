@@ -1,4 +1,11 @@
-﻿using FundooBusinessLayer.Interface;
+﻿/*
+ *  Purpose: Business Layer for User Model
+ * 
+ *  Author: Rahul Chaurasia
+ *  Date: 16/1/2020
+ */
+
+using FundooBusinessLayer.Interface;
 using FundooCommonLayer.Model;
 using FundooCommonLayer.ModelDB;
 using FundooRepositoryLayer.Interface;

@@ -1,4 +1,13 @@
-﻿using System;
+﻿/*
+ *  Purpose: Its a Model for creating Database table "NotesDetails".
+ * 
+ *  Author: Rahul Chaurasia
+ *  Date: 20-01-2020
+ * 
+ */
+
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
@@ -21,6 +30,7 @@ namespace FundooCommonLayer.ModelDB
 
         public string Description { set; get; }
 
+        [RegularExpression("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$", ErrorMessage = "Enter a Valid Color")]
         public string Color { set; get; }
 
         public string Image { set; get; }

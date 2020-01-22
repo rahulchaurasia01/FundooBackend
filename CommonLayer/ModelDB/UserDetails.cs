@@ -1,5 +1,5 @@
 ﻿/*
- *  Purpose: Its a Model for creating Database table.
+ *  Purpose: Its a Model for creating Database table "UserDetails".
  * 
  *  Author: Rahul Chaurasia
  *  Date: 16-01-2020

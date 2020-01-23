@@ -9,19 +9,19 @@ namespace FundooRepositoryLayer.Interface
     public interface INotesRepository
     {
 
-        NotesDetails CreateNotes(CreateNoteRequest notesDetails, int userId);
+        NoteResponseModel CreateNotes(NoteRequest notesDetails, int userId);
 
-        NotesDetails GetNote(int NoteId, int UserId);
+        NoteResponseModel GetNote(int NoteId, int UserId);
 
-        List<NotesDetails> GetAllNotes(int userId);
+        List<NoteResponseModel> GetAllNotes(int userId);
 
-        List<NotesDetails> GetAllDeletedNotes(int userId);
+        List<NoteResponseModel> GetAllDeletedNotes(int userId);
 
-        List<NotesDetails> GetAllArchivedNotes(int userId);
+        List<NoteResponseModel> GetAllArchivedNotes(int userId);
 
-        List<NotesDetails> GetAllPinnedNotes(int userId);
+        List<NoteResponseModel> GetAllPinnedNotes(int userId);
 
-        NotesDetails UpdateNotes(NotesDetails notesDetails);
+        NoteResponseModel UpdateNotes(int noteId, int userId, NoteRequest updateNotesDetails);
 
         bool DeleteNote(int NoteId, int UserId);
 
@@ -29,7 +29,7 @@ namespace FundooRepositoryLayer.Interface
 
         bool RestoreDeletedNotes(int noteId, int userId);
 
-        List<NotesDetails> SortByReminderNotes(int userId);
+        List<NoteResponseModel> SortByReminderNotes(int userId);
 
     }
 }

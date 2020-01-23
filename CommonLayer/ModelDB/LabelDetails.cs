@@ -26,6 +26,7 @@ namespace FundooCommonLayer.ModelDB
         [ForeignKey("UserDetails")]
         public int UserId { set; get; }
 
+        [Required]
         public string Name { set; get; }
 
         public DateTime CreatedAt { set; get; }

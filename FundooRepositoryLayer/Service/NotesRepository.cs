@@ -32,11 +32,11 @@ namespace FundooRepositoryLayer.Service
         /// <param name="noteDetails">Note Data</param>
         /// <param name="userId">User Id</param>
         /// <returns>Notes Details</returns>
-        public NotesDetails CreateNotes(CreateNoteRequest noteDetails, int userId)
+        public NoteResponseModel CreateNotes(NoteRequest noteDetails, int userId)
         {
             try
             {
-                NotesDetails notesDetails = new NotesDetails
+                var notesDetails = new NotesDetails
                 {
                     UserId = userId,
                     Title = noteDetails.Title,
@@ -52,7 +52,23 @@ namespace FundooRepositoryLayer.Service
                 };
                 _applicationContext.NotesDetails.Add(notesDetails);
                 _applicationContext.SaveChanges();
-                return notesDetails;
+
+                var noteResponseModel = new NoteResponseModel()
+                {
+                    NoteId = notesDetails.NotesId,
+                    Title = noteDetails.Title,
+                    Description = noteDetails.Description,
+                    Color = noteDetails.Color,
+                    Image = noteDetails.Image,
+                    IsPin = noteDetails.IsPin,
+                    IsArchived = noteDetails.IsArchived,
+                    IsDeleted = noteDetails.IsDeleted,
+                    Reminder = noteDetails.Reminder,
+                    CreatedAt = notesDetails.CreatedAt,
+                    ModifiedAt = notesDetails.ModifiedAt
+                };
+
+                return noteResponseModel;
             }
             catch(Exception e)
             {
@@ -66,14 +82,34 @@ namespace FundooRepositoryLayer.Service
         /// <param name="NoteId">Note Id</param>
         /// <param name="UserId">user Id</param>
         /// <returns>Single Note Data</returns>
-        public NotesDetails GetNote(int NoteId, int UserId)
+        public NoteResponseModel GetNote(int NoteId, int UserId)
         {
             try
             {
                 NotesDetails notesDetails = _applicationContext.NotesDetails.
                     FirstOrDefault(note => note.NotesId == NoteId && note.UserId == UserId && !note.IsDeleted);
 
-                return notesDetails;
+                if(notesDetails != null)
+                {
+                    var noteResponseModel = new NoteResponseModel()
+                    {
+                        NoteId = notesDetails.NotesId,
+                        Title = notesDetails.Title,
+                        Description = notesDetails.Description,
+                        Color = notesDetails.Color,
+                        Image = notesDetails.Image,
+                        IsPin = notesDetails.IsPin,
+                        IsArchived = notesDetails.IsArchived,
+                        IsDeleted = notesDetails.IsDeleted,
+                        Reminder = notesDetails.Reminder,
+                        CreatedAt = notesDetails.CreatedAt,
+                        ModifiedAt = notesDetails.ModifiedAt
+                    };
+
+                    return noteResponseModel;
+                }
+
+                return null;
             }
             catch (Exception e)
             {
@@ -86,12 +122,24 @@ namespace FundooRepositoryLayer.Service
         /// </summary>
         /// <param name="userId">User Id</param>
         /// <returns>List Of All the Notes</returns>
-        public List<NotesDetails> GetAllNotes(int userId)
+        public List<NoteResponseModel> GetAllNotes(int userId)
         {
             try
             {
-                List<NotesDetails> notesDetails = _applicationContext.NotesDetails.
+                List<NoteResponseModel> notesDetails = _applicationContext.NotesDetails.
                     Where(note => (note.UserId == userId) && !note.IsDeleted && !note.IsArchived).
+                    Select(note => new NoteResponseModel {
+                           NoteId = note.NotesId,
+                           Title = note.Title,
+                           Description = note.Description,
+                           Color = note.Color,
+                           Image = note.Image,
+                           IsPin = note.IsPin,
+                           IsArchived = note.IsArchived,
+                           IsDeleted = note.IsDeleted,
+                           Reminder = note.Reminder,
+                           CreatedAt = note.CreatedAt,
+                           ModifiedAt = note.ModifiedAt}).
                     ToList();
 
                 return notesDetails;
@@ -107,12 +155,26 @@ namespace FundooRepositoryLayer.Service
         /// </summary>
         /// <param name="userId">User Id</param>
         /// <returns>List Of All the Deleted Notes</returns>
-        public List<NotesDetails> GetAllDeletedNotes(int userId)
+        public List<NoteResponseModel> GetAllDeletedNotes(int userId)
         {
             try
             {
-                List<NotesDetails> notesDetails = _applicationContext.NotesDetails.
+                List<NoteResponseModel> notesDetails = _applicationContext.NotesDetails.
                     Where(note => (note.UserId == userId) && note.IsDeleted).
+                    Select(note => new NoteResponseModel
+                    {
+                        NoteId = note.NotesId,
+                        Title = note.Title,
+                        Description = note.Description,
+                        Color = note.Color,
+                        Image = note.Image,
+                        IsPin = note.IsPin,
+                        IsArchived = note.IsArchived,
+                        IsDeleted = note.IsDeleted,
+                        Reminder = note.Reminder,
+                        CreatedAt = note.CreatedAt,
+                        ModifiedAt = note.ModifiedAt
+                    }).
                     ToList();
 
                 return notesDetails;
@@ -128,12 +190,26 @@ namespace FundooRepositoryLayer.Service
         /// </summary>
         /// <param name="userId">User Id</param>
         /// <returns>List Of All Archived Notes</returns>
-        public List<NotesDetails> GetAllArchivedNotes(int userId)
+        public List<NoteResponseModel> GetAllArchivedNotes(int userId)
         {
             try
             {
-                List<NotesDetails> notesDetails = _applicationContext.NotesDetails.
+                List<NoteResponseModel> notesDetails = _applicationContext.NotesDetails.
                     Where(note => (note.UserId == userId) && note.IsArchived).
+                    Select(note => new NoteResponseModel
+                    {
+                        NoteId = note.NotesId,
+                        Title = note.Title,
+                        Description = note.Description,
+                        Color = note.Color,
+                        Image = note.Image,
+                        IsPin = note.IsPin,
+                        IsArchived = note.IsArchived,
+                        IsDeleted = note.IsDeleted,
+                        Reminder = note.Reminder,
+                        CreatedAt = note.CreatedAt,
+                        ModifiedAt = note.ModifiedAt
+                    }).
                     ToList();
 
                 return notesDetails;
@@ -149,12 +225,26 @@ namespace FundooRepositoryLayer.Service
         /// </summary>
         /// <param name="userId">User Id</param>
         /// <returns>Return All Pinned Notes</returns>
-        public List<NotesDetails> GetAllPinnedNotes(int userId)
+        public List<NoteResponseModel> GetAllPinnedNotes(int userId)
         {
             try
             {
-                List<NotesDetails> notesDetails = _applicationContext.NotesDetails.
+                List<NoteResponseModel> notesDetails = _applicationContext.NotesDetails.
                     Where(note => (note.UserId == userId) && note.IsPin).
+                    Select(note => new NoteResponseModel
+                    {
+                        NoteId = note.NotesId,
+                        Title = note.Title,
+                        Description = note.Description,
+                        Color = note.Color,
+                        Image = note.Image,
+                        IsPin = note.IsPin,
+                        IsArchived = note.IsArchived,
+                        IsDeleted = note.IsDeleted,
+                        Reminder = note.Reminder,
+                        CreatedAt = note.CreatedAt,
+                        ModifiedAt = note.ModifiedAt
+                    }).
                     ToList();
 
                 return notesDetails;
@@ -170,31 +260,47 @@ namespace FundooRepositoryLayer.Service
         /// </summary>
         /// <param name="notesDetails">Note data</param>
         /// <returns>Return Updated Notes</returns>
-        public NotesDetails UpdateNotes(NotesDetails notesDetails)
+        public NoteResponseModel UpdateNotes(int noteId, int userId, NoteRequest updateNotesDetails)
         {
             try
             {
-                NotesDetails notesDetails1 = _applicationContext.NotesDetails.FirstOrDefault(note => note.NotesId == notesDetails.NotesId);
+                NotesDetails notesDetails1 = _applicationContext.NotesDetails.
+                    FirstOrDefault(note => note.NotesId == noteId && note.UserId == userId);
 
                 if(notesDetails1 != null)
                 {
-                    notesDetails1.Title = notesDetails.Title;
-                    notesDetails1.Description = notesDetails.Description;
-                    notesDetails1.Color = notesDetails.Color;
-                    notesDetails1.Image = notesDetails.Image;
-                    notesDetails1.IsPin = notesDetails.IsPin;
-                    notesDetails1.IsArchived = notesDetails.IsArchived;
-                    notesDetails1.IsDeleted = notesDetails.IsDeleted;
-                    notesDetails1.Reminder = notesDetails.Reminder;
+                    notesDetails1.Title = updateNotesDetails.Title;
+                    notesDetails1.Description = updateNotesDetails.Description;
+                    notesDetails1.Color = updateNotesDetails.Color;
+                    notesDetails1.Image = updateNotesDetails.Image;
+                    notesDetails1.IsPin = updateNotesDetails.IsPin;
+                    notesDetails1.IsArchived = updateNotesDetails.IsArchived;
+                    notesDetails1.IsDeleted = updateNotesDetails.IsDeleted;
+                    notesDetails1.Reminder = updateNotesDetails.Reminder;
                     notesDetails1.ModifiedAt = DateTime.Now;
 
                     var note = _applicationContext.NotesDetails.Attach(notesDetails1);
                     note.State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                     _applicationContext.SaveChanges();
 
-                    return notesDetails1;
+                    var noteResponseModel = new NoteResponseModel()
+                    {
+                        NoteId = notesDetails1.NotesId,
+                        Title = notesDetails1.Title,
+                        Description = notesDetails1.Description,
+                        Color = notesDetails1.Color,
+                        Image = notesDetails1.Image,
+                        IsPin = notesDetails1.IsPin,
+                        IsArchived = notesDetails1.IsArchived,
+                        IsDeleted = notesDetails1.IsDeleted,
+                        Reminder = notesDetails1.Reminder,
+                        CreatedAt = notesDetails1.CreatedAt,
+                        ModifiedAt = notesDetails1.ModifiedAt
+                    };
+
+                    return noteResponseModel;
                 }
-                return notesDetails1;
+                return null;
             }
             catch(Exception e)
             {
@@ -303,12 +409,27 @@ namespace FundooRepositoryLayer.Service
         /// </summary>
         /// <param name="userId">User Id</param>
         /// <returns>List Of Notes By Reminder Order</returns>
-        public List<NotesDetails> SortByReminderNotes(int userId)
+        public List<NoteResponseModel> SortByReminderNotes(int userId)
         {
             try
             {
-                List<NotesDetails> notesDetails = _applicationContext.NotesDetails.
-                    Where(note => note.UserId == userId).ToList();
+                List<NoteResponseModel> notesDetails = _applicationContext.NotesDetails.
+                    Where(note => note.UserId == userId).
+                    Select(note => new NoteResponseModel
+                    {
+                        NoteId = note.NotesId,
+                        Title = note.Title,
+                        Description = note.Description,
+                        Color = note.Color,
+                        Image = note.Image,
+                        IsPin = note.IsPin,
+                        IsArchived = note.IsArchived,
+                        IsDeleted = note.IsDeleted,
+                        Reminder = note.Reminder,
+                        CreatedAt = note.CreatedAt,
+                        ModifiedAt = note.ModifiedAt
+                    }).
+                    ToList();
 
                 if (notesDetails != null && notesDetails.Count > 0)
                 {

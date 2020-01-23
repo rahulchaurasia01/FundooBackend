@@ -52,9 +52,9 @@ namespace FundooCommonLayer.Model
     }
 
     /// <summary>
-    /// Create Note Request: When Authenicated User tries to Create a Note
+    /// Note Request: When Authenicated User tries to Create or Update a Note
     /// </summary>
-    public class CreateNoteRequest
+    public class NoteRequest
     {
         public string Title { set; get; }
 
@@ -75,6 +75,16 @@ namespace FundooCommonLayer.Model
 
         public DateTime Reminder { set; get; }
     }
+
+    /// <summary>
+    /// Create a New Label for notes
+    /// </summary>
+    public class LabelRequest
+    {
+        [Required]
+        public string Name { set; get; }
+    }
+
 
 
 }

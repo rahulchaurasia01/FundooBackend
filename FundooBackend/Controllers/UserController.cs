@@ -128,18 +128,10 @@ namespace FundooAppBackend.Controllers
                 else
                 {
                     token = GenerateToken(data, _forgetPassword);
-                    MsmqSender.SendToMsmq(token);
-                    status = MsmqReceiver.ReceiveMsmq(forgetPassword);
-                    if (status)
-                    {
-                        message = "An Password Reset Link has been Send to the above Email";
-                        return Ok(new { status, message, token });
-                    }
-                    else
-                    {
-                        message = "Unable to Send the Email.";
-                        return NotFound(new { status, message });
-                    }
+                    MsmqSender.SendToMsmq(forgetPassword.EmailId, token);
+                    status = true;
+                    message = "An Password Reset Link has been Send to the above Email";
+                    return Ok(new { status, message, token });
                 }
             }
             catch (Exception e)

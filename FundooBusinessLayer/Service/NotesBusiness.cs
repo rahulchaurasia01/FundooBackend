@@ -31,7 +31,7 @@ namespace FundooBusinessLayer.Service
         /// <param name="notesDetails">Note Data</param>
         /// <param name="userId">User Id Which has created the Note</param>
         /// <returns>Note data</returns>
-        public NotesDetails CreateNotes(CreateNoteRequest notesDetails, int userId)
+        public NoteResponseModel CreateNotes(NoteRequest notesDetails, int userId)
         {
             try
             {
@@ -52,7 +52,7 @@ namespace FundooBusinessLayer.Service
         /// <param name="NoteId">Note Id</param>
         /// <param name="UserId">User Id</param>
         /// <returns>Note Data</returns>
-        public NotesDetails GetNote(int NoteId, int UserId)
+        public NoteResponseModel GetNote(int NoteId, int UserId)
         {
 
             if (NoteId <= 0 || UserId <= 0)
@@ -67,7 +67,7 @@ namespace FundooBusinessLayer.Service
         /// </summary>
         /// <param name="userId">User Id</param>
         /// <returns>Return null, if user is not authenicated else List of all the Notes.</returns>
-        public List<NotesDetails> GetAllNotes(int userId)
+        public List<NoteResponseModel> GetAllNotes(int userId)
         {
             if (userId <= 0)
                 return null;
@@ -80,7 +80,7 @@ namespace FundooBusinessLayer.Service
         /// </summary>
         /// <param name="userId">User Id</param>
         /// <returns>Return null, If No Deleted Notes Found else list of deleted notes</returns>
-        public List<NotesDetails> GetAllDeletedNotes(int userId)
+        public List<NoteResponseModel> GetAllDeletedNotes(int userId)
         {
             if (userId <= 0)
                 return null;
@@ -93,7 +93,7 @@ namespace FundooBusinessLayer.Service
         /// </summary>
         /// <param name="userId">user Id</param>
         /// <returns>Return null, If No Archived Notes Found else list of Archived notes</returns>
-        public List<NotesDetails> GetAllArchivedNotes(int userId)
+        public List<NoteResponseModel> GetAllArchivedNotes(int userId)
         {
             if (userId <= 0)
                 return null;
@@ -106,7 +106,7 @@ namespace FundooBusinessLayer.Service
         /// </summary>
         /// <param name="userId">User Id</param>
         /// <returns>Return null, If No Pinned Notes Found else list of pinned notes</returns>
-        public List<NotesDetails> GetAllPinnedNotes(int userId)
+        public List<NoteResponseModel> GetAllPinnedNotes(int userId)
         {
             if (userId <= 0)
                 return null;
@@ -119,12 +119,12 @@ namespace FundooBusinessLayer.Service
         /// </summary>
         /// <param name="notesDetails">Note Data</param>
         /// <returns>return Updated Notes, if Successfull, or else null</returns>
-        public NotesDetails UpdateNotes(NotesDetails notesDetails)
+        public NoteResponseModel UpdateNotes(int noteId, int userId, NoteRequest updateNotesDetails)
         {
-            if (notesDetails == null)
+            if (noteId <= 0 || userId <= 0 || updateNotesDetails == null)
                 return null;
             else
-                return _notesRepository.UpdateNotes(notesDetails);
+                return _notesRepository.UpdateNotes(noteId, userId, updateNotesDetails);
         }
 
         /// <summary>
@@ -175,7 +175,7 @@ namespace FundooBusinessLayer.Service
         /// </summary>
         /// <param name="userId">user iD</param>
         /// <returns>Return Sort List</returns>
-        public List<NotesDetails> SortByReminderNotes(int userId)
+        public List<NoteResponseModel> SortByReminderNotes(int userId)
         {
             if (userId <= 0)
                 return null;

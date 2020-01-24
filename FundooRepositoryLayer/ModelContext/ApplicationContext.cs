@@ -20,6 +20,8 @@ namespace FundooRepositoryLayer.ModelContext
 
         public DbSet<LabelDetails> LabelDetails { set; get; }
 
+        public DbSet<NotesLabel> NotesLabels { set; get; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<UserDetails>()

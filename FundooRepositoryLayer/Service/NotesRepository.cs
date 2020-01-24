@@ -36,6 +36,7 @@ namespace FundooRepositoryLayer.Service
         {
             try
             {
+
                 var notesDetails = new NotesDetails
                 {
                     UserId = userId,
@@ -52,6 +53,23 @@ namespace FundooRepositoryLayer.Service
                 };
                 _applicationContext.NotesDetails.Add(notesDetails);
                 _applicationContext.SaveChanges();
+
+                if (noteDetails.Label != null && noteDetails.Label.Count != 0)
+                {
+                    List<NotesLabelRequest> labelRequests = noteDetails.Label;
+                    foreach (NotesLabelRequest labelRequest in labelRequests)
+                    {
+                        var data = new NotesLabel
+                        {
+                            LabelId = labelRequest.LabelId,
+                            NotesId = notesDetails.NotesId
+                        };
+
+                        _applicationContext.NotesLabels.Add(data);
+                        _applicationContext.SaveChanges();
+
+                    }
+                }
 
                 var noteResponseModel = new NoteResponseModel()
                 {

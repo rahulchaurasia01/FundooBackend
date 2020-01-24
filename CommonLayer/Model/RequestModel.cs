@@ -30,7 +30,6 @@ namespace FundooCommonLayer.Model
     /// </summary>
     public class ResetPasswordRequest
     {
-        public int UserId { set; get; }
 
         [Required]
         public string Password { set; get; }
@@ -48,6 +47,29 @@ namespace FundooCommonLayer.Model
 
         [Required]
         public string Password { set; get; }
+
+    }
+
+    /// <summary>
+    /// Register Request: To Register the new Uswe
+    /// </summary>
+    public class RegisterRequest
+    {
+        [Required]
+        public string FirstName { set; get; }
+
+        [Required]
+        public string LastName { set; get; }
+
+        [Required]
+        [EmailAddress]
+        public string EmailId { set; get; }
+
+        [Required]
+        public string Password { set; get; }
+
+        [Required]
+        public string Type { set; get; }
 
     }
 
@@ -74,15 +96,25 @@ namespace FundooCommonLayer.Model
         public bool IsDeleted { set; get; }
 
         public DateTime Reminder { set; get; }
+
+        public List<NotesLabelRequest> Label { set; get; }
     }
 
     /// <summary>
-    /// Create a New Label for notes
+    /// Create a New Label
     /// </summary>
     public class LabelRequest
     {
         [Required]
         public string Name { set; get; }
+    }
+
+    /// <summary>
+    /// Add A label for a Notes
+    /// </summary>
+    public class NotesLabelRequest
+    {
+        public int LabelId { set; get; }
     }
 
 

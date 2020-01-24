@@ -25,9 +25,8 @@ namespace FundooAppBackend.Controllers
             _labelBusiness = labelBusiness;
         }
 
-
         [HttpPost]
-        public async Task<IActionResult> CreateLabel(LabelRequest label)
+        public async Task<IActionResult> CreateLabel([FromBody]LabelRequest label)
         {
             try
             {
@@ -62,7 +61,7 @@ namespace FundooAppBackend.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllLabel()
+        public IActionResult GetAllLabel()
         {
             try
             {
@@ -74,8 +73,8 @@ namespace FundooAppBackend.Controllers
                     if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
                     {
                         int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
-                        List<LabelResponseModel> data = await _labelBusiness.GetAllLabel(UserId);
-                        if (data != null)
+                        List<LabelResponseModel> data = _labelBusiness.GetAllLabel(UserId);
+                        if (data != null && data.Count > 0)
                         {
                             status = true;
                             message = "List Of All the Label.";
@@ -95,6 +94,109 @@ namespace FundooAppBackend.Controllers
                 return BadRequest(new { e.Message });
             }
         }
+
+        [HttpGet("{LabelId}")]
+        public IActionResult GetNoteByLabelId(int LabelId)
+        {
+            try
+            {
+                var user = HttpContext.User;
+                bool status = false;
+                string message;
+                if (user.HasClaim(c => c.Type == "TokenType"))
+                {
+                    if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
+                    {
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+                        List<NoteResponseModel> data = _labelBusiness.GetNoteByLabelId(LabelId);
+                        if (data != null && data.Count > 0)
+                        {
+                            status = true;
+                            message = "Here is the list of notes present by this label.";
+                            return Ok(new { status, message, data });
+                        }
+                        message = "No Notes Present for this label";
+                        return NotFound(new { status, message });
+                    }
+                }
+                message = "Invalid Token";
+                return BadRequest(new { status, message });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { e.Message });
+            }
+        }
+
+        [HttpPut("{LabelId}")]
+        public async Task<IActionResult> UpdateLabel([FromBody] LabelRequest updateLabel, int LabelId)
+        {
+            try
+            {
+                var user = HttpContext.User;
+                bool status;
+                string message;
+                if (user.HasClaim(c => c.Type == "TokenType"))
+                {
+                    if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
+                    {
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+                        LabelResponseModel data = await _labelBusiness.UpdateLabel(updateLabel, LabelId);
+                        if (data != null)
+                        {
+                            status = true;
+                            message = "Label has been Updated Successfully.";
+                            return Ok(new { status, message, data });
+                        }
+                        status = false;
+                        message = "Unable to Update the label.";
+                        return NotFound(new { status, message });
+                    }
+                }
+                status = false;
+                message = "Invalid Token";
+                return BadRequest(new { status, message });
+            }
+            catch(Exception e)
+            {
+                return BadRequest(new { e.Message });
+            }
+        }
+
+        [HttpDelete("{LabelId}")]
+        public async Task<IActionResult> DeleteLabel(int LabelId)
+        {
+            try
+            {
+                var user = HttpContext.User;
+                bool status;
+                string message;
+                if (user.HasClaim(c => c.Type == "TokenType"))
+                {
+                    if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
+                    {
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+                        status = await _labelBusiness.DeleteLabel(LabelId);
+                        if (status)
+                        {
+                            message = "Label has been Deleted Successfully.";
+                            return Ok(new { status, message});
+                        }
+                        message = "Unable to Delete the label.";
+                        return NotFound(new { status, message });
+                    }
+                }
+                status = false;
+                message = "Invalid Token";
+                return BadRequest(new { status, message });
+            }
+            catch(Exception e)
+            {
+                return BadRequest(new { e.Message });
+            }
+        }
+
+
 
     }
 }

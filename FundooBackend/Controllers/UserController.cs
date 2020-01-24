@@ -41,7 +41,7 @@ namespace FundooAppBackend.Controllers
         /// <returns>It return 200 and Data If registration is Successfull or else 404</returns>
         [HttpPost]
         [Route("Registration")]
-        public IActionResult Registration([FromBody] UserDetails userDetails)
+        public IActionResult Registration([FromBody] RegisterRequest userDetails)
         {
             try
             {
@@ -159,8 +159,8 @@ namespace FundooAppBackend.Controllers
                 {
                     if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _forgetPassword)
                     {
-                        resetPassword.UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
-                        status = _userBusiness.ResetPassword(resetPassword);
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+                        status = _userBusiness.ResetPassword(resetPassword, UserId);
                         if(status)
                         {
                             status = true;

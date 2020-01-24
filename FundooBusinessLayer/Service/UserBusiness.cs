@@ -68,7 +68,7 @@ namespace FundooBusinessLayer.Service
         /// </summary>
         /// <param name="userDetails"></param>
         /// <returns>Return ResponseModel if Successfull or else Null</returns>
-        public UserResponseModel Registration(UserDetails userDetails)
+        public UserResponseModel Registration(RegisterRequest userDetails)
         {
             try
             {
@@ -88,14 +88,14 @@ namespace FundooBusinessLayer.Service
         /// </summary>
         /// <param name="resetPassword">Reset Password Model</param>
         /// <returns>It Return true if reset is successfull or else false.</returns>
-        public bool ResetPassword(ResetPasswordRequest resetPassword)
+        public bool ResetPassword(ResetPasswordRequest resetPassword, int userId)
         {
             try
             {
-                if (resetPassword.UserId == 0 || resetPassword.Password == null)
+                if (userId <= 0 || resetPassword.Password == null)
                     return false;
                 else
-                    return _userRepository.ResetPassword(resetPassword);
+                    return _userRepository.ResetPassword(resetPassword, userId);
             }
             catch(Exception e)
             {

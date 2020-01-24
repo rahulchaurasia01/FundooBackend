@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace FundooRepositoryLayer.Service
 {
@@ -99,26 +100,38 @@ namespace FundooRepositoryLayer.Service
         /// </summary>
         /// <param name="userDetails">User Data</param>
         /// <returns>It return the Response Model to be Send as Response</returns>
-        public UserResponseModel Registration(UserDetails userDetails)
+        public UserResponseModel Registration(RegisterRequest userDetails)
         {
             try
             {
                 userDetails.Password = EncodeDecode.EncodePasswordToBase64(userDetails.Password);
-                userDetails.CreatedAt = DateTime.Now;
-                userDetails.ModifiedAt = DateTime.Now;
-                context.UserDetails.Add(userDetails);
+
+                var userData = new UserDetails
+                {
+                    FirstName = userDetails.FirstName,
+                    LastName = userDetails.LastName,
+                    EmailId = userDetails.EmailId,
+                    Password = userDetails.Password,
+                    Type = userDetails.Type,
+                    IsActive = true,
+                    CreatedAt = DateTime.Now,
+                    ModifiedAt = DateTime.Now
+
+                };
+                
+                context.UserDetails.Add(userData);
                 context.SaveChanges();
 
                 var data = new UserResponseModel()
                 {
-                    UserId = userDetails.UserId,
-                    FirstName = userDetails.FirstName,
-                    LastName = userDetails.LastName,
-                    EmailId = userDetails.EmailId,
-                    Type = userDetails.Type,
-                    IsActive = userDetails.IsActive,
-                    CreatedAt = userDetails.CreatedAt,
-                    ModifiedAt = userDetails.ModifiedAt
+                    UserId = userData.UserId,
+                    FirstName = userData.FirstName,
+                    LastName = userData.LastName,
+                    EmailId = userData.EmailId,
+                    Type = userData.Type,
+                    IsActive = userData.IsActive,
+                    CreatedAt = userData.CreatedAt,
+                    ModifiedAt = userData.ModifiedAt
                 };
 
                 return data;
@@ -134,11 +147,11 @@ namespace FundooRepositoryLayer.Service
         /// </summary>
         /// <param name="resetPassword">ResetPassword Model</param>
         /// <returns>Return True if reset is successfull or else false</returns>
-        public bool ResetPassword(ResetPasswordRequest resetPassword)
+        public bool ResetPassword(ResetPasswordRequest resetPassword, int userId)
         {
             try
             {
-                UserDetails userDetails = context.UserDetails.FirstOrDefault(usr => usr.UserId == resetPassword.UserId);
+                UserDetails userDetails = context.UserDetails.FirstOrDefault(usr => usr.UserId == userId);
 
                 if (userDetails != null)
                 {

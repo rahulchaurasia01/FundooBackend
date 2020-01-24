@@ -21,8 +21,6 @@ namespace FundooCommonLayer.ModelDB
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int LabelId { set; get; }
 
-        public int? NotesId { set; get; }
-
         [ForeignKey("UserDetails")]
         public int UserId { set; get; }
 

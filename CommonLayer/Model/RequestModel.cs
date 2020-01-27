@@ -118,5 +118,4 @@ namespace FundooCommonLayer.Model
     }
 
 
-
 }

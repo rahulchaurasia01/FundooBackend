@@ -17,6 +17,7 @@ namespace FundooCommonLayer.ModelDB
     [Table("LabelDetails")]
     public class LabelDetails
     {
+
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int LabelId { set; get; }
@@ -30,6 +31,8 @@ namespace FundooCommonLayer.ModelDB
         public DateTime CreatedAt { set; get; }
 
         public DateTime ModifiedAt { set; get; }
+
+        public List<NotesLabel> Notes { set; get; }
 
     }
 }

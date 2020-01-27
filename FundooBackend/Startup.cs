@@ -51,7 +51,14 @@ namespace FundooBackend
                         ValidAudience = Configuration["Jwt:Issuer"],
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Jwt:Key"]))
                     };
+                })
+                .AddGoogle(options =>
+                {
+                    options.ClientId = Configuration["Google:client_id"];
+                    options.ClientSecret = Configuration["Google:client_secret"];
                 });
+
+            
 
             services.AddSwaggerGen(swag =>
             {

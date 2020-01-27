@@ -347,7 +347,7 @@ namespace FundooAppBackend.Controllers
 
         [HttpPost]
         [Route("Restore/{NoteId}")]
-        public IActionResult RestoreDeletedNotes(int noteId)
+        public IActionResult RestoreDeletedNotes(int NoteId)
         {
             try
             {
@@ -359,7 +359,7 @@ namespace FundooAppBackend.Controllers
                     if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
                     {
                         int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
-                        status = _notesBusiness.RestoreDeletedNotes(noteId, UserId);
+                        status = _notesBusiness.RestoreDeletedNotes(NoteId, UserId);
                         if (status)
                         {
                             message = "Your Notes has Been Successfully Restored";

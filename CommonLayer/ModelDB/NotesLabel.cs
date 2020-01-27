@@ -16,6 +16,7 @@ namespace FundooCommonLayer.ModelDB
         [ForeignKey("NotesDetails")]
         public int NotesId { set; get; }
 
+
         [ForeignKey("LabelDetails")]
         public int LabelId { set; get; }
 

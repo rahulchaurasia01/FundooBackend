@@ -6,6 +6,7 @@
  *  Date: 17-01-2020
  */
 
+using FundooCommonLayer.ModelDB;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -64,6 +65,7 @@ namespace FundooCommonLayer.Model
 
         public DateTime ModifiedAt { set; get; }
 
+        public List<LabelResponseModel> Labels { set; get; }
 
     }
 
@@ -76,6 +78,7 @@ namespace FundooCommonLayer.Model
         public DateTime CreatedAt { set; get; }
 
         public DateTime ModifiedAt { set; get; }
+
     }
 
 }

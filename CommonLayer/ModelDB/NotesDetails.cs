@@ -7,6 +7,7 @@
  */
 
 
+using FundooCommonLayer.Model;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -49,6 +50,9 @@ namespace FundooCommonLayer.ModelDB
         public DateTime CreatedAt { set; get; }
 
         public DateTime ModifiedAt { set; get; }
+
+
+        public List<NotesLabel> Labels { set; get; }
 
     }
 }

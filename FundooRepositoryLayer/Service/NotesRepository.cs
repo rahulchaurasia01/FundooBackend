@@ -59,17 +59,35 @@ namespace FundooRepositoryLayer.Service
                     List<NotesLabelRequest> labelRequests = noteDetails.Label;
                     foreach (NotesLabelRequest labelRequest in labelRequests)
                     {
-                        var data = new NotesLabel
+                        if (labelRequest.LabelId > 0)
                         {
-                            LabelId = labelRequest.LabelId,
-                            NotesId = notesDetails.NotesId
-                        };
+                            var data = new NotesLabel
+                            {
+                                LabelId = labelRequest.LabelId,
+                                NotesId = notesDetails.NotesId
+                            };
 
-                        _applicationContext.NotesLabels.Add(data);
-                        _applicationContext.SaveChanges();
+                            _applicationContext.NotesLabels.Add(data);
+                            _applicationContext.SaveChanges();
+                        }
 
                     }
                 }
+
+                List<LabelResponseModel> labels = _applicationContext.NotesLabels.
+                    Where(note => note.NotesId == notesDetails.NotesId).
+                    Join(_applicationContext.LabelDetails,
+                    noteLabel => noteLabel.LabelId,
+                    label => label.LabelId,
+                    (noteLabel, label) => new LabelResponseModel
+                    {
+                        LabelId = noteLabel.LabelId,
+                        Name = label.Name,
+                        CreatedAt = label.CreatedAt,
+                        ModifiedAt = label.ModifiedAt
+
+                    }).
+                    ToList();
 
                 var noteResponseModel = new NoteResponseModel()
                 {
@@ -83,7 +101,8 @@ namespace FundooRepositoryLayer.Service
                     IsDeleted = noteDetails.IsDeleted,
                     Reminder = noteDetails.Reminder,
                     CreatedAt = notesDetails.CreatedAt,
-                    ModifiedAt = notesDetails.ModifiedAt
+                    ModifiedAt = notesDetails.ModifiedAt,
+                    Labels = labels
                 };
 
                 return noteResponseModel;
@@ -107,6 +126,21 @@ namespace FundooRepositoryLayer.Service
                 NotesDetails notesDetails = _applicationContext.NotesDetails.
                     FirstOrDefault(note => note.NotesId == NoteId && note.UserId == UserId && !note.IsDeleted);
 
+                List<LabelResponseModel> labels = _applicationContext.NotesLabels.
+                    Where(note => note.NotesId == NoteId).
+                    Join(_applicationContext.LabelDetails,
+                    noteLabel => noteLabel.LabelId,
+                    label => label.LabelId,
+                    (noteLabel, label) => new LabelResponseModel
+                    {
+                        LabelId = noteLabel.LabelId,
+                        Name = label.Name,
+                        CreatedAt = label.CreatedAt,
+                        ModifiedAt = label.ModifiedAt
+
+                    }).
+                    ToList();
+
                 if(notesDetails != null)
                 {
                     var noteResponseModel = new NoteResponseModel()
@@ -121,7 +155,9 @@ namespace FundooRepositoryLayer.Service
                         IsDeleted = notesDetails.IsDeleted,
                         Reminder = notesDetails.Reminder,
                         CreatedAt = notesDetails.CreatedAt,
-                        ModifiedAt = notesDetails.ModifiedAt
+                        ModifiedAt = notesDetails.ModifiedAt,
+                        Labels = labels
+
                     };
 
                     return noteResponseModel;
@@ -144,23 +180,46 @@ namespace FundooRepositoryLayer.Service
         {
             try
             {
-                List<NoteResponseModel> notesDetails = _applicationContext.NotesDetails.
-                    Where(note => (note.UserId == userId) && !note.IsDeleted && !note.IsArchived).
-                    Select(note => new NoteResponseModel {
-                           NoteId = note.NotesId,
-                           Title = note.Title,
-                           Description = note.Description,
-                           Color = note.Color,
-                           Image = note.Image,
-                           IsPin = note.IsPin,
-                           IsArchived = note.IsArchived,
-                           IsDeleted = note.IsDeleted,
-                           Reminder = note.Reminder,
-                           CreatedAt = note.CreatedAt,
-                           ModifiedAt = note.ModifiedAt}).
+                List<NoteResponseModel> notes = _applicationContext.NotesDetails.Where(note => (note.UserId == userId) && !note.IsDeleted && !note.IsArchived).
+                    Select(note => new NoteResponseModel { 
+                        NoteId = note.NotesId,
+                        Title = note.Title,
+                        Description = note.Description,
+                        Color = note.Color,
+                        Image = note.Image,
+                        IsPin = note.IsPin,
+                        IsArchived = note.IsArchived,
+                        IsDeleted = note.IsDeleted,
+                        Reminder = note.Reminder,
+                        CreatedAt = note.CreatedAt,
+                        ModifiedAt = note.ModifiedAt
+                    }).
                     ToList();
 
-                return notesDetails;
+                if(notes != null && notes.Count != 0)
+                {
+                    foreach(NoteResponseModel note in notes)
+                    {
+                        List<LabelResponseModel> labels = _applicationContext.NotesLabels.
+                        Where(noted => noted.NotesId == note.NoteId).
+                        Join(_applicationContext.LabelDetails,
+                        noteLabel => noteLabel.LabelId,
+                        label => label.LabelId,
+                        (noteLabel, label) => new LabelResponseModel
+                        {
+                            LabelId = noteLabel.LabelId,
+                            Name = label.Name,
+                            CreatedAt = label.CreatedAt,
+                            ModifiedAt = label.ModifiedAt
+
+                        }).
+                        ToList();
+
+                        note.Labels = labels;
+                    }
+                }
+
+                return notes;
             }
             catch(Exception e)
             {
@@ -194,6 +253,30 @@ namespace FundooRepositoryLayer.Service
                         ModifiedAt = note.ModifiedAt
                     }).
                     ToList();
+
+                if (notesDetails != null && notesDetails.Count != 0)
+                {
+                    foreach (NoteResponseModel note in notesDetails)
+                    {
+                        List<LabelResponseModel> labels = _applicationContext.NotesLabels.
+                        Where(noted => noted.NotesId == note.NoteId).
+                        Join(_applicationContext.LabelDetails,
+                        noteLabel => noteLabel.LabelId,
+                        label => label.LabelId,
+                        (noteLabel, label) => new LabelResponseModel
+                        {
+                            LabelId = noteLabel.LabelId,
+                            Name = label.Name,
+                            CreatedAt = label.CreatedAt,
+                            ModifiedAt = label.ModifiedAt
+
+                        }).
+                        ToList();
+
+                        note.Labels = labels;
+                    }
+                }
+
 
                 return notesDetails;
             }
@@ -230,6 +313,29 @@ namespace FundooRepositoryLayer.Service
                     }).
                     ToList();
 
+                if (notesDetails != null && notesDetails.Count != 0)
+                {
+                    foreach (NoteResponseModel note in notesDetails)
+                    {
+                        List<LabelResponseModel> labels = _applicationContext.NotesLabels.
+                        Where(noted => noted.NotesId == note.NoteId).
+                        Join(_applicationContext.LabelDetails,
+                        noteLabel => noteLabel.LabelId,
+                        label => label.LabelId,
+                        (noteLabel, label) => new LabelResponseModel
+                        {
+                            LabelId = noteLabel.LabelId,
+                            Name = label.Name,
+                            CreatedAt = label.CreatedAt,
+                            ModifiedAt = label.ModifiedAt
+
+                        }).
+                        ToList();
+
+                        note.Labels = labels;
+                    }
+                }
+
                 return notesDetails;
             }
             catch (Exception e)
@@ -264,6 +370,29 @@ namespace FundooRepositoryLayer.Service
                         ModifiedAt = note.ModifiedAt
                     }).
                     ToList();
+
+                if (notesDetails != null && notesDetails.Count != 0)
+                {
+                    foreach (NoteResponseModel note in notesDetails)
+                    {
+                        List<LabelResponseModel> labels = _applicationContext.NotesLabels.
+                        Where(noted => noted.NotesId == note.NoteId).
+                        Join(_applicationContext.LabelDetails,
+                        noteLabel => noteLabel.LabelId,
+                        label => label.LabelId,
+                        (noteLabel, label) => new LabelResponseModel
+                        {
+                            LabelId = noteLabel.LabelId,
+                            Name = label.Name,
+                            CreatedAt = label.CreatedAt,
+                            ModifiedAt = label.ModifiedAt
+
+                        }).
+                        ToList();
+
+                        note.Labels = labels;
+                    }
+                }
 
                 return notesDetails;
             }
@@ -301,6 +430,50 @@ namespace FundooRepositoryLayer.Service
                     note.State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                     _applicationContext.SaveChanges();
 
+                    List<NotesLabel> labels = _applicationContext.NotesLabels.Where(notes => notes.NotesId == noteId).ToList();
+
+                    if(labels != null && labels.Count != 0)
+                    {
+                        _applicationContext.NotesLabels.RemoveRange(labels);
+                        _applicationContext.SaveChanges();
+
+                    }
+
+                    if (updateNotesDetails.Label != null && updateNotesDetails.Label.Count != 0)
+                    {
+                        List<NotesLabelRequest> labelRequests = updateNotesDetails.Label;
+                        foreach (NotesLabelRequest labelRequest in labelRequests)
+                        {
+                            if (labelRequest.LabelId > 0)
+                            {
+                                var data = new NotesLabel
+                                {
+                                    LabelId = labelRequest.LabelId,
+                                    NotesId = noteId
+                                };
+
+                                _applicationContext.NotesLabels.Add(data);
+                                _applicationContext.SaveChanges();
+                            }
+
+                        }
+                    }
+
+                    List<LabelResponseModel> label = _applicationContext.NotesLabels.
+                    Where(noted => noted.NotesId == noteId).
+                    Join(_applicationContext.LabelDetails,
+                    noteLabel => noteLabel.LabelId,
+                    labeled => labeled.LabelId,
+                    (noteLabel, labeled) => new LabelResponseModel
+                    {
+                        LabelId = noteLabel.LabelId,
+                        Name = labeled.Name,
+                        CreatedAt = labeled.CreatedAt,
+                        ModifiedAt = labeled.ModifiedAt
+
+                    }).
+                    ToList();
+
                     var noteResponseModel = new NoteResponseModel()
                     {
                         NoteId = notesDetails1.NotesId,
@@ -313,7 +486,9 @@ namespace FundooRepositoryLayer.Service
                         IsDeleted = notesDetails1.IsDeleted,
                         Reminder = notesDetails1.Reminder,
                         CreatedAt = notesDetails1.CreatedAt,
-                        ModifiedAt = notesDetails1.ModifiedAt
+                        ModifiedAt = notesDetails1.ModifiedAt,
+                        Labels = label
+
                     };
 
                     return noteResponseModel;
@@ -343,6 +518,14 @@ namespace FundooRepositoryLayer.Service
                 {
                     if (notesDetails.IsDeleted)
                     {
+                        List<NotesLabel> labels = _applicationContext.NotesLabels.Where(note => note.NotesId == NoteId).ToList();
+
+                        if (labels != null && labels.Count > 0)
+                        {
+                            _applicationContext.NotesLabels.RemoveRange(labels);
+                            _applicationContext.SaveChanges();
+                        }
+
                         var notes = _applicationContext.NotesDetails.Remove(notesDetails);
                         notes.State = Microsoft.EntityFrameworkCore.EntityState.Deleted;
                         _applicationContext.SaveChanges();
@@ -378,7 +561,22 @@ namespace FundooRepositoryLayer.Service
                 List<NotesDetails> notesDetails = _applicationContext.NotesDetails.
                     Where(note => note.UserId == userId && note.IsDeleted).ToList();
 
-                if (notesDetails != null)
+
+                if(notesDetails != null && notesDetails.Count != 0)
+                {
+                    foreach(NotesDetails notes in notesDetails)
+                    {
+                        List<NotesLabel> labels = _applicationContext.NotesLabels.Where(note => note.NotesId == notes.NotesId).ToList();
+
+                        if(labels != null && labels.Count > 0)
+                        {
+                            _applicationContext.NotesLabels.RemoveRange(labels);
+                            _applicationContext.SaveChanges();
+                        }
+                    }
+                }
+
+                if (notesDetails != null && notesDetails.Count != 0)
                 {
                     _applicationContext.NotesDetails.RemoveRange(notesDetails);
                     _applicationContext.SaveChanges();
@@ -403,9 +601,9 @@ namespace FundooRepositoryLayer.Service
             try
             {
                 NotesDetails notesDetails = _applicationContext.NotesDetails.
-                    FirstOrDefault(note => note.NotesId == noteId && note.UserId == userId);
+                    FirstOrDefault(note => note.NotesId == noteId && note.UserId == userId && note.IsDeleted);
 
-                if (notesDetails != null && notesDetails.IsDeleted)
+                if (notesDetails != null)
                 {
                     notesDetails.IsDeleted = false;
                     notesDetails.IsArchived = false;
@@ -448,6 +646,28 @@ namespace FundooRepositoryLayer.Service
                         ModifiedAt = note.ModifiedAt
                     }).
                     ToList();
+
+                if (notesDetails != null && notesDetails.Count != 0)
+                {
+                    foreach (NoteResponseModel note in notesDetails)
+                    {
+                        List<LabelResponseModel> labels = _applicationContext.NotesLabels.
+                        Where(noted => noted.NotesId == note.NoteId).
+                        Join(_applicationContext.LabelDetails,
+                        noteLabel => noteLabel.LabelId,
+                        label => label.LabelId,
+                        (noteLabel, label) => new LabelResponseModel
+                        {
+                            LabelId = noteLabel.LabelId,
+                            Name = label.Name,
+                            CreatedAt = label.CreatedAt,
+                            ModifiedAt = label.ModifiedAt
+                        }).
+                        ToList();
+
+                        note.Labels = labels;
+                    }
+                }
 
                 if (notesDetails != null && notesDetails.Count > 0)
                 {

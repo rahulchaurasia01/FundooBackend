@@ -2,6 +2,7 @@
 using FundooCommonLayer.ModelDB;
 using FundooRepositoryLayer.Interface;
 using FundooRepositoryLayer.ModelContext;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -91,14 +92,18 @@ namespace FundooRepositoryLayer.Service
 
         }
     
-
+        /// <summary>
+        /// Get The List of notes from the selected label
+        /// </summary>
+        /// <param name="LabelId">Label Id</param>
+        /// <returns>List Of Notes for the selected Id</returns>
         public List<NoteResponseModel> GetNoteByLabelId(int LabelId)
         {
             try
             {
                 List<NoteResponseModel> noteResponseModels = _applicationContext.NotesLabels.
                     Where(noteLabel => noteLabel.LabelId == LabelId).
-                    Join( _applicationContext.NotesDetails,
+                    Join(_applicationContext.NotesDetails,
                     label => label.NotesId,
                     note => note.NotesId,
                     (note, label) => new NoteResponseModel
@@ -117,6 +122,30 @@ namespace FundooRepositoryLayer.Service
                     }).
                     ToList();
 
+                if (noteResponseModels != null && noteResponseModels.Count != 0)
+                {
+                    foreach (NoteResponseModel note in noteResponseModels)
+                    {
+                        List<LabelResponseModel> labels = _applicationContext.NotesLabels.
+                        Where(noted => noted.NotesId == note.NoteId).
+                        Join(_applicationContext.LabelDetails,
+                        noteLabel => noteLabel.LabelId,
+                        label => label.LabelId,
+                        (noteLabel, label) => new LabelResponseModel
+                        {
+                            LabelId = noteLabel.LabelId,
+                            Name = label.Name,
+                            CreatedAt = label.CreatedAt,
+                            ModifiedAt = label.ModifiedAt
+
+                        }).
+                        ToList();
+
+                        note.Labels = labels;
+                    }
+                }
+
+
                 return noteResponseModels;
             }
             catch(Exception e)
@@ -124,7 +153,6 @@ namespace FundooRepositoryLayer.Service
                 throw new Exception(e.Message);
             }
         }
-
 
         /// <summary>
         /// Update the Label in the Database.
@@ -174,11 +202,19 @@ namespace FundooRepositoryLayer.Service
         {
             try
             {
+
+                List<NotesLabel> notesLabels = _applicationContext.NotesLabels.Where(label => label.LabelId == labelId).ToList();
+
+                if(notesLabels != null && notesLabels.Count != 0)
+                {
+                    _applicationContext.NotesLabels.RemoveRange(notesLabels);
+                    await _applicationContext.SaveChangesAsync();
+                }
+
                 LabelDetails labelDetails = _applicationContext.LabelDetails.FirstOrDefault(note => note.LabelId == labelId);
 
                 if(labelDetails != null)
                 {
-
                     _applicationContext.LabelDetails.Remove(labelDetails);
                     await _applicationContext.SaveChangesAsync();
 

@@ -26,6 +26,12 @@ namespace FundooAppBackend.Controllers
             _notesBusiness = notesBusiness;
         }
 
+        /// <summary>
+        /// It Create the New Notes
+        /// </summary>
+        /// <param name="notesDetails">Note data</param>
+        /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
+        /// occured and Not Proper Input Given it return BadRequest.</returns>
         [HttpPost]
         public async Task<IActionResult> CreateNote(NoteRequest notesDetails)
         {
@@ -64,6 +70,12 @@ namespace FundooAppBackend.Controllers
             }
         }
 
+        /// <summary>
+        /// It Retrieve the Single Notes
+        /// </summary>
+        /// <param name="NoteId">Note Id</param>
+        /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
+        /// occured and Not Proper Input Given it return BadRequest.</returns>
         [HttpGet("{NoteId}")]
         public async Task<IActionResult> GetNote(int NoteId)
         {
@@ -99,6 +111,11 @@ namespace FundooAppBackend.Controllers
             }
         }
 
+        /// <summary>
+        /// It Retrieve the list of all the notes.
+        /// </summary>
+        /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
+        /// occured and Not Proper Input Given it return BadRequest.</returns>
         [HttpGet]
         public async Task<IActionResult> GetAllNotes()
         {
@@ -134,6 +151,11 @@ namespace FundooAppBackend.Controllers
             }
         }
 
+        /// <summary>
+        /// It Retrieve the list of all Deleted Notes Present in the Trash
+        /// </summary>
+        /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
+        /// occured and Not Proper Input Given it return BadRequest.</returns>
         [HttpGet]
         [Route("Delete")]
         public async Task<IActionResult> GetAllDeletedNotes()
@@ -170,6 +192,11 @@ namespace FundooAppBackend.Controllers
             }
         }
 
+        /// <summary>
+        /// It Retrieve the list of all Archieved Notes
+        /// </summary>
+        /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
+        /// occured and Not Proper Input Given it return BadRequest.</returns>
         [HttpGet]
         [Route("Archive")]
         public async Task<IActionResult> GetAllArchivedNotes()
@@ -206,8 +233,13 @@ namespace FundooAppBackend.Controllers
             }
         }
 
+        /// <summary>
+        /// It Retreive the List Of All Pinned Notes
+        /// </summary>
+        /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
+        /// occured and Not Proper Input Given it return BadRequest.</returns>
         [HttpGet]
-        [Route("Pinned")]
+        [Route("PinnedNotes")]
         public async Task<IActionResult> GetAllPinnedNotes()
         {
             try
@@ -242,6 +274,49 @@ namespace FundooAppBackend.Controllers
             }
         }
 
+        [HttpPost]
+        [Route("Users")]
+        public async Task<IActionResult> GetAllUsers(UserRequest userRequest)
+        {
+            try
+            {
+                var user = HttpContext.User;
+                bool status;
+                string message;
+                if (user.HasClaim(c => c.Type == "TokenType"))
+                {
+                    if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
+                    {
+                        List<UserListResponseModel> data = await _notesBusiness.GetAllUsers(userRequest);
+                        if (data != null && data.Count > 0)
+                        {
+                            status = true;
+                            message = "Here is the List Of all User.";
+                            return Ok(new { status, message, data });
+                        }
+                        status = false;
+                        message = "No Such User is Present";
+                        return NotFound(new { status, message });
+                    }
+                }
+                status = false;
+                message = "Invalid Token";
+                return BadRequest(new { status, message });
+            }
+            catch(Exception e)
+            {
+                return BadRequest(new { e.Message });
+            }
+        }
+
+
+        /// <summary>
+        /// It Update The Selected Notes
+        /// </summary>
+        /// <param name="NoteId">Note Id</param>
+        /// <param name="updateNotesDetails">Note Data</param>
+        /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
+        /// occured and Not Proper Input Given it return BadRequest.</returns>
         [HttpPut("{NoteId}")]
         public async Task<IActionResult> UpdateNote(int NoteId, NoteRequest updateNotesDetails)
         {
@@ -277,8 +352,14 @@ namespace FundooAppBackend.Controllers
             }
         }
 
+        /// <summary>
+        /// It Delete the Note and Put it in Trash, and If Deleted from trash it remove it Permanentely
+        /// </summary>
+        /// <param name="NoteId">Note Id</param>
+        /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
+        /// occured and Not Proper Input Given it return BadRequest.</returns>
         [HttpDelete]
-        [Route("Delete/{NoteId}")]
+        [Route("{NoteId}")]
         public async Task<IActionResult> DeleteNote(int NoteId)
         {
             try
@@ -311,74 +392,12 @@ namespace FundooAppBackend.Controllers
             }
         }
 
-        [HttpDelete]
-        [Route("DeleteForever")]
-        public async Task<IActionResult> DeleteNotesPermanently()
-        {
-            try
-            {
-                var user = HttpContext.User;
-                bool status;
-                string message;
-                if (user.HasClaim(c => c.Type == "TokenType"))
-                {
-                    if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
-                    {
-                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
-                        status = await _notesBusiness.DeleteNotesPermanently(UserId);
-                        if (status)
-                        {
-                            message = "Your Notes has been Permanently Deleted";
-                            return Ok(new { status, message });
-                        }
-                        message = "No Note Present to Delete. !!";
-                        return NotFound(new { status, message });
-                    }
-                }
-                status = false;
-                message = "Invalid Token";
-                return BadRequest(new { status, message });
-            }
-            catch (Exception e)
-            {
-                return BadRequest(new { e.Message });
-            }
-        }
-
-        [HttpPost]
-        [Route("Restore/{NoteId}")]
-        public async Task<IActionResult> RestoreDeletedNotes(int NoteId)
-        {
-            try
-            {
-                var user = HttpContext.User;
-                bool status;
-                string message;
-                if (user.HasClaim(c => c.Type == "TokenType"))
-                {
-                    if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
-                    {
-                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
-                        status = await _notesBusiness.RestoreDeletedNotes(NoteId, UserId);
-                        if (status)
-                        {
-                            message = "Your Notes has Been Successfully Restored";
-                            return Ok(new { status, message });
-                        }
-                        message = "No Note Present to be Restored. !!";
-                        return NotFound(new { status, message });
-                    }
-                }
-                status = false;
-                message = "Invalid Token";
-                return BadRequest(new { status, message });
-            }
-            catch (Exception e)
-            {
-                return BadRequest(new { e.Message });
-            }
-        }
-
+        /// <summary>
+        /// Api For Getting all the Notes By Reminder.
+        /// </summary>
+        /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
+        /// occured and Not Proper Input Given it return BadRequest.
+        /// </returns>
         [HttpGet]
         [Route("Reminder")]
         public async Task<IActionResult> SortByReminderNotes()
@@ -414,6 +433,216 @@ namespace FundooAppBackend.Controllers
                 return BadRequest(new { e.Message });
             }
         }
+
+        /// <summary>
+        /// It Mark the Notes as Pin
+        /// </summary>
+        /// <param name="pinnedRequest">Notes Id</param>
+        /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
+        /// occured and Not Proper Input Given it return BadRequest.</returns>
+        [HttpPut]
+        [Route("{NoteId}/Pin")]
+        public async Task<IActionResult> PinUnpinNotes(int NoteId, PinnedRequest pinnedRequest)
+        {
+            try
+            {
+                var user = HttpContext.User;
+                bool status;
+                string message;
+                if (user.HasClaim(c => c.Type == "TokenType"))
+                {
+                    if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
+                    {
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+                        NoteResponseModel data = await _notesBusiness.PinOrUnPinTheNote(NoteId, pinnedRequest, UserId);
+                        if (data != null)
+                        {
+                            status = true;
+                            message = "The Note has been Successfully Pinned.";
+                            return Ok(new { status, message, data });
+                        }
+                        status = false;
+                        message = "Unable to Pinned the Note";
+                        return NotFound(new { status, message });
+                    }
+                }
+                status = false;
+                message = "Invalid Token";
+                return BadRequest(new { status, message });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { e.Message });
+            }
+        }
+
+        /// <summary>
+        /// It Mark the Notes as Archive.
+        /// </summary>
+        /// <param name="NoteId">Note Id</param>
+        /// <param name="archiveRequest">Archive Value</param>
+        /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
+        /// occured and Not Proper Input Given it return BadRequest.</returns>
+        [HttpPut]
+        [Route("{NoteId}/Archive")]
+        public async Task<IActionResult> ArchiveUnArchiveNote(int NoteId, ArchiveRequest archiveRequest)
+        {
+            try
+            {
+                var user = HttpContext.User;
+                bool status;
+                string message;
+                if (user.HasClaim(c => c.Type == "TokenType"))
+                {
+                    if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
+                    {
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+                        NoteResponseModel data = await _notesBusiness.ArchiveUnArchiveTheNote(NoteId, archiveRequest, UserId);
+                        if (data != null)
+                        {
+                            status = true;
+                            message = "The Note has been Successfully Archived.";
+                            return Ok(new { status, message, data });
+                        }
+                        status = false;
+                        message = "Unable to Archived the Note";
+                        return NotFound(new { status, message });
+                    }
+                }
+                status = false;
+                message = "Invalid Token";
+                return BadRequest(new { status, message });
+            }
+            catch(Exception e)
+            {
+                return BadRequest(new { e.Message });
+            }
+        }
+
+        /// <summary>
+        /// It Mark the color of the Note
+        /// </summary>
+        /// <param name="NoteId">Note Id</param>
+        /// <param name="colorRequest">Color Value</param>
+        /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
+        /// occured and Not Proper Input Given it return BadRequest.</returns>
+        [HttpPut]
+        [Route("{NoteId}/Color")]
+        public async Task<IActionResult> ColorNote(int NoteId, ColorRequest colorRequest)
+        {
+            try
+            {
+                var user = HttpContext.User;
+                bool status;
+                string message;
+                if (user.HasClaim(c => c.Type == "TokenType"))
+                {
+                    if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
+                    {
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+                        NoteResponseModel data = await _notesBusiness.ColorTheNote(NoteId, colorRequest, UserId);
+                        if (data != null)
+                        {
+                            status = true;
+                            message = "The Color Has Been Successfully Added To the Note.";
+                            return Ok(new { status, message, data });
+                        }
+                        status = false;
+                        message = "Unable to Color the Note.";
+                        return NotFound(new { status, message });
+                    }
+                }
+                status = false;
+                message = "Invalid Token";
+                return BadRequest(new { status, message });
+            }
+            catch(Exception e)
+            {
+                return BadRequest(new { e.Message });
+            }
+        }
+
+        /// <summary>
+        /// It Delete the List of Notes Permanentely
+        /// </summary>
+        /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
+        /// occured and Not Proper Input Given it return BadRequest.</returns>
+        [HttpDelete]
+        [Route("BulkDelete")]
+        public async Task<IActionResult> DeleteNotesPermanently()
+        {
+            try
+            {
+                var user = HttpContext.User;
+                bool status;
+                string message;
+                if (user.HasClaim(c => c.Type == "TokenType"))
+                {
+                    if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
+                    {
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+                        status = await _notesBusiness.DeleteNotesPermanently(UserId);
+                        if (status)
+                        {
+                            message = "Your Notes has been Permanently Deleted";
+                            return Ok(new { status, message });
+                        }
+                        message = "No Note Present to Delete. !!";
+                        return NotFound(new { status, message });
+                    }
+                }
+                status = false;
+                message = "Invalid Token";
+                return BadRequest(new { status, message });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { e.Message });
+            }
+        }
+
+        /// <summary>
+        /// It Restore the Deleted Notes.
+        /// </summary>
+        /// <param name="NoteId">Note Id</param>
+        /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
+        /// occured and Not Proper Input Given it return BadRequest.</returns>
+        [HttpPost]
+        [Route("Restore/{NoteId}")]
+        public async Task<IActionResult> RestoreDeletedNotes(int NoteId)
+        {
+            try
+            {
+                var user = HttpContext.User;
+                bool status;
+                string message;
+                if (user.HasClaim(c => c.Type == "TokenType"))
+                {
+                    if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
+                    {
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+                        status = await _notesBusiness.RestoreDeletedNotes(NoteId, UserId);
+                        if (status)
+                        {
+                            message = "Your Notes has Been Successfully Restored";
+                            return Ok(new { status, message });
+                        }
+                        message = "No Note Present to be Restored. !!";
+                        return NotFound(new { status, message });
+                    }
+                }
+                status = false;
+                message = "Invalid Token";
+                return BadRequest(new { status, message });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { e.Message });
+            }
+        }
+
+
+
 
     }
 }

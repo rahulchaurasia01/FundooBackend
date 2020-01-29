@@ -116,6 +116,17 @@ namespace FundooBusinessLayer.Service
         }
 
         /// <summary>
+        /// Get All the Register User.
+        /// </summary>
+        /// <returns>List Of All the User</returns>
+        public async Task<List<UserListResponseModel>> GetAllUsers(UserRequest userRequest)
+        {
+            if (userRequest == null || userRequest.EmailId.Length < 3)
+                return null;
+            return await _notesRepository.GetAllUsers(userRequest);
+        }
+
+        /// <summary>
         /// Update the Note Data
         /// </summary>
         /// <param name="notesDetails">Note Data</param>
@@ -145,6 +156,63 @@ namespace FundooBusinessLayer.Service
         }
 
         /// <summary>
+        /// Sort the Notes by upcoming reminder.
+        /// </summary>
+        /// <param name="userId">user iD</param>
+        /// <returns>Return Sort List</returns>
+        public async Task<List<NoteResponseModel>> SortByReminderNotes(int userId)
+        {
+            if (userId <= 0)
+                return null;
+            else
+                return await _notesRepository.SortByReminderNotes(userId);
+        }
+
+        /// <summary>
+        /// It Pin Or UnPin the selected Note
+        /// </summary>
+        /// <param name="pinnedRequest">Note Id</param>
+        /// <param name="userId">User Id</param>
+        /// <returns>Note Response Model</returns>
+        public async Task<NoteResponseModel> PinOrUnPinTheNote(int NoteId, PinnedRequest pinnedRequest, int userId)
+        {
+            if (pinnedRequest == null || userId <= 0 || NoteId <= 0)
+                return null;
+            else
+                return await _notesRepository.PinOrUnPinTheNote(NoteId, pinnedRequest, userId);
+        }
+
+        /// <summary>
+        /// It Archive the Notes
+        /// </summary>
+        /// <param name="NoteId">Note Id</param>
+        /// <param name="archiveRequest">Archive value</param>
+        /// <param name="userId">User Id</param>
+        /// <returns>Note Response Model</returns>
+        public async Task<NoteResponseModel> ArchiveUnArchiveTheNote(int NoteId, ArchiveRequest archiveRequest, int userId)
+        {
+            if (archiveRequest == null || NoteId <= 0 || userId <= 0)
+                return null;
+            else
+                return await _notesRepository.ArchiveUnArchiveTheNote(NoteId, archiveRequest, userId);
+        }
+
+        /// <summary>
+        /// It Color The Note
+        /// </summary>
+        /// <param name="NoteId">Note Id</param>
+        /// <param name="colorRequest">Color Value</param>
+        /// <param name="userId">User Id</param>
+        /// <returns>Note Response Model</returns>
+        public async Task<NoteResponseModel> ColorTheNote(int NoteId, ColorRequest colorRequest, int userId)
+        {
+            if (colorRequest == null || NoteId <= 0 || userId <= 0)
+                return null;
+            else
+                return await _notesRepository.ColorTheNote(NoteId, colorRequest, userId);
+        }
+
+        /// <summary>
         /// Delete the note Permanently from the Database.
         /// </summary>
         /// <param name="userId">User Id</param>
@@ -169,19 +237,6 @@ namespace FundooBusinessLayer.Service
                 return false;
             else
                 return await _notesRepository.RestoreDeletedNotes(noteId, userId);
-        }
-
-        /// <summary>
-        /// Sort the Notes by upcoming reminder.
-        /// </summary>
-        /// <param name="userId">user iD</param>
-        /// <returns>Return Sort List</returns>
-        public async Task<List<NoteResponseModel>> SortByReminderNotes(int userId)
-        {
-            if (userId <= 0)
-                return null;
-            else
-                return await _notesRepository.SortByReminderNotes(userId);
         }
 
     }

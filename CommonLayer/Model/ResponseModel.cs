@@ -59,7 +59,7 @@ namespace FundooCommonLayer.Model
         [DefaultValue(false)]
         public bool IsDeleted { set; get; }
 
-        public DateTime Reminder { set; get; }
+        public DateTime? Reminder { set; get; }
 
         public DateTime CreatedAt { set; get; }
 
@@ -80,5 +80,16 @@ namespace FundooCommonLayer.Model
         public DateTime ModifiedAt { set; get; }
 
     }
+
+    public class UserListResponseModel
+    {
+
+        public int UserId { set; get; }
+
+        [EmailAddress]
+        public string EmailId { set; get; }
+
+    }
+
 
 }

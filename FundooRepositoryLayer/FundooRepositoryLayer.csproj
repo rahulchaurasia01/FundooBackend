@@ -5,6 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Migrations\20200129070511_AddedstringToReminderInNotesDetails.cs" />
+    <Compile Remove="Migrations\20200129070511_AddedstringToReminderInNotesDetails.Designer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.14" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Analyzers" Version="2.1.14" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="2.1.14" />

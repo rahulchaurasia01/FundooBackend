@@ -87,6 +87,7 @@ namespace FundooCommonLayer.Model
 
         public string Description { set; get; }
 
+        [RegularExpression("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$", ErrorMessage = "Enter a Valid Color")]
         public string Color { set; get; }
 
         public string Image { set; get; }
@@ -100,9 +101,45 @@ namespace FundooCommonLayer.Model
         [DefaultValue(false)]
         public bool IsDeleted { set; get; }
 
-        public DateTime Reminder { set; get; }
+        public DateTime? Reminder { set; get; }
 
         public List<NotesLabelRequest> Label { set; get; }
+    }
+
+    /// <summary>
+    /// Pin Request: When user tries to pin there notes.
+    /// </summary>
+    public class PinnedRequest
+    {
+        [Required]
+        public bool IsPin { set; get; }
+    }
+
+    /// <summary>
+    /// Archive Request: When User tries to Archive its notes.
+    /// </summary>
+    public class ArchiveRequest
+    {
+        public bool IsArchive { set; get; }
+    }
+
+    /// <summary>
+    /// Color Request: When user Tries to update its color.
+    /// </summary>
+    public class ColorRequest
+    {
+        [Required]
+        [RegularExpression("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$", ErrorMessage = "Enter a Valid Color")]
+        public string Color { set; get; }
+    }
+
+    /// <summary>
+    /// User Request: To Get the List Of user Register.
+    /// </summary>
+    public class UserRequest
+    {
+        [Required]
+        public string EmailId { set; get; }
     }
 
     /// <summary>

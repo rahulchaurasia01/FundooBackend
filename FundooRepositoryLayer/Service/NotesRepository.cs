@@ -53,6 +53,7 @@ namespace FundooRepositoryLayer.Service
                     CreatedAt = DateTime.Now,
                     ModifiedAt = DateTime.Now
                 };
+
                 _applicationContext.NotesDetails.Add(notesDetails);
                 await _applicationContext.SaveChangesAsync();
 
@@ -61,7 +62,10 @@ namespace FundooRepositoryLayer.Service
                     List<NotesLabelRequest> labelRequests = noteDetails.Label;
                     foreach (NotesLabelRequest labelRequest in labelRequests)
                     {
-                        if (labelRequest.LabelId > 0)
+                        LabelDetails labelDetails = _applicationContext.LabelDetails.
+                            FirstOrDefault(label => label.UserId == userId && label.LabelId == labelRequest.LabelId);
+
+                        if (labelRequest.LabelId > 0 && labelDetails != null)
                         {
                             var data = new NotesLabel
                             {
@@ -72,40 +76,10 @@ namespace FundooRepositoryLayer.Service
                             _applicationContext.NotesLabels.Add(data);
                             await _applicationContext.SaveChangesAsync();
                         }
-
                     }
                 }
 
-                List<LabelResponseModel> labels = await _applicationContext.NotesLabels.
-                    Where(note => note.NotesId == notesDetails.NotesId).
-                    Join(_applicationContext.LabelDetails,
-                    noteLabel => noteLabel.LabelId,
-                    label => label.LabelId,
-                    (noteLabel, label) => new LabelResponseModel
-                    {
-                        LabelId = noteLabel.LabelId,
-                        Name = label.Name,
-                        CreatedAt = label.CreatedAt,
-                        ModifiedAt = label.ModifiedAt
-
-                    }).
-                    ToListAsync();
-
-                var noteResponseModel = new NoteResponseModel()
-                {
-                    NoteId = notesDetails.NotesId,
-                    Title = noteDetails.Title,
-                    Description = noteDetails.Description,
-                    Color = noteDetails.Color,
-                    Image = noteDetails.Image,
-                    IsPin = noteDetails.IsPin,
-                    IsArchived = noteDetails.IsArchived,
-                    IsDeleted = noteDetails.IsDeleted,
-                    Reminder = noteDetails.Reminder,
-                    CreatedAt = notesDetails.CreatedAt,
-                    ModifiedAt = notesDetails.ModifiedAt,
-                    Labels = labels
-                };
+                NoteResponseModel noteResponseModel = await NoteResponseModel(notesDetails);
 
                 return noteResponseModel;
             }
@@ -128,39 +102,9 @@ namespace FundooRepositoryLayer.Service
                 NotesDetails notesDetails = _applicationContext.NotesDetails.
                     FirstOrDefault(note => note.NotesId == NoteId && note.UserId == UserId && !note.IsDeleted);
 
-                List<LabelResponseModel> labels = await _applicationContext.NotesLabels.
-                    Where(note => note.NotesId == NoteId).
-                    Join(_applicationContext.LabelDetails,
-                    noteLabel => noteLabel.LabelId,
-                    label => label.LabelId,
-                    (noteLabel, label) => new LabelResponseModel
-                    {
-                        LabelId = noteLabel.LabelId,
-                        Name = label.Name,
-                        CreatedAt = label.CreatedAt,
-                        ModifiedAt = label.ModifiedAt
-
-                    }).
-                    ToListAsync();
-
                 if(notesDetails != null)
                 {
-                    var noteResponseModel = new NoteResponseModel()
-                    {
-                        NoteId = notesDetails.NotesId,
-                        Title = notesDetails.Title,
-                        Description = notesDetails.Description,
-                        Color = notesDetails.Color,
-                        Image = notesDetails.Image,
-                        IsPin = notesDetails.IsPin,
-                        IsArchived = notesDetails.IsArchived,
-                        IsDeleted = notesDetails.IsDeleted,
-                        Reminder = notesDetails.Reminder,
-                        CreatedAt = notesDetails.CreatedAt,
-                        ModifiedAt = notesDetails.ModifiedAt,
-                        Labels = labels
-
-                    };
+                    NoteResponseModel noteResponseModel = await NoteResponseModel(notesDetails);
 
                     return noteResponseModel;
                 }
@@ -200,28 +144,11 @@ namespace FundooRepositoryLayer.Service
 
                 if(notes != null && notes.Count != 0)
                 {
-                    foreach(NoteResponseModel note in notes)
-                    {
-                        List<LabelResponseModel> labels = await _applicationContext.NotesLabels.
-                        Where(noted => noted.NotesId == note.NoteId).
-                        Join(_applicationContext.LabelDetails,
-                        noteLabel => noteLabel.LabelId,
-                        label => label.LabelId,
-                        (noteLabel, label) => new LabelResponseModel
-                        {
-                            LabelId = noteLabel.LabelId,
-                            Name = label.Name,
-                            CreatedAt = label.CreatedAt,
-                            ModifiedAt = label.ModifiedAt
-
-                        }).
-                        ToListAsync();
-
-                        note.Labels = labels;
-                    }
+                    notes = await AddLabelToNoteResponseModel(notes);
+                    return notes;
                 }
 
-                return notes;
+                return null;
             }
             catch(Exception e)
             {
@@ -258,29 +185,11 @@ namespace FundooRepositoryLayer.Service
 
                 if (notesDetails != null && notesDetails.Count != 0)
                 {
-                    foreach (NoteResponseModel note in notesDetails)
-                    {
-                        List<LabelResponseModel> labels = await _applicationContext.NotesLabels.
-                        Where(noted => noted.NotesId == note.NoteId).
-                        Join(_applicationContext.LabelDetails,
-                        noteLabel => noteLabel.LabelId,
-                        label => label.LabelId,
-                        (noteLabel, label) => new LabelResponseModel
-                        {
-                            LabelId = noteLabel.LabelId,
-                            Name = label.Name,
-                            CreatedAt = label.CreatedAt,
-                            ModifiedAt = label.ModifiedAt
-
-                        }).
-                        ToListAsync();
-
-                        note.Labels = labels;
-                    }
+                    notesDetails = await AddLabelToNoteResponseModel(notesDetails);
+                    return notesDetails;
                 }
 
-
-                return notesDetails;
+                return null;
             }
             catch (Exception e)
             {
@@ -317,28 +226,11 @@ namespace FundooRepositoryLayer.Service
 
                 if (notesDetails != null && notesDetails.Count != 0)
                 {
-                    foreach (NoteResponseModel note in notesDetails)
-                    {
-                        List<LabelResponseModel> labels = await _applicationContext.NotesLabels.
-                        Where(noted => noted.NotesId == note.NoteId).
-                        Join(_applicationContext.LabelDetails,
-                        noteLabel => noteLabel.LabelId,
-                        label => label.LabelId,
-                        (noteLabel, label) => new LabelResponseModel
-                        {
-                            LabelId = noteLabel.LabelId,
-                            Name = label.Name,
-                            CreatedAt = label.CreatedAt,
-                            ModifiedAt = label.ModifiedAt
-
-                        }).
-                        ToListAsync();
-
-                        note.Labels = labels;
-                    }
+                    notesDetails = await AddLabelToNoteResponseModel(notesDetails);
+                    return notesDetails;
                 }
 
-                return notesDetails;
+                return null;
             }
             catch (Exception e)
             {
@@ -375,30 +267,42 @@ namespace FundooRepositoryLayer.Service
 
                 if (notesDetails != null && notesDetails.Count != 0)
                 {
-                    foreach (NoteResponseModel note in notesDetails)
-                    {
-                        List<LabelResponseModel> labels = await _applicationContext.NotesLabels.
-                        Where(noted => noted.NotesId == note.NoteId).
-                        Join(_applicationContext.LabelDetails,
-                        noteLabel => noteLabel.LabelId,
-                        label => label.LabelId,
-                        (noteLabel, label) => new LabelResponseModel
-                        {
-                            LabelId = noteLabel.LabelId,
-                            Name = label.Name,
-                            CreatedAt = label.CreatedAt,
-                            ModifiedAt = label.ModifiedAt
-
-                        }).
-                        ToListAsync();
-
-                        note.Labels = labels;
-                    }
+                    notesDetails = await AddLabelToNoteResponseModel(notesDetails);
+                    return notesDetails;
                 }
 
-                return notesDetails;
+                return null; 
             }
             catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
+        /// <summary>
+        /// Get The List Of Users.
+        /// </summary>
+        /// <returns>List of all User</returns>
+        public async Task<List<UserListResponseModel>> GetAllUsers(UserRequest userRequest)
+        {
+            try
+            {
+                List<UserListResponseModel> userLists = await _applicationContext.UserDetails.
+                    Where(user => user.EmailId.StartsWith(userRequest.EmailId)).
+                    Select(user => new UserListResponseModel
+                    {
+                        UserId = user.UserId,
+                        EmailId = user.EmailId
+                    }).
+                    ToListAsync();
+
+                if(userLists != null && userLists.Count > 0)
+                {
+                    return userLists;
+                }
+                return null;
+            }
+            catch(Exception e)
             {
                 throw new Exception(e.Message);
             }
@@ -446,7 +350,10 @@ namespace FundooRepositoryLayer.Service
                         List<NotesLabelRequest> labelRequests = updateNotesDetails.Label;
                         foreach (NotesLabelRequest labelRequest in labelRequests)
                         {
-                            if (labelRequest.LabelId > 0)
+                            LabelDetails labelDetails = _applicationContext.LabelDetails.
+                            FirstOrDefault(labeled => labeled.UserId == userId && labeled.LabelId == labelRequest.LabelId);
+
+                            if (labelRequest.LabelId > 0 && labelDetails != null)
                             {
                                 var data = new NotesLabel
                                 {
@@ -457,41 +364,10 @@ namespace FundooRepositoryLayer.Service
                                 _applicationContext.NotesLabels.Add(data);
                                 await _applicationContext.SaveChangesAsync();
                             }
-
                         }
                     }
 
-                    List<LabelResponseModel> label = await _applicationContext.NotesLabels.
-                    Where(noted => noted.NotesId == noteId).
-                    Join(_applicationContext.LabelDetails,
-                    noteLabel => noteLabel.LabelId,
-                    labeled => labeled.LabelId,
-                    (noteLabel, labeled) => new LabelResponseModel
-                    {
-                        LabelId = noteLabel.LabelId,
-                        Name = labeled.Name,
-                        CreatedAt = labeled.CreatedAt,
-                        ModifiedAt = labeled.ModifiedAt
-
-                    }).
-                    ToListAsync();
-
-                    var noteResponseModel = new NoteResponseModel()
-                    {
-                        NoteId = notesDetails1.NotesId,
-                        Title = notesDetails1.Title,
-                        Description = notesDetails1.Description,
-                        Color = notesDetails1.Color,
-                        Image = notesDetails1.Image,
-                        IsPin = notesDetails1.IsPin,
-                        IsArchived = notesDetails1.IsArchived,
-                        IsDeleted = notesDetails1.IsDeleted,
-                        Reminder = notesDetails1.Reminder,
-                        CreatedAt = notesDetails1.CreatedAt,
-                        ModifiedAt = notesDetails1.ModifiedAt,
-                        Labels = label
-
-                    };
+                    NoteResponseModel noteResponseModel = await NoteResponseModel(notesDetails1);
 
                     return noteResponseModel;
                 }
@@ -546,6 +422,153 @@ namespace FundooRepositoryLayer.Service
                 return false;
             }
             catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
+        /// <summary>
+        /// Sort By Upcoming Notes Reminder
+        /// </summary>
+        /// <param name="userId">User Id</param>
+        /// <returns>List Of Notes By Reminder Order</returns>
+        public async Task<List<NoteResponseModel>> SortByReminderNotes(int userId)
+        {
+            try
+            {
+                List<NoteResponseModel> notesDetails = await _applicationContext.NotesDetails.
+                    Where(note => note.UserId == userId && note.Reminder != null && !note.IsDeleted).
+                    Select(note => new NoteResponseModel
+                    {
+                        NoteId = note.NotesId,
+                        Title = note.Title,
+                        Description = note.Description,
+                        Color = note.Color,
+                        Image = note.Image,
+                        IsPin = note.IsPin,
+                        IsArchived = note.IsArchived,
+                        IsDeleted = note.IsDeleted,
+                        Reminder = note.Reminder,
+                        CreatedAt = note.CreatedAt,
+                        ModifiedAt = note.ModifiedAt
+                    }).
+                    ToListAsync();
+
+                if (notesDetails != null && notesDetails.Count > 0)
+                {
+                    notesDetails = await AddLabelToNoteResponseModel(notesDetails);
+                    notesDetails.Sort((note1, note2) => note1.Reminder.Value.CompareTo(note2.Reminder.Value));
+                    return notesDetails;
+                }
+
+                return null;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
+        /// <summary>
+        /// It will pin or Unpin the Single Note
+        /// </summary>
+        /// <param name="pinnedRequest">Pin Value</param>
+        /// <param name="userId">User Id</param>
+        /// <returns>Return NoteResponseModel if Successfull or else null</returns>
+        public async Task<NoteResponseModel> PinOrUnPinTheNote(int NoteId, PinnedRequest pinnedRequest, int userId)
+        {
+            try
+            {
+                NotesDetails notesDetails = _applicationContext.NotesDetails.
+                    FirstOrDefault(note => note.NotesId == NoteId && note.UserId == userId && !note.IsDeleted);
+
+                if (notesDetails != null)
+                {
+                    notesDetails.IsPin = pinnedRequest.IsPin;
+                    notesDetails.ModifiedAt = DateTime.Now;
+                    var data = _applicationContext.NotesDetails.Attach(notesDetails);
+                    data.State = EntityState.Modified;
+                    await _applicationContext.SaveChangesAsync();
+
+                    NoteResponseModel noteResponseModel = await NoteResponseModel(notesDetails);
+
+                    return noteResponseModel;
+                }
+
+                return null;
+
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
+        /// <summary>
+        /// It will Archive or UnArchive the Note
+        /// </summary>
+        /// <param name="NoteId">Note Id</param>
+        /// <param name="archiveRequest">Archive Value</param>
+        /// <param name="userId">User Id</param>
+        /// <returns>Note Repsonse Model</returns>
+        public async Task<NoteResponseModel> ArchiveUnArchiveTheNote(int NoteId, ArchiveRequest archiveRequest, int userId)
+        {
+            try
+            {
+                NotesDetails notesDetails = _applicationContext.NotesDetails.
+                    FirstOrDefault(note => note.NotesId == NoteId && note.UserId == userId && !note.IsDeleted);
+
+                if (notesDetails != null)
+                {
+                    notesDetails.IsArchived = archiveRequest.IsArchive;
+                    notesDetails.ModifiedAt = DateTime.Now;
+                    var data = _applicationContext.NotesDetails.Attach(notesDetails);
+                    data.State = EntityState.Modified;
+                    await _applicationContext.SaveChangesAsync();
+
+                    NoteResponseModel noteResponseModel = await NoteResponseModel(notesDetails);
+
+                    return noteResponseModel;
+                }
+
+                return null;
+            }
+            catch(Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
+        /// <summary>
+        /// It Will Color the Note
+        /// </summary>
+        /// <param name="NoteId">Note Id</param>
+        /// <param name="colorRequest">Color Value</param>
+        /// <param name="userId">User Id</param>
+        /// <returns>Note Response Model</returns>
+        public async Task<NoteResponseModel> ColorTheNote(int NoteId, ColorRequest colorRequest, int userId)
+        {
+            try
+            {
+                NotesDetails notesDetails = _applicationContext.NotesDetails.
+                    FirstOrDefault(note => note.NotesId == NoteId && note.UserId == userId && !note.IsDeleted);
+
+                if (notesDetails != null)
+                {
+                    notesDetails.Color = colorRequest.Color;
+                    notesDetails.ModifiedAt = DateTime.Now;
+                    var data = _applicationContext.NotesDetails.Attach(notesDetails);
+                    data.State = EntityState.Modified;
+                    await _applicationContext.SaveChangesAsync();
+
+                    NoteResponseModel noteResponseModel = await NoteResponseModel(notesDetails);
+
+                    return noteResponseModel;
+                }
+
+                return null;
+            }
+            catch(Exception e)
             {
                 throw new Exception(e.Message);
             }
@@ -622,39 +645,20 @@ namespace FundooRepositoryLayer.Service
             }
         }
 
+
+
+
         /// <summary>
-        /// Sort By Upcoming Notes Reminder
+        /// It Convert the NotesDetails to NoteResponseModel
         /// </summary>
-        /// <param name="userId">User Id</param>
-        /// <returns>List Of Notes By Reminder Order</returns>
-        public async Task<List<NoteResponseModel>> SortByReminderNotes(int userId)
+        /// <param name="notesDetails">Note Data</param>
+        /// <returns>It Return NoteResponseModel or else null</returns>
+        private async Task<NoteResponseModel> NoteResponseModel(NotesDetails notesDetails)
         {
             try
             {
-                List<NoteResponseModel> notesDetails = await _applicationContext.NotesDetails.
-                    Where(note => note.UserId == userId).
-                    Select(note => new NoteResponseModel
-                    {
-                        NoteId = note.NotesId,
-                        Title = note.Title,
-                        Description = note.Description,
-                        Color = note.Color,
-                        Image = note.Image,
-                        IsPin = note.IsPin,
-                        IsArchived = note.IsArchived,
-                        IsDeleted = note.IsDeleted,
-                        Reminder = note.Reminder,
-                        CreatedAt = note.CreatedAt,
-                        ModifiedAt = note.ModifiedAt
-                    }).
-                    ToListAsync();
-
-                if (notesDetails != null && notesDetails.Count != 0)
-                {
-                    foreach (NoteResponseModel note in notesDetails)
-                    {
-                        List<LabelResponseModel> labels = await _applicationContext.NotesLabels.
-                        Where(noted => noted.NotesId == note.NoteId).
+                List<LabelResponseModel> labels = await _applicationContext.NotesLabels.
+                        Where(note => note.NotesId == notesDetails.NotesId).
                         Join(_applicationContext.LabelDetails,
                         noteLabel => noteLabel.LabelId,
                         label => label.LabelId,
@@ -664,26 +668,69 @@ namespace FundooRepositoryLayer.Service
                             Name = label.Name,
                             CreatedAt = label.CreatedAt,
                             ModifiedAt = label.ModifiedAt
+
                         }).
                         ToListAsync();
 
-                        note.Labels = labels;
-                    }
-                }
-
-                if (notesDetails != null && notesDetails.Count > 0)
+                var noteResponseModel = new NoteResponseModel
                 {
-                    notesDetails.Sort((note1, note2) => note1.Reminder.CompareTo(note2.Reminder));
-                    return notesDetails;
-                }
-                return null;
+                    NoteId = notesDetails.NotesId,
+                    Title = notesDetails.Title,
+                    Description = notesDetails.Description,
+                    Color = notesDetails.Color,
+                    Image = notesDetails.Image,
+                    IsPin = notesDetails.IsPin,
+                    IsArchived = notesDetails.IsArchived,
+                    IsDeleted = notesDetails.IsDeleted,
+                    Reminder = notesDetails.Reminder,
+                    CreatedAt = notesDetails.CreatedAt,
+                    ModifiedAt = notesDetails.ModifiedAt,
+                    Labels = labels
+                };
+
+                return noteResponseModel;
             }
-            catch (Exception e)
+            catch(Exception e)
             {
                 throw new Exception(e.Message);
             }
         }
 
+        /// <summary>
+        /// It Add the Label to the ListofNoteResponseModel.
+        /// </summary>
+        /// <param name="notesDetails">List Of Notes</param>
+        /// <returns>List Of NoteResponseModel with Labels</returns>
+        private async Task<List<NoteResponseModel>> AddLabelToNoteResponseModel(List<NoteResponseModel> notesDetails)
+        {
+            try
+            {
+                foreach (NoteResponseModel note in notesDetails)
+                {
+                    List<LabelResponseModel> labels = await _applicationContext.NotesLabels.
+                    Where(noted => noted.NotesId == note.NoteId).
+                    Join(_applicationContext.LabelDetails,
+                    noteLabel => noteLabel.LabelId,
+                    label => label.LabelId,
+                    (noteLabel, label) => new LabelResponseModel
+                    {
+                        LabelId = noteLabel.LabelId,
+                        Name = label.Name,
+                        CreatedAt = label.CreatedAt,
+                        ModifiedAt = label.ModifiedAt
+                    }).
+                    ToListAsync();
+
+                    note.Labels = labels;
+                }
+
+                return notesDetails;
+            }
+            catch(Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
 
     }
 }

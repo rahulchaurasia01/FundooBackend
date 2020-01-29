@@ -61,7 +61,7 @@ namespace FundooAppBackend.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetAllLabel()
+        public async Task<IActionResult> GetAllLabel()
         {
             try
             {
@@ -73,7 +73,7 @@ namespace FundooAppBackend.Controllers
                     if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
                     {
                         int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
-                        List<LabelResponseModel> data = _labelBusiness.GetAllLabel(UserId);
+                        List<LabelResponseModel> data = await _labelBusiness.GetAllLabel(UserId);
                         if (data != null && data.Count > 0)
                         {
                             status = true;
@@ -96,7 +96,7 @@ namespace FundooAppBackend.Controllers
         }
 
         [HttpGet("{LabelId}")]
-        public IActionResult GetNoteByLabelId(int LabelId)
+        public async Task<IActionResult> GetNoteByLabelId(int LabelId)
         {
             try
             {
@@ -108,7 +108,7 @@ namespace FundooAppBackend.Controllers
                     if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
                     {
                         int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
-                        List<NoteResponseModel> data = _labelBusiness.GetNoteByLabelId(LabelId);
+                        List<NoteResponseModel> data = await _labelBusiness.GetNoteByLabelId(LabelId);
                         if (data != null && data.Count > 0)
                         {
                             status = true;

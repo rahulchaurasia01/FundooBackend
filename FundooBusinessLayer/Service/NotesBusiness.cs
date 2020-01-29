@@ -12,6 +12,7 @@ using FundooRepositoryLayer.Interface;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace FundooBusinessLayer.Service
 {
@@ -31,14 +32,14 @@ namespace FundooBusinessLayer.Service
         /// <param name="notesDetails">Note Data</param>
         /// <param name="userId">User Id Which has created the Note</param>
         /// <returns>Note data</returns>
-        public NoteResponseModel CreateNotes(NoteRequest notesDetails, int userId)
+        public async Task<NoteResponseModel> CreateNotes(NoteRequest notesDetails, int userId)
         {
             try
             {
                 if (notesDetails == null)
                     return null;
                 else
-                    return _notesRepository.CreateNotes(notesDetails, userId);
+                    return await _notesRepository.CreateNotes(notesDetails, userId);
             }
             catch (Exception e)
             {
@@ -52,13 +53,13 @@ namespace FundooBusinessLayer.Service
         /// <param name="NoteId">Note Id</param>
         /// <param name="UserId">User Id</param>
         /// <returns>Note Data</returns>
-        public NoteResponseModel GetNote(int NoteId, int UserId)
+        public async Task<NoteResponseModel> GetNote(int NoteId, int UserId)
         {
 
             if (NoteId <= 0 || UserId <= 0)
                 return null;
             else
-                return _notesRepository.GetNote(NoteId, UserId);
+                return await _notesRepository.GetNote(NoteId, UserId);
 
         }
 
@@ -67,12 +68,12 @@ namespace FundooBusinessLayer.Service
         /// </summary>
         /// <param name="userId">User Id</param>
         /// <returns>Return null, if user is not authenicated else List of all the Notes.</returns>
-        public List<NoteResponseModel> GetAllNotes(int userId)
+        public async Task<List<NoteResponseModel>> GetAllNotes(int userId)
         {
             if (userId <= 0)
                 return null;
             else
-                return _notesRepository.GetAllNotes(userId);
+                return await _notesRepository.GetAllNotes(userId);
         }
 
         /// <summary>
@@ -80,12 +81,12 @@ namespace FundooBusinessLayer.Service
         /// </summary>
         /// <param name="userId">User Id</param>
         /// <returns>Return null, If No Deleted Notes Found else list of deleted notes</returns>
-        public List<NoteResponseModel> GetAllDeletedNotes(int userId)
+        public async Task<List<NoteResponseModel>> GetAllDeletedNotes(int userId)
         {
             if (userId <= 0)
                 return null;
             else
-                return _notesRepository.GetAllDeletedNotes(userId);
+                return await _notesRepository.GetAllDeletedNotes(userId);
         }
 
         /// <summary>
@@ -93,12 +94,12 @@ namespace FundooBusinessLayer.Service
         /// </summary>
         /// <param name="userId">user Id</param>
         /// <returns>Return null, If No Archived Notes Found else list of Archived notes</returns>
-        public List<NoteResponseModel> GetAllArchivedNotes(int userId)
+        public async Task<List<NoteResponseModel>> GetAllArchivedNotes(int userId)
         {
             if (userId <= 0)
                 return null;
             else
-                return _notesRepository.GetAllArchivedNotes(userId);
+                return await _notesRepository.GetAllArchivedNotes(userId);
         }
 
         /// <summary>
@@ -106,12 +107,12 @@ namespace FundooBusinessLayer.Service
         /// </summary>
         /// <param name="userId">User Id</param>
         /// <returns>Return null, If No Pinned Notes Found else list of pinned notes</returns>
-        public List<NoteResponseModel> GetAllPinnedNotes(int userId)
+        public async Task<List<NoteResponseModel>> GetAllPinnedNotes(int userId)
         {
             if (userId <= 0)
                 return null;
             else
-                return _notesRepository.GetAllPinnedNotes(userId);
+                return await _notesRepository.GetAllPinnedNotes(userId);
         }
 
         /// <summary>
@@ -119,12 +120,12 @@ namespace FundooBusinessLayer.Service
         /// </summary>
         /// <param name="notesDetails">Note Data</param>
         /// <returns>return Updated Notes, if Successfull, or else null</returns>
-        public NoteResponseModel UpdateNotes(int noteId, int userId, NoteRequest updateNotesDetails)
+        public async Task<NoteResponseModel> UpdateNotes(int noteId, int userId, NoteRequest updateNotesDetails)
         {
             if (noteId <= 0 || userId <= 0 || updateNotesDetails == null)
                 return null;
             else
-                return _notesRepository.UpdateNotes(noteId, userId, updateNotesDetails);
+                return await _notesRepository.UpdateNotes(noteId, userId, updateNotesDetails);
         }
 
         /// <summary>
@@ -133,13 +134,13 @@ namespace FundooBusinessLayer.Service
         /// <param name="NoteId">Note Id</param>
         /// <param name="UserId">user Id</param>
         /// <returns>return true, If Deleted Successfull or else False</returns>
-        public bool DeleteNote(int NoteId, int UserId)
+        public async Task<bool> DeleteNote(int NoteId, int UserId)
         {
 
             if (NoteId <= 0 || UserId <= 0)
                 return false;
             else
-                return _notesRepository.DeleteNote(NoteId, UserId);
+                return await _notesRepository.DeleteNote(NoteId, UserId);
 
         }
 
@@ -148,12 +149,12 @@ namespace FundooBusinessLayer.Service
         /// </summary>
         /// <param name="userId">User Id</param>
         /// <returns>return true if deleted successfully or else false</returns>
-        public bool DeleteNotesPermanently(int userId)
+        public async Task<bool> DeleteNotesPermanently(int userId)
         {
             if (userId <= 0)
                 return false;
             else
-                return _notesRepository.DeleteNotesPermanently(userId);
+                return await _notesRepository.DeleteNotesPermanently(userId);
         }
 
         /// <summary>
@@ -162,12 +163,12 @@ namespace FundooBusinessLayer.Service
         /// <param name="noteId">Note id</param>
         /// <param name="userId">User Id</param>
         /// <returns>return true if restore successfull or else false</returns>
-        public bool RestoreDeletedNotes(int noteId, int userId)
+        public async Task<bool> RestoreDeletedNotes(int noteId, int userId)
         {
             if (noteId <= 0 || userId <= 0)
                 return false;
             else
-                return _notesRepository.RestoreDeletedNotes(noteId, userId);
+                return await _notesRepository.RestoreDeletedNotes(noteId, userId);
         }
 
         /// <summary>
@@ -175,12 +176,12 @@ namespace FundooBusinessLayer.Service
         /// </summary>
         /// <param name="userId">user iD</param>
         /// <returns>Return Sort List</returns>
-        public List<NoteResponseModel> SortByReminderNotes(int userId)
+        public async Task<List<NoteResponseModel>> SortByReminderNotes(int userId)
         {
             if (userId <= 0)
                 return null;
             else
-                return _notesRepository.SortByReminderNotes(userId);
+                return await _notesRepository.SortByReminderNotes(userId);
         }
 
     }

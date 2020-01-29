@@ -11,9 +11,9 @@ namespace FundooRepositoryLayer.Interface
 
         Task<LabelResponseModel> CreateLabel(LabelRequest label, int userId);
 
-        List<LabelResponseModel> GetAllLabel(int userId);
+        Task<List<LabelResponseModel>> GetAllLabel(int userId);
 
-        List<NoteResponseModel> GetNoteByLabelId(int LabelId);
+        Task<List<NoteResponseModel>> GetNoteByLabelId(int LabelId);
 
         Task<LabelResponseModel> UpdateLabel(LabelRequest updateLabel, int LabelId);
 

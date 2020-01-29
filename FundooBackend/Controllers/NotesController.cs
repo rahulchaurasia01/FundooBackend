@@ -27,7 +27,7 @@ namespace FundooAppBackend.Controllers
         }
 
         [HttpPost]
-        public IActionResult CreateNote(NoteRequest notesDetails)
+        public async Task<IActionResult> CreateNote(NoteRequest notesDetails)
         {
             try
             {
@@ -39,7 +39,7 @@ namespace FundooAppBackend.Controllers
                     if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
                     {
                         int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
-                        NoteResponseModel data = _notesBusiness.CreateNotes(notesDetails, UserId);
+                        NoteResponseModel data = await _notesBusiness.CreateNotes(notesDetails, UserId);
                         if (notesDetails != null)
                         {
                             status = true;
@@ -65,7 +65,7 @@ namespace FundooAppBackend.Controllers
         }
 
         [HttpGet("{NoteId}")]
-        public IActionResult GetNote(int NoteId)
+        public async Task<IActionResult> GetNote(int NoteId)
         {
             try
             {
@@ -77,7 +77,7 @@ namespace FundooAppBackend.Controllers
                     if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
                     {
                         int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
-                        NoteResponseModel notesDetails = _notesBusiness.GetNote(NoteId, UserId);
+                        NoteResponseModel notesDetails = await _notesBusiness.GetNote(NoteId, UserId);
                         if(notesDetails != null)
                         {
                             status = true;
@@ -100,7 +100,7 @@ namespace FundooAppBackend.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetAllNotes()
+        public async Task<IActionResult> GetAllNotes()
         {
             try
             {
@@ -112,7 +112,7 @@ namespace FundooAppBackend.Controllers
                     if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
                     {
                         int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
-                        List<NoteResponseModel> data = _notesBusiness.GetAllNotes(UserId);
+                        List<NoteResponseModel> data = await _notesBusiness.GetAllNotes(UserId);
                         if (data != null && data.Count > 0)
                         {
                             status = true;
@@ -136,7 +136,7 @@ namespace FundooAppBackend.Controllers
 
         [HttpGet]
         [Route("Delete")]
-        public IActionResult GetAllDeletedNotes()
+        public async Task<IActionResult> GetAllDeletedNotes()
         {
             try
             {
@@ -148,7 +148,7 @@ namespace FundooAppBackend.Controllers
                     if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
                     {
                         int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
-                        List<NoteResponseModel> data = _notesBusiness.GetAllDeletedNotes(UserId);
+                        List<NoteResponseModel> data = await _notesBusiness.GetAllDeletedNotes(UserId);
                         if (data != null && data.Count > 0)
                         {
                             status = true;
@@ -172,7 +172,7 @@ namespace FundooAppBackend.Controllers
 
         [HttpGet]
         [Route("Archive")]
-        public IActionResult GetAllArchivedNotes()
+        public async Task<IActionResult> GetAllArchivedNotes()
         {
             try
             {
@@ -184,7 +184,7 @@ namespace FundooAppBackend.Controllers
                     if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
                     {
                         int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
-                        List<NoteResponseModel> data = _notesBusiness.GetAllArchivedNotes(UserId);
+                        List<NoteResponseModel> data = await _notesBusiness.GetAllArchivedNotes(UserId);
                         if (data != null && data.Count > 0)
                         {
                             status = true;
@@ -208,7 +208,7 @@ namespace FundooAppBackend.Controllers
 
         [HttpGet]
         [Route("Pinned")]
-        public IActionResult GetAllPinnedNotes()
+        public async Task<IActionResult> GetAllPinnedNotes()
         {
             try
             {
@@ -220,7 +220,7 @@ namespace FundooAppBackend.Controllers
                     if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
                     {
                         int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
-                        List<NoteResponseModel> data = _notesBusiness.GetAllPinnedNotes(UserId);
+                        List<NoteResponseModel> data = await _notesBusiness.GetAllPinnedNotes(UserId);
                         if (data != null && data.Count > 0)
                         {
                             status = true;
@@ -243,7 +243,7 @@ namespace FundooAppBackend.Controllers
         }
 
         [HttpPut("{NoteId}")]
-        public IActionResult UpdateNote(int NoteId, NoteRequest updateNotesDetails)
+        public async Task<IActionResult> UpdateNote(int NoteId, NoteRequest updateNotesDetails)
         {
             try
             {
@@ -255,7 +255,7 @@ namespace FundooAppBackend.Controllers
                     if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
                     {
                         int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
-                        NoteResponseModel data = _notesBusiness.UpdateNotes(NoteId, UserId, updateNotesDetails);
+                        NoteResponseModel data = await _notesBusiness.UpdateNotes(NoteId, UserId, updateNotesDetails);
                         if (data != null)
                         {
                             status = true;
@@ -279,7 +279,7 @@ namespace FundooAppBackend.Controllers
 
         [HttpDelete]
         [Route("Delete/{NoteId}")]
-        public IActionResult DeleteNote(int NoteId)
+        public async Task<IActionResult> DeleteNote(int NoteId)
         {
             try
             {
@@ -291,7 +291,7 @@ namespace FundooAppBackend.Controllers
                     if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
                     {
                         int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
-                        status = _notesBusiness.DeleteNote(NoteId, UserId);
+                        status = await _notesBusiness.DeleteNote(NoteId, UserId);
                         if(status)
                         {
                             message = "Note Deleted Successfully";
@@ -313,7 +313,7 @@ namespace FundooAppBackend.Controllers
 
         [HttpDelete]
         [Route("DeleteForever")]
-        public IActionResult DeleteNotesPermanently()
+        public async Task<IActionResult> DeleteNotesPermanently()
         {
             try
             {
@@ -325,7 +325,7 @@ namespace FundooAppBackend.Controllers
                     if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
                     {
                         int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
-                        status = _notesBusiness.DeleteNotesPermanently(UserId);
+                        status = await _notesBusiness.DeleteNotesPermanently(UserId);
                         if (status)
                         {
                             message = "Your Notes has been Permanently Deleted";
@@ -347,7 +347,7 @@ namespace FundooAppBackend.Controllers
 
         [HttpPost]
         [Route("Restore/{NoteId}")]
-        public IActionResult RestoreDeletedNotes(int NoteId)
+        public async Task<IActionResult> RestoreDeletedNotes(int NoteId)
         {
             try
             {
@@ -359,7 +359,7 @@ namespace FundooAppBackend.Controllers
                     if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
                     {
                         int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
-                        status = _notesBusiness.RestoreDeletedNotes(NoteId, UserId);
+                        status = await _notesBusiness.RestoreDeletedNotes(NoteId, UserId);
                         if (status)
                         {
                             message = "Your Notes has Been Successfully Restored";
@@ -381,7 +381,7 @@ namespace FundooAppBackend.Controllers
 
         [HttpGet]
         [Route("Reminder")]
-        public IActionResult SortByReminderNotes()
+        public async Task<IActionResult> SortByReminderNotes()
         {
             try
             {
@@ -393,7 +393,7 @@ namespace FundooAppBackend.Controllers
                     if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
                     {
                         int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
-                        List<NoteResponseModel> data = _notesBusiness.SortByReminderNotes(UserId);
+                        List<NoteResponseModel> data = await _notesBusiness.SortByReminderNotes(UserId);
                         if (data != null && data.Count > 0)
                         {
                             status = true;

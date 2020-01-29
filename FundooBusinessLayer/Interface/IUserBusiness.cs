@@ -3,19 +3,20 @@ using FundooCommonLayer.ModelDB;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace FundooBusinessLayer.Interface
 {
     public interface IUserBusiness
     {
 
-        UserResponseModel Registration(RegisterRequest userDetails);
+        Task<UserResponseModel> Registration(RegisterRequest userDetails);
 
         UserResponseModel Login(LoginRequest login);
 
         UserResponseModel ForgetPassword(ForgetPasswordRequest forgetPassword);
 
-        bool ResetPassword(ResetPasswordRequest resetPassword, int userId);
+        Task<bool> ResetPassword(ResetPasswordRequest resetPassword, int userId);
 
     }
 }

@@ -10,6 +10,8 @@ using FundooCommonLayer.Model;
 using FundooCommonLayer.ModelDB;
 using FundooRepositoryLayer.Interface;
 using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace FundooBusinessLayer.Service
 {
@@ -68,14 +70,14 @@ namespace FundooBusinessLayer.Service
         /// </summary>
         /// <param name="userDetails"></param>
         /// <returns>Return ResponseModel if Successfull or else Null</returns>
-        public UserResponseModel Registration(RegisterRequest userDetails)
+        public async Task<UserResponseModel> Registration(RegisterRequest userDetails)
         {
             try
             {
                 if (userDetails == null)
                     return null;
                 else
-                    return _userRepository.Registration(userDetails);
+                    return await _userRepository.Registration(userDetails);
             }
             catch(Exception e)
             {
@@ -88,14 +90,14 @@ namespace FundooBusinessLayer.Service
         /// </summary>
         /// <param name="resetPassword">Reset Password Model</param>
         /// <returns>It Return true if reset is successfull or else false.</returns>
-        public bool ResetPassword(ResetPasswordRequest resetPassword, int userId)
+        public async Task<bool> ResetPassword(ResetPasswordRequest resetPassword, int userId)
         {
             try
             {
                 if (userId <= 0 || resetPassword.Password == null)
                     return false;
                 else
-                    return _userRepository.ResetPassword(resetPassword, userId);
+                    return await _userRepository.ResetPassword(resetPassword, userId);
             }
             catch(Exception e)
             {

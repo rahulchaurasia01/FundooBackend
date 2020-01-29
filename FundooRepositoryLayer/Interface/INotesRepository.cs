@@ -3,33 +3,34 @@ using FundooCommonLayer.ModelDB;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace FundooRepositoryLayer.Interface
 {
     public interface INotesRepository
     {
 
-        NoteResponseModel CreateNotes(NoteRequest notesDetails, int userId);
+        Task<NoteResponseModel> CreateNotes(NoteRequest notesDetails, int userId);
 
-        NoteResponseModel GetNote(int NoteId, int UserId);
+        Task<NoteResponseModel> GetNote(int NoteId, int UserId);
 
-        List<NoteResponseModel> GetAllNotes(int userId);
+        Task<List<NoteResponseModel>> GetAllNotes(int userId);
 
-        List<NoteResponseModel> GetAllDeletedNotes(int userId);
+        Task<List<NoteResponseModel>> GetAllDeletedNotes(int userId);
 
-        List<NoteResponseModel> GetAllArchivedNotes(int userId);
+        Task<List<NoteResponseModel>> GetAllArchivedNotes(int userId);
 
-        List<NoteResponseModel> GetAllPinnedNotes(int userId);
+        Task<List<NoteResponseModel>> GetAllPinnedNotes(int userId);
 
-        NoteResponseModel UpdateNotes(int noteId, int userId, NoteRequest updateNotesDetails);
+        Task<NoteResponseModel> UpdateNotes(int noteId, int userId, NoteRequest updateNotesDetails);
 
-        bool DeleteNote(int NoteId, int UserId);
+        Task<bool> DeleteNote(int NoteId, int UserId);
 
-        bool DeleteNotesPermanently(int userId);
+        Task<bool> DeleteNotesPermanently(int userId);
 
-        bool RestoreDeletedNotes(int noteId, int userId);
+        Task<bool> RestoreDeletedNotes(int noteId, int userId);
 
-        List<NoteResponseModel> SortByReminderNotes(int userId);
+        Task<List<NoteResponseModel>> SortByReminderNotes(int userId);
 
     }
 }

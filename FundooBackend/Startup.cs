@@ -58,8 +58,6 @@ namespace FundooBackend
                     options.ClientSecret = Configuration["Google:client_secret"];
                 });
 
-            
-
             services.AddSwaggerGen(swag =>
             {
                 swag.SwaggerDoc("User", new OpenApiInfo {Title = "User Api", Version = "v1.0" });

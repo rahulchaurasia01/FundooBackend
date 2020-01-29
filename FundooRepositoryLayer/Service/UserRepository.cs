@@ -100,7 +100,7 @@ namespace FundooRepositoryLayer.Service
         /// </summary>
         /// <param name="userDetails">User Data</param>
         /// <returns>It return the Response Model to be Send as Response</returns>
-        public UserResponseModel Registration(RegisterRequest userDetails)
+        public async Task<UserResponseModel> Registration(RegisterRequest userDetails)
         {
             try
             {
@@ -120,7 +120,7 @@ namespace FundooRepositoryLayer.Service
                 };
                 
                 context.UserDetails.Add(userData);
-                context.SaveChanges();
+                await context.SaveChangesAsync();
 
                 var data = new UserResponseModel()
                 {
@@ -138,7 +138,11 @@ namespace FundooRepositoryLayer.Service
             }
             catch(Exception e)
             {
-                throw new Exception(e.Message);
+                if (e.InnerException != null)
+                    throw new Exception(e.InnerException.Message);
+                else
+                    throw new Exception(e.Message);
+                
             }
         }
 
@@ -147,7 +151,7 @@ namespace FundooRepositoryLayer.Service
         /// </summary>
         /// <param name="resetPassword">ResetPassword Model</param>
         /// <returns>Return True if reset is successfull or else false</returns>
-        public bool ResetPassword(ResetPasswordRequest resetPassword, int userId)
+        public async Task<bool> ResetPassword(ResetPasswordRequest resetPassword, int userId)
         {
             try
             {
@@ -161,7 +165,7 @@ namespace FundooRepositoryLayer.Service
 
                     var user = context.UserDetails.Attach(userDetails);
                     user.State = Microsoft.EntityFrameworkCore.EntityState.Modified;
-                    context.SaveChanges();
+                    await context.SaveChangesAsync();
                     return true;
                 }
                 return false;

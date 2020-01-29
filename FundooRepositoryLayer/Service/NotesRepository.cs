@@ -13,6 +13,8 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace FundooRepositoryLayer.Service
 {
@@ -32,7 +34,7 @@ namespace FundooRepositoryLayer.Service
         /// <param name="noteDetails">Note Data</param>
         /// <param name="userId">User Id</param>
         /// <returns>Notes Details</returns>
-        public NoteResponseModel CreateNotes(NoteRequest noteDetails, int userId)
+        public async Task<NoteResponseModel> CreateNotes(NoteRequest noteDetails, int userId)
         {
             try
             {
@@ -52,7 +54,7 @@ namespace FundooRepositoryLayer.Service
                     ModifiedAt = DateTime.Now
                 };
                 _applicationContext.NotesDetails.Add(notesDetails);
-                _applicationContext.SaveChanges();
+                await _applicationContext.SaveChangesAsync();
 
                 if (noteDetails.Label != null && noteDetails.Label.Count != 0)
                 {
@@ -68,13 +70,13 @@ namespace FundooRepositoryLayer.Service
                             };
 
                             _applicationContext.NotesLabels.Add(data);
-                            _applicationContext.SaveChanges();
+                            await _applicationContext.SaveChangesAsync();
                         }
 
                     }
                 }
 
-                List<LabelResponseModel> labels = _applicationContext.NotesLabels.
+                List<LabelResponseModel> labels = await _applicationContext.NotesLabels.
                     Where(note => note.NotesId == notesDetails.NotesId).
                     Join(_applicationContext.LabelDetails,
                     noteLabel => noteLabel.LabelId,
@@ -87,7 +89,7 @@ namespace FundooRepositoryLayer.Service
                         ModifiedAt = label.ModifiedAt
 
                     }).
-                    ToList();
+                    ToListAsync();
 
                 var noteResponseModel = new NoteResponseModel()
                 {
@@ -119,14 +121,14 @@ namespace FundooRepositoryLayer.Service
         /// <param name="NoteId">Note Id</param>
         /// <param name="UserId">user Id</param>
         /// <returns>Single Note Data</returns>
-        public NoteResponseModel GetNote(int NoteId, int UserId)
+        public async Task<NoteResponseModel> GetNote(int NoteId, int UserId)
         {
             try
             {
                 NotesDetails notesDetails = _applicationContext.NotesDetails.
                     FirstOrDefault(note => note.NotesId == NoteId && note.UserId == UserId && !note.IsDeleted);
 
-                List<LabelResponseModel> labels = _applicationContext.NotesLabels.
+                List<LabelResponseModel> labels = await _applicationContext.NotesLabels.
                     Where(note => note.NotesId == NoteId).
                     Join(_applicationContext.LabelDetails,
                     noteLabel => noteLabel.LabelId,
@@ -139,7 +141,7 @@ namespace FundooRepositoryLayer.Service
                         ModifiedAt = label.ModifiedAt
 
                     }).
-                    ToList();
+                    ToListAsync();
 
                 if(notesDetails != null)
                 {
@@ -176,11 +178,11 @@ namespace FundooRepositoryLayer.Service
         /// </summary>
         /// <param name="userId">User Id</param>
         /// <returns>List Of All the Notes</returns>
-        public List<NoteResponseModel> GetAllNotes(int userId)
+        public async Task<List<NoteResponseModel>> GetAllNotes(int userId)
         {
             try
             {
-                List<NoteResponseModel> notes = _applicationContext.NotesDetails.Where(note => (note.UserId == userId) && !note.IsDeleted && !note.IsArchived).
+                List<NoteResponseModel> notes = await _applicationContext.NotesDetails.Where(note => (note.UserId == userId) && !note.IsDeleted && !note.IsArchived).
                     Select(note => new NoteResponseModel { 
                         NoteId = note.NotesId,
                         Title = note.Title,
@@ -194,13 +196,13 @@ namespace FundooRepositoryLayer.Service
                         CreatedAt = note.CreatedAt,
                         ModifiedAt = note.ModifiedAt
                     }).
-                    ToList();
+                    ToListAsync();
 
                 if(notes != null && notes.Count != 0)
                 {
                     foreach(NoteResponseModel note in notes)
                     {
-                        List<LabelResponseModel> labels = _applicationContext.NotesLabels.
+                        List<LabelResponseModel> labels = await _applicationContext.NotesLabels.
                         Where(noted => noted.NotesId == note.NoteId).
                         Join(_applicationContext.LabelDetails,
                         noteLabel => noteLabel.LabelId,
@@ -213,7 +215,7 @@ namespace FundooRepositoryLayer.Service
                             ModifiedAt = label.ModifiedAt
 
                         }).
-                        ToList();
+                        ToListAsync();
 
                         note.Labels = labels;
                     }
@@ -232,11 +234,11 @@ namespace FundooRepositoryLayer.Service
         /// </summary>
         /// <param name="userId">User Id</param>
         /// <returns>List Of All the Deleted Notes</returns>
-        public List<NoteResponseModel> GetAllDeletedNotes(int userId)
+        public async Task<List<NoteResponseModel>> GetAllDeletedNotes(int userId)
         {
             try
             {
-                List<NoteResponseModel> notesDetails = _applicationContext.NotesDetails.
+                List<NoteResponseModel> notesDetails = await _applicationContext.NotesDetails.
                     Where(note => (note.UserId == userId) && note.IsDeleted).
                     Select(note => new NoteResponseModel
                     {
@@ -252,13 +254,13 @@ namespace FundooRepositoryLayer.Service
                         CreatedAt = note.CreatedAt,
                         ModifiedAt = note.ModifiedAt
                     }).
-                    ToList();
+                    ToListAsync();
 
                 if (notesDetails != null && notesDetails.Count != 0)
                 {
                     foreach (NoteResponseModel note in notesDetails)
                     {
-                        List<LabelResponseModel> labels = _applicationContext.NotesLabels.
+                        List<LabelResponseModel> labels = await _applicationContext.NotesLabels.
                         Where(noted => noted.NotesId == note.NoteId).
                         Join(_applicationContext.LabelDetails,
                         noteLabel => noteLabel.LabelId,
@@ -271,7 +273,7 @@ namespace FundooRepositoryLayer.Service
                             ModifiedAt = label.ModifiedAt
 
                         }).
-                        ToList();
+                        ToListAsync();
 
                         note.Labels = labels;
                     }
@@ -291,11 +293,11 @@ namespace FundooRepositoryLayer.Service
         /// </summary>
         /// <param name="userId">User Id</param>
         /// <returns>List Of All Archived Notes</returns>
-        public List<NoteResponseModel> GetAllArchivedNotes(int userId)
+        public async Task<List<NoteResponseModel>> GetAllArchivedNotes(int userId)
         {
             try
             {
-                List<NoteResponseModel> notesDetails = _applicationContext.NotesDetails.
+                List<NoteResponseModel> notesDetails = await _applicationContext.NotesDetails.
                     Where(note => (note.UserId == userId) && note.IsArchived).
                     Select(note => new NoteResponseModel
                     {
@@ -311,13 +313,13 @@ namespace FundooRepositoryLayer.Service
                         CreatedAt = note.CreatedAt,
                         ModifiedAt = note.ModifiedAt
                     }).
-                    ToList();
+                    ToListAsync();
 
                 if (notesDetails != null && notesDetails.Count != 0)
                 {
                     foreach (NoteResponseModel note in notesDetails)
                     {
-                        List<LabelResponseModel> labels = _applicationContext.NotesLabels.
+                        List<LabelResponseModel> labels = await _applicationContext.NotesLabels.
                         Where(noted => noted.NotesId == note.NoteId).
                         Join(_applicationContext.LabelDetails,
                         noteLabel => noteLabel.LabelId,
@@ -330,7 +332,7 @@ namespace FundooRepositoryLayer.Service
                             ModifiedAt = label.ModifiedAt
 
                         }).
-                        ToList();
+                        ToListAsync();
 
                         note.Labels = labels;
                     }
@@ -349,11 +351,11 @@ namespace FundooRepositoryLayer.Service
         /// </summary>
         /// <param name="userId">User Id</param>
         /// <returns>Return All Pinned Notes</returns>
-        public List<NoteResponseModel> GetAllPinnedNotes(int userId)
+        public async Task<List<NoteResponseModel>> GetAllPinnedNotes(int userId)
         {
             try
             {
-                List<NoteResponseModel> notesDetails = _applicationContext.NotesDetails.
+                List<NoteResponseModel> notesDetails = await _applicationContext.NotesDetails.
                     Where(note => (note.UserId == userId) && note.IsPin).
                     Select(note => new NoteResponseModel
                     {
@@ -369,13 +371,13 @@ namespace FundooRepositoryLayer.Service
                         CreatedAt = note.CreatedAt,
                         ModifiedAt = note.ModifiedAt
                     }).
-                    ToList();
+                    ToListAsync();
 
                 if (notesDetails != null && notesDetails.Count != 0)
                 {
                     foreach (NoteResponseModel note in notesDetails)
                     {
-                        List<LabelResponseModel> labels = _applicationContext.NotesLabels.
+                        List<LabelResponseModel> labels = await _applicationContext.NotesLabels.
                         Where(noted => noted.NotesId == note.NoteId).
                         Join(_applicationContext.LabelDetails,
                         noteLabel => noteLabel.LabelId,
@@ -388,7 +390,7 @@ namespace FundooRepositoryLayer.Service
                             ModifiedAt = label.ModifiedAt
 
                         }).
-                        ToList();
+                        ToListAsync();
 
                         note.Labels = labels;
                     }
@@ -407,7 +409,7 @@ namespace FundooRepositoryLayer.Service
         /// </summary>
         /// <param name="notesDetails">Note data</param>
         /// <returns>Return Updated Notes</returns>
-        public NoteResponseModel UpdateNotes(int noteId, int userId, NoteRequest updateNotesDetails)
+        public async Task<NoteResponseModel> UpdateNotes(int noteId, int userId, NoteRequest updateNotesDetails)
         {
             try
             {
@@ -428,14 +430,14 @@ namespace FundooRepositoryLayer.Service
 
                     var note = _applicationContext.NotesDetails.Attach(notesDetails1);
                     note.State = Microsoft.EntityFrameworkCore.EntityState.Modified;
-                    _applicationContext.SaveChanges();
+                    await _applicationContext.SaveChangesAsync();
 
-                    List<NotesLabel> labels = _applicationContext.NotesLabels.Where(notes => notes.NotesId == noteId).ToList();
+                    List<NotesLabel> labels = await _applicationContext.NotesLabels.Where(notes => notes.NotesId == noteId).ToListAsync();
 
                     if(labels != null && labels.Count != 0)
                     {
                         _applicationContext.NotesLabels.RemoveRange(labels);
-                        _applicationContext.SaveChanges();
+                        await _applicationContext.SaveChangesAsync();
 
                     }
 
@@ -453,13 +455,13 @@ namespace FundooRepositoryLayer.Service
                                 };
 
                                 _applicationContext.NotesLabels.Add(data);
-                                _applicationContext.SaveChanges();
+                                await _applicationContext.SaveChangesAsync();
                             }
 
                         }
                     }
 
-                    List<LabelResponseModel> label = _applicationContext.NotesLabels.
+                    List<LabelResponseModel> label = await _applicationContext.NotesLabels.
                     Where(noted => noted.NotesId == noteId).
                     Join(_applicationContext.LabelDetails,
                     noteLabel => noteLabel.LabelId,
@@ -472,7 +474,7 @@ namespace FundooRepositoryLayer.Service
                         ModifiedAt = labeled.ModifiedAt
 
                     }).
-                    ToList();
+                    ToListAsync();
 
                     var noteResponseModel = new NoteResponseModel()
                     {
@@ -507,7 +509,7 @@ namespace FundooRepositoryLayer.Service
         /// <param name="NoteId"></param>
         /// <param name="UserId"></param>
         /// <returns></returns>
-        public bool DeleteNote(int NoteId, int UserId)
+        public async Task<bool> DeleteNote(int NoteId, int UserId)
         {
             try
             {
@@ -518,17 +520,17 @@ namespace FundooRepositoryLayer.Service
                 {
                     if (notesDetails.IsDeleted)
                     {
-                        List<NotesLabel> labels = _applicationContext.NotesLabels.Where(note => note.NotesId == NoteId).ToList();
+                        List<NotesLabel> labels = await _applicationContext.NotesLabels.Where(note => note.NotesId == NoteId).ToListAsync();
 
                         if (labels != null && labels.Count > 0)
                         {
                             _applicationContext.NotesLabels.RemoveRange(labels);
-                            _applicationContext.SaveChanges();
+                            await _applicationContext.SaveChangesAsync();
                         }
 
                         var notes = _applicationContext.NotesDetails.Remove(notesDetails);
                         notes.State = Microsoft.EntityFrameworkCore.EntityState.Deleted;
-                        _applicationContext.SaveChanges();
+                        await _applicationContext.SaveChangesAsync();
                         return true;
                     }
                     else
@@ -536,7 +538,7 @@ namespace FundooRepositoryLayer.Service
                         notesDetails.IsDeleted = true;
                         var notes = _applicationContext.NotesDetails.Attach(notesDetails);
                         notes.State = Microsoft.EntityFrameworkCore.EntityState.Modified;
-                        _applicationContext.SaveChanges();
+                        await _applicationContext.SaveChangesAsync();
                         return true;
                     }
 
@@ -554,24 +556,24 @@ namespace FundooRepositoryLayer.Service
         /// </summary>
         /// <param name="userId">User Id</param>
         /// <returns>Retturn true If Successfull or else False</returns>
-        public bool DeleteNotesPermanently(int userId)
+        public async Task<bool> DeleteNotesPermanently(int userId)
         {
             try
             {
-                List<NotesDetails> notesDetails = _applicationContext.NotesDetails.
-                    Where(note => note.UserId == userId && note.IsDeleted).ToList();
+                List<NotesDetails> notesDetails = await _applicationContext.NotesDetails.
+                    Where(note => note.UserId == userId && note.IsDeleted).ToListAsync();
 
 
                 if(notesDetails != null && notesDetails.Count != 0)
                 {
                     foreach(NotesDetails notes in notesDetails)
                     {
-                        List<NotesLabel> labels = _applicationContext.NotesLabels.Where(note => note.NotesId == notes.NotesId).ToList();
+                        List<NotesLabel> labels = await _applicationContext.NotesLabels.Where(note => note.NotesId == notes.NotesId).ToListAsync();
 
                         if(labels != null && labels.Count > 0)
                         {
                             _applicationContext.NotesLabels.RemoveRange(labels);
-                            _applicationContext.SaveChanges();
+                            await _applicationContext.SaveChangesAsync();
                         }
                     }
                 }
@@ -579,7 +581,7 @@ namespace FundooRepositoryLayer.Service
                 if (notesDetails != null && notesDetails.Count != 0)
                 {
                     _applicationContext.NotesDetails.RemoveRange(notesDetails);
-                    _applicationContext.SaveChanges();
+                    await _applicationContext.SaveChangesAsync();
                     return true;
                 }
                 return false;
@@ -596,7 +598,7 @@ namespace FundooRepositoryLayer.Service
         /// <param name="noteId">Note Id</param>
         /// <param name="userId">User Id</param>
         /// <returns>Return true, If Restore is Successfull or else False</returns>
-        public bool RestoreDeletedNotes(int noteId, int userId)
+        public async Task<bool> RestoreDeletedNotes(int noteId, int userId)
         {
             try
             {
@@ -609,7 +611,7 @@ namespace FundooRepositoryLayer.Service
                     notesDetails.IsArchived = false;
                     var notes = _applicationContext.NotesDetails.Attach(notesDetails);
                     notes.State = Microsoft.EntityFrameworkCore.EntityState.Modified;
-                    _applicationContext.SaveChanges();
+                    await _applicationContext.SaveChangesAsync();
                     return true;
                 }
                 return false;
@@ -625,11 +627,11 @@ namespace FundooRepositoryLayer.Service
         /// </summary>
         /// <param name="userId">User Id</param>
         /// <returns>List Of Notes By Reminder Order</returns>
-        public List<NoteResponseModel> SortByReminderNotes(int userId)
+        public async Task<List<NoteResponseModel>> SortByReminderNotes(int userId)
         {
             try
             {
-                List<NoteResponseModel> notesDetails = _applicationContext.NotesDetails.
+                List<NoteResponseModel> notesDetails = await _applicationContext.NotesDetails.
                     Where(note => note.UserId == userId).
                     Select(note => new NoteResponseModel
                     {
@@ -645,13 +647,13 @@ namespace FundooRepositoryLayer.Service
                         CreatedAt = note.CreatedAt,
                         ModifiedAt = note.ModifiedAt
                     }).
-                    ToList();
+                    ToListAsync();
 
                 if (notesDetails != null && notesDetails.Count != 0)
                 {
                     foreach (NoteResponseModel note in notesDetails)
                     {
-                        List<LabelResponseModel> labels = _applicationContext.NotesLabels.
+                        List<LabelResponseModel> labels = await _applicationContext.NotesLabels.
                         Where(noted => noted.NotesId == note.NoteId).
                         Join(_applicationContext.LabelDetails,
                         noteLabel => noteLabel.LabelId,
@@ -663,7 +665,7 @@ namespace FundooRepositoryLayer.Service
                             CreatedAt = label.CreatedAt,
                             ModifiedAt = label.ModifiedAt
                         }).
-                        ToList();
+                        ToListAsync();
 
                         note.Labels = labels;
                     }

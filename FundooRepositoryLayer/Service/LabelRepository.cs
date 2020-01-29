@@ -67,11 +67,11 @@ namespace FundooRepositoryLayer.Service
         /// </summary>
         /// <param name="userId">User Id</param>
         /// <returns>List of all the Label</returns>
-        public List<LabelResponseModel> GetAllLabel(int userId)
+        public async Task<List<LabelResponseModel>> GetAllLabel(int userId)
         {
             try
             {
-                List<LabelResponseModel> labelResponseModels =  _applicationContext.LabelDetails.
+                List<LabelResponseModel> labelResponseModels = await _applicationContext.LabelDetails.
                     Where(label => label.UserId == userId).
                     Select(label => new LabelResponseModel
                     {
@@ -80,7 +80,7 @@ namespace FundooRepositoryLayer.Service
                         CreatedAt = label.CreatedAt,
                         ModifiedAt = label.ModifiedAt
                     }).
-                    ToList();
+                    ToListAsync();
 
                 return  labelResponseModels;
             }
@@ -97,11 +97,11 @@ namespace FundooRepositoryLayer.Service
         /// </summary>
         /// <param name="LabelId">Label Id</param>
         /// <returns>List Of Notes for the selected Id</returns>
-        public List<NoteResponseModel> GetNoteByLabelId(int LabelId)
+        public async Task<List<NoteResponseModel>> GetNoteByLabelId(int LabelId)
         {
             try
             {
-                List<NoteResponseModel> noteResponseModels = _applicationContext.NotesLabels.
+                List<NoteResponseModel> noteResponseModels = await _applicationContext.NotesLabels.
                     Where(noteLabel => noteLabel.LabelId == LabelId).
                     Join(_applicationContext.NotesDetails,
                     label => label.NotesId,
@@ -120,13 +120,13 @@ namespace FundooRepositoryLayer.Service
                         CreatedAt = label.CreatedAt,
                         ModifiedAt = label.ModifiedAt
                     }).
-                    ToList();
+                    ToListAsync();
 
                 if (noteResponseModels != null && noteResponseModels.Count != 0)
                 {
                     foreach (NoteResponseModel note in noteResponseModels)
                     {
-                        List<LabelResponseModel> labels = _applicationContext.NotesLabels.
+                        List<LabelResponseModel> labels = await _applicationContext.NotesLabels.
                         Where(noted => noted.NotesId == note.NoteId).
                         Join(_applicationContext.LabelDetails,
                         noteLabel => noteLabel.LabelId,
@@ -139,7 +139,7 @@ namespace FundooRepositoryLayer.Service
                             ModifiedAt = label.ModifiedAt
 
                         }).
-                        ToList();
+                        ToListAsync();
 
                         note.Labels = labels;
                     }

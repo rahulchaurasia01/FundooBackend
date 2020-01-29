@@ -26,20 +26,20 @@ namespace FundooBusinessLayer.Service
                 return await _labelRepository.CreateLabel(label, userId);
         }
     
-        public List<LabelResponseModel> GetAllLabel(int userId)
+        public async Task<List<LabelResponseModel>> GetAllLabel(int userId)
         {
             if (userId <= 0)
                 return null;
             else
-                return _labelRepository.GetAllLabel(userId);
+                return await _labelRepository.GetAllLabel(userId);
         }
 
-        public List<NoteResponseModel> GetNoteByLabelId(int LabelId)
+        public async Task<List<NoteResponseModel>> GetNoteByLabelId(int LabelId)
         {
             if (LabelId <= 0)
                 return null;
             else
-                return _labelRepository.GetNoteByLabelId(LabelId);
+                return await _labelRepository.GetNoteByLabelId(LabelId);
         }
 
         public async Task<LabelResponseModel> UpdateLabel(LabelRequest updateLabel, int labelId)

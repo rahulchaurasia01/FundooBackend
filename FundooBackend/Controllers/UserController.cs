@@ -41,11 +41,14 @@ namespace FundooAppBackend.Controllers
         /// <returns>It return 200 and Data If registration is Successfull or else 404</returns>
         [HttpPost]
         [Route("Registration")]
-        public IActionResult Registration([FromBody] RegisterRequest userDetails)
+        public async Task<IActionResult> Registration([FromBody] RegisterRequest userDetails)
         {
             try
             {
-                UserResponseModel data = _userBusiness.Registration(userDetails);
+                if(!ValidateRegisterRequest(userDetails))
+                    return BadRequest(new { Message = "Enter Proper Data" });
+
+                UserResponseModel data = await _userBusiness.Registration(userDetails);
                 bool status;
                 string message;
                 string token;
@@ -80,6 +83,9 @@ namespace FundooAppBackend.Controllers
         {
             try
             {
+                if (!ValidateLoginRequest(login))
+                    return BadRequest(new { Message= "Enter Proper Input Value." });
+
                 UserResponseModel data = _userBusiness.Login(login);
                 bool status;
                 string message;
@@ -115,6 +121,9 @@ namespace FundooAppBackend.Controllers
         {
             try
             {
+                if (!ValidateForgetPasswordRequest(forgetPassword))
+                    return BadRequest(new { Message = "Please input the Data Properly." });
+
                 UserResponseModel data = _userBusiness.ForgetPassword(forgetPassword);
                 bool status;
                 string message;
@@ -148,10 +157,13 @@ namespace FundooAppBackend.Controllers
         [HttpPost]
         [Authorize]
         [Route("ResetPassword")]
-        public IActionResult ResetPassword([FromBody] ResetPasswordRequest resetPassword)
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest resetPassword)
         {
             try
             {
+                if (!ValidateResetPasswordRequest(resetPassword))
+                    return BadRequest(new { Message = "Input the Data Properly" });
+
                 var user = HttpContext.User;
                 bool status;
                 string message;
@@ -160,7 +172,7 @@ namespace FundooAppBackend.Controllers
                     if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _forgetPassword)
                     {
                         int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
-                        status = _userBusiness.ResetPassword(resetPassword, UserId);
+                        status = await _userBusiness.ResetPassword(resetPassword, UserId);
                         if(status)
                         {
                             status = true;
@@ -178,7 +190,6 @@ namespace FundooAppBackend.Controllers
                 return BadRequest(new { e.Message });
             }
         }
-
 
         /// <summary>
         /// It Generate the token.
@@ -210,6 +221,69 @@ namespace FundooAppBackend.Controllers
                 throw new Exception(e.Message);
             }
         }
-    
+
+        /// <summary>
+        /// It Validate the RegisterRequest Model Data Before passing on to Business Layer
+        /// </summary>
+        /// <param name="userDetails">New User Data</param>
+        /// <returns>Return true if validation successfull or else false</returns>
+        private bool ValidateRegisterRequest(RegisterRequest userDetails)
+        {
+            if (userDetails == null || string.IsNullOrWhiteSpace(userDetails.FirstName) ||
+                    string.IsNullOrWhiteSpace(userDetails.LastName) || string.IsNullOrWhiteSpace(userDetails.EmailId) ||
+                    string.IsNullOrWhiteSpace(userDetails.Password) || string.IsNullOrWhiteSpace(userDetails.Type) ||
+                    (userDetails.FirstName.Length < 3 || userDetails.FirstName.Length > 12) ||
+                    (userDetails.LastName.Length < 3 || userDetails.LastName.Length > 12) || !userDetails.EmailId.Contains('@') ||
+                    !userDetails.EmailId.Contains('.') || userDetails.Password.Length < 5 || (userDetails.Type != "Basic" &&
+                    userDetails.Type != "Advanced"))
+                return false;
+            else
+                return true;
+        }
+
+        /// <summary>
+        /// It Validate The LoginRequest Model Data Before Passing it to Business Layer.
+        /// </summary>
+        /// <param name="loginRequest">Login Data</param>
+        /// <returns>Return True If validation is successfull or else false</returns>
+        private bool ValidateLoginRequest(LoginRequest loginRequest)
+        {
+            if (loginRequest == null || string.IsNullOrWhiteSpace(loginRequest.EmailId) ||
+                string.IsNullOrWhiteSpace(loginRequest.Password) || !loginRequest.EmailId.Contains('@') ||
+                !loginRequest.EmailId.Contains('.') || loginRequest.Password.Length < 5)
+                return false;
+
+            return true;
+        }
+
+        /// <summary>
+        /// It Validate the ForgetPasswordRequest Model Before Sending it to Business Layer
+        /// </summary>
+        /// <param name="forgetPassword">ForgetPassword Data</param>
+        /// <returns>Return True if Validation is successfull.</returns>
+        private bool ValidateForgetPasswordRequest(ForgetPasswordRequest forgetPassword)
+        {
+            if (forgetPassword == null || string.IsNullOrWhiteSpace(forgetPassword.EmailId) ||
+                !forgetPassword.EmailId.Contains('@') || !forgetPassword.EmailId.Contains('.'))
+                return false;
+
+            return true;
+        }
+
+        /// <summary>
+        /// It Validate the ResetPasswordRequest Model Before Sending it to a Business Layer.
+        /// </summary>
+        /// <param name="resetPassword">Reset Password Data</param>
+        /// <returns>Return True if Validation is Successfull or else return false</returns>
+        private bool ValidateResetPasswordRequest(ResetPasswordRequest resetPassword)
+        {
+            if (resetPassword == null || string.IsNullOrWhiteSpace(resetPassword.Password) ||
+                resetPassword.Password.Length < 5)
+                return false;
+
+            return true;
+        }
+
+
     }
 }

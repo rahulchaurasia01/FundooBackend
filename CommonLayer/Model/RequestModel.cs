@@ -20,7 +20,7 @@ namespace FundooCommonLayer.Model
     {
 
         [Required]
-        [EmailAddress]
+        [EmailAddress(ErrorMessage = "Please Input a Proper Email-Id")]
         public string EmailId { set; get; }
 
     }
@@ -56,16 +56,21 @@ namespace FundooCommonLayer.Model
     public class RegisterRequest
     {
         [Required]
+        [MaxLength(12, ErrorMessage = "Your FirstName Length Should be Less Than 12.")]
+        [MinLength(3, ErrorMessage = "Your FirstName Length Should be more than 3")]
         public string FirstName { set; get; }
 
         [Required]
+        [MaxLength(12, ErrorMessage = "Your LastName Length Should be Less Than 12.")]
+        [MinLength(3, ErrorMessage = "Your LastName Length Should be more than 3")]
         public string LastName { set; get; }
 
         [Required]
-        [EmailAddress]
+        [EmailAddress(ErrorMessage = "Please Input a Proper Email-Id")]
         public string EmailId { set; get; }
 
         [Required]
+        [MinLength(5, ErrorMessage = "Your Password Should be Minimum Length of 5.")]
         public string Password { set; get; }
 
         [Required]

@@ -2,19 +2,20 @@
 using FundooCommonLayer.ModelDB;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace FundooRepositoryLayer.Interface
 {
     public interface IUserRepository
     {
 
-        UserResponseModel Registration(RegisterRequest userDetails);
+        Task<UserResponseModel> Registration(RegisterRequest userDetails);
 
         UserResponseModel Login(LoginRequest login);
 
         UserResponseModel ForgetPassword(ForgetPasswordRequest forgetPassword);
 
-        bool ResetPassword(ResetPasswordRequest resetPassword, int userId);
+        Task<bool> ResetPassword(ResetPasswordRequest resetPassword, int userId);
 
     }
 }

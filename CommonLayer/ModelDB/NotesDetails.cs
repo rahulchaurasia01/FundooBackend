@@ -45,7 +45,7 @@ namespace FundooCommonLayer.ModelDB
         [DefaultValue(false)]
         public bool IsDeleted { set; get; }
 
-        public DateTime Reminder { set; get; }
+        public DateTime? Reminder { set; get; }
 
         public DateTime CreatedAt { set; get; }
 

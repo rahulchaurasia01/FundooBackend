@@ -574,6 +574,36 @@ namespace FundooRepositoryLayer.Service
             }
         }
 
+
+        public async Task<NoteResponseModel> AddUpdateImage(int NoteId, ImageRequest imageRequest, int userId)
+        {
+            try
+            {
+                NotesDetails notesDetails = _applicationContext.NotesDetails.
+                    FirstOrDefault(note => note.NotesId == NoteId && note.UserId == userId && !note.IsDeleted);
+
+                if (notesDetails != null)
+                {
+                    notesDetails.Image = imageRequest.Image;
+                    notesDetails.ModifiedAt = DateTime.Now;
+                    var data = _applicationContext.NotesDetails.Attach(notesDetails);
+                    data.State = EntityState.Modified;
+                    await _applicationContext.SaveChangesAsync();
+
+                    NoteResponseModel noteResponseModel = await NoteResponseModel(notesDetails);
+
+                    return noteResponseModel;
+                }
+
+                return null;
+            }
+            catch(Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
+
         /// <summary>
         /// It Will Delete the Note Permanently From the Database
         /// </summary>

@@ -134,6 +134,15 @@ namespace FundooCommonLayer.Model
     }
 
     /// <summary>
+    /// Image Request: When User Tries to Add Or Update The Note Images.
+    /// </summary>
+    public class ImageRequest
+    {
+        [Required]
+        public string Image { set; get; }
+    }
+
+    /// <summary>
     /// User Request: To Get the List Of user Register.
     /// </summary>
     public class UserRequest
@@ -158,6 +167,5 @@ namespace FundooCommonLayer.Model
     {
         public int LabelId { set; get; }
     }
-
 
 }

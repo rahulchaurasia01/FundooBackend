@@ -36,6 +36,8 @@ namespace FundooBusinessLayer.Interface
 
         Task<NoteResponseModel> ColorTheNote(int NoteId, ColorRequest colorRequest, int userId);
 
+        Task<NoteResponseModel> AddUpdateImage(int NoteId, ImageRequest imageRequest, int userId);
+
         Task<bool> DeleteNotesPermanently(int userId);
 
         Task<bool> RestoreDeletedNotes(int noteId, int userId);

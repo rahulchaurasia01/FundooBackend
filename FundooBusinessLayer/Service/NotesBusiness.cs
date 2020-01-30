@@ -213,6 +213,21 @@ namespace FundooBusinessLayer.Service
         }
 
         /// <summary>
+        /// It Add Or Update the Image of the Notes
+        /// </summary>
+        /// <param name="NoteId">Note Id</param>
+        /// <param name="imageRequest">Image Path Data</param>
+        /// <param name="userId">User Id</param>
+        /// <returns>Note Response Model</returns>
+        public async Task<NoteResponseModel> AddUpdateImage(int NoteId, ImageRequest imageRequest, int userId)
+        {
+            if (imageRequest == null || NoteId <= 0 || userId <= 0)
+                return null;
+            else
+                return await _notesRepository.AddUpdateImage(NoteId, imageRequest, userId);
+        }
+
+        /// <summary>
         /// Delete the note Permanently from the Database.
         /// </summary>
         /// <param name="userId">User Id</param>

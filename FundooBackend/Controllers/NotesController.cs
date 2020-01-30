@@ -4,10 +4,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using FundooBusinessLayer.Interface;
 using FundooCommonLayer.Model;
+using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
 using FundooCommonLayer.ModelDB;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 
 namespace FundooAppBackend.Controllers
 {
@@ -18,12 +21,14 @@ namespace FundooAppBackend.Controllers
     {
 
         private readonly INotesBusiness _notesBusiness;
+        private readonly IConfiguration _configuration;
 
         private static readonly string _login = "Login";
 
-        public NotesController(INotesBusiness notesBusiness)
+        public NotesController(INotesBusiness notesBusiness, IConfiguration configuration)
         {
             _notesBusiness = notesBusiness;
+            _configuration = configuration;
         }
 
         /// <summary>
@@ -274,6 +279,12 @@ namespace FundooAppBackend.Controllers
             }
         }
 
+        /// <summary>
+        /// List Of User.
+        /// </summary>
+        /// <param name="userRequest">User Request data</param>
+        /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
+        /// occured and Not Proper Input Given it return BadRequest.</returns>
         [HttpPost]
         [Route("Users")]
         public async Task<IActionResult> GetAllUsers(UserRequest userRequest)
@@ -308,7 +319,6 @@ namespace FundooAppBackend.Controllers
                 return BadRequest(new { e.Message });
             }
         }
-
 
         /// <summary>
         /// It Update The Selected Notes
@@ -563,6 +573,51 @@ namespace FundooAppBackend.Controllers
         }
 
         /// <summary>
+        /// It Add or Update the Image of the notes.
+        /// </summary>
+        /// <param name="NoteId">Note Id</param>
+        /// <param name="imageRequest">Image Data</param>
+        /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
+        /// occured and Not Proper Input Given it return BadRequest.</returns>
+        [HttpPut]
+        [Route("{NoteId}/Image")]
+        public async Task<IActionResult> AddUpdateImage(int NoteId, ImageRequest imageRequest)
+        {
+            try
+            {
+                var user = HttpContext.User;
+                bool status;
+                string message;
+                if (user.HasClaim(c => c.Type == "TokenType"))
+                {
+                    if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
+                    {
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+
+                        imageRequest.Image = UploadImageToCloudinary(imageRequest);
+                        NoteResponseModel data = await _notesBusiness.AddUpdateImage(NoteId, imageRequest, UserId);
+                        if (data != null)
+                        {
+                            status = true;
+                            message = "The Image has Been Successfully Added To the Note.";
+                            return Ok(new { status, message, data });
+                        }
+                        status = false;
+                        message = "Unable to Add the Image to the Note.";
+                        return NotFound(new { status, message });
+                    }
+                }
+                status = false;
+                message = "Invalid Token";
+                return BadRequest(new { status, message });
+            }
+            catch(Exception e)
+            {
+                return BadRequest(new { e.Message });
+            }
+        }
+
+        /// <summary>
         /// It Delete the List of Notes Permanentely
         /// </summary>
         /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
@@ -643,6 +698,35 @@ namespace FundooAppBackend.Controllers
 
 
 
+
+        /// <summary>
+        /// It Upload the Image to Cloudinary and Get the url Of the uploaded Image
+        /// </summary>
+        /// <param name="imageRequest">Image Data</param>
+        private string UploadImageToCloudinary(ImageRequest imageRequest)
+        {
+            try
+            {
+                var Account = new Account(_configuration["Cloudinary:Cloud_Name"],
+                    _configuration["Cloudinary:Api_Key"], _configuration["Cloudinary:Api_Secret"]);
+
+                Cloudinary cloudinary = new Cloudinary(Account);
+
+                var imageUpload = new ImageUploadParams
+                {
+                    File = new FileDescription(imageRequest.Image),
+                    Folder = "FundooNotes"
+                };
+
+                var uploadImage = cloudinary.Upload(@imageUpload);
+
+                return uploadImage.SecureUri.AbsoluteUri;
+            }
+            catch(Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
 
     }
 }

@@ -79,6 +79,27 @@ namespace FundooRepositoryLayer.Service
                     }
                 }
 
+                if(noteDetails.Collaborators != null && noteDetails.Collaborators.Count > 0)
+                {
+                    
+                    List<CollaboratorRequest> collaborators = noteDetails.Collaborators;
+                    foreach(CollaboratorRequest collaborator in collaborators)
+                    {
+                        if(collaborator.UserId > 0)
+                        {
+                            var data1 = new UsersNotes
+                            {
+                                NoteId = notesDetails.NotesId,
+                                UserId = collaborator.UserId
+                            };
+
+                            _applicationContext.UsersNotes.Add(data1);
+                            await _applicationContext.SaveChangesAsync();
+                        }
+
+                    }
+                }
+
                 NoteResponseModel noteResponseModel = await NoteResponseModel(notesDetails);
 
                 return noteResponseModel;
@@ -102,14 +123,42 @@ namespace FundooRepositoryLayer.Service
                 NotesDetails notesDetails = _applicationContext.NotesDetails.
                     FirstOrDefault(note => note.NotesId == NoteId && note.UserId == UserId && !note.IsDeleted);
 
+                NotesDetails notesDetails1 = _applicationContext.UsersNotes.
+                    Where(userNote => userNote.NoteId == NoteId && userNote.UserId == UserId).
+                    Join(_applicationContext.NotesDetails,
+                    usersNotes => usersNotes.NoteId,
+                    note => note.NotesId,
+                    (usersNotes, note) => new NotesDetails
+                    {
+                        NotesId = usersNotes.NoteId,
+                        UserId = usersNotes.UserId,
+                        Title = note.Title,
+                        Description = note.Description,
+                        Color = note.Color,
+                        Image = note.Image,
+                        IsPin = note.IsPin,
+                        IsArchived = note.IsArchived,
+                        IsDeleted = note.IsDeleted,
+                        Reminder = note.Reminder,
+                        CreatedAt = note.CreatedAt,
+                        ModifiedAt = note.ModifiedAt,
+                    }).
+                    FirstOrDefault();
+
                 if(notesDetails != null)
                 {
                     NoteResponseModel noteResponseModel = await NoteResponseModel(notesDetails);
 
                     return noteResponseModel;
                 }
+                else if(notesDetails1 != null)
+                {
+                    NoteResponseModel noteResponseModel = await NoteResponseModel(notesDetails1);
 
-                return null;
+                    return noteResponseModel;
+                }
+                else
+                    return null;
             }
             catch (Exception e)
             {
@@ -126,7 +175,30 @@ namespace FundooRepositoryLayer.Service
         {
             try
             {
-                List<NoteResponseModel> notes = await _applicationContext.NotesDetails.Where(note => (note.UserId == userId) && !note.IsDeleted && !note.IsArchived).
+                List<NoteResponseModel> collabNotes = await _applicationContext.UsersNotes.
+                    Where(userNote => userNote.UserId == userId).
+                    Join(_applicationContext.NotesDetails,
+                    userNote => userNote.NoteId,
+                    note => note.NotesId,
+                    (userNote, note) => new NoteResponseModel
+                    {
+                        NoteId = userNote.NoteId,
+                        Title = note.Title,
+                        Description = note.Description,
+                        Color = note.Color,
+                        Image = note.Image,
+                        IsPin = note.IsPin,
+                        IsArchived = note.IsArchived,
+                        IsDeleted = note.IsDeleted,
+                        Reminder = note.Reminder,
+                        CreatedAt = note.CreatedAt,
+                        ModifiedAt = note.ModifiedAt
+                    }).
+                    ToListAsync();
+
+
+                List<NoteResponseModel> notes = await _applicationContext.NotesDetails.
+                    Where(note => (note.UserId == userId) && !note.IsDeleted && !note.IsArchived).
                     Select(note => new NoteResponseModel { 
                         NoteId = note.NotesId,
                         Title = note.Title,
@@ -142,13 +214,70 @@ namespace FundooRepositoryLayer.Service
                     }).
                     ToListAsync();
 
-                if(notes != null && notes.Count != 0)
+
+                if (notes != null && notes.Count != 0)
                 {
                     notes = await AddLabelToNoteResponseModel(notes);
+                    notes = await AddCollaboratorToNoteResponseModel(notes, userId);
+                    if (collabNotes != null && collabNotes.Count > 0)
+                    {
+                        collabNotes = await AddCollaboratorToNoteResponseModel(collabNotes, userId);
+                        
+                        foreach (NoteResponseModel note in notes)
+                            collabNotes.Add(note);
+
+                        return collabNotes;
+                    }
                     return notes;
                 }
+                else if (collabNotes != null && collabNotes.Count != 0)
+                {
+                    foreach (NoteResponseModel collabNote in collabNotes)
+                    {
+                        CollaboratorResponseModel collabUserId = _applicationContext.NotesDetails.
+                            Where(noteUserId => noteUserId.NotesId == collabNote.NoteId).
+                            Join(_applicationContext.UserDetails,
+                            note => note.UserId,
+                            user => user.UserId,
+                            (note, user) => new CollaboratorResponseModel {
+                                UserId = note.UserId,
+                                FirstName = user.FirstName,
+                                LastName = user.LastName,
+                                EmailId = user.EmailId
+                            }).
+                            FirstOrDefault();
 
-                return null;
+                        List<CollaboratorResponseModel> collaborators = await _applicationContext.UsersNotes.
+                        Where(noted => noted.NoteId == collabNote.NoteId && noted.UserId != userId).
+                        Join(_applicationContext.UserDetails,
+                        userNote => userNote.UserId,
+                        user => user.UserId,
+                        (userNote, user) => new CollaboratorResponseModel
+                        {
+                            UserId = userNote.UserId,
+                            FirstName = user.FirstName,
+                            LastName = user.LastName,
+                            EmailId = user.EmailId
+                        }).
+                        ToListAsync();
+
+                        if (collabUserId != null)
+                        {
+                            if (collaborators != null && collaborators.Count > 0)
+                                collaborators.Insert(0, collabUserId);
+                            else
+                            {
+                                collaborators = new List<CollaboratorResponseModel>();
+                                collaborators.Add(collabUserId);
+                            }
+                        }
+                        collabNote.Collaborators = collaborators;
+                    }
+
+                    return collabNotes;
+                }
+                else
+                    return null;
             }
             catch(Exception e)
             {
@@ -280,35 +409,6 @@ namespace FundooRepositoryLayer.Service
         }
 
         /// <summary>
-        /// Get The List Of Users.
-        /// </summary>
-        /// <returns>List of all User</returns>
-        public async Task<List<UserListResponseModel>> GetAllUsers(UserRequest userRequest)
-        {
-            try
-            {
-                List<UserListResponseModel> userLists = await _applicationContext.UserDetails.
-                    Where(user => user.EmailId.StartsWith(userRequest.EmailId)).
-                    Select(user => new UserListResponseModel
-                    {
-                        UserId = user.UserId,
-                        EmailId = user.EmailId
-                    }).
-                    ToListAsync();
-
-                if(userLists != null && userLists.Count > 0)
-                {
-                    return userLists;
-                }
-                return null;
-            }
-            catch(Exception e)
-            {
-                throw new Exception(e.Message);
-            }
-        }
-
-        /// <summary>
         /// Update The Notes
         /// </summary>
         /// <param name="notesDetails">Note data</param>
@@ -364,6 +464,26 @@ namespace FundooRepositoryLayer.Service
                                 _applicationContext.NotesLabels.Add(data);
                                 await _applicationContext.SaveChangesAsync();
                             }
+                        }
+                    }
+
+                    if (updateNotesDetails.Collaborators != null && updateNotesDetails.Collaborators.Count > 0)
+                    {
+                        List<CollaboratorRequest> collaborators = updateNotesDetails.Collaborators;
+                        foreach (CollaboratorRequest collaborator in collaborators)
+                        {
+                            if (collaborator.UserId > 0)
+                            {
+                                var data = new UsersNotes
+                                {
+                                    NoteId = notesDetails1.NotesId,
+                                    UserId = collaborator.UserId
+                                };
+
+                                _applicationContext.UsersNotes.Add(data);
+                                await _applicationContext.SaveChangesAsync();
+                            }
+
                         }
                     }
 
@@ -457,7 +577,7 @@ namespace FundooRepositoryLayer.Service
                 if (notesDetails != null && notesDetails.Count > 0)
                 {
                     notesDetails = await AddLabelToNoteResponseModel(notesDetails);
-                    notesDetails.Sort((note1, note2) => note1.Reminder.Value.CompareTo(note2.Reminder.Value));
+                    notesDetails.Sort((note1, note2) => DateTime.Now.CompareTo(note1.Reminder.Value));
                     return notesDetails;
                 }
 
@@ -574,7 +694,13 @@ namespace FundooRepositoryLayer.Service
             }
         }
 
-
+        /// <summary>
+        /// It will Add Or Update the Image Of the Note.
+        /// </summary>
+        /// <param name="NoteId">Note Id</param>
+        /// <param name="imageRequest">Image Path data</param>
+        /// <param name="userId">User Id</param>
+        /// <returns>Note Response Model</returns>
         public async Task<NoteResponseModel> AddUpdateImage(int NoteId, ImageRequest imageRequest, int userId)
         {
             try
@@ -602,7 +728,6 @@ namespace FundooRepositoryLayer.Service
                 throw new Exception(e.Message);
             }
         }
-
 
         /// <summary>
         /// It Will Delete the Note Permanently From the Database
@@ -718,6 +843,9 @@ namespace FundooRepositoryLayer.Service
                     Labels = labels
                 };
 
+                noteResponseModel = await AddCollaboratorToNoteResponseModel(noteResponseModel, notesDetails.UserId);
+                
+
                 return noteResponseModel;
             }
             catch(Exception e)
@@ -753,6 +881,117 @@ namespace FundooRepositoryLayer.Service
 
                     note.Labels = labels;
                 }
+
+                return notesDetails;
+            }
+            catch(Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
+        private async Task<List<NoteResponseModel>> AddCollaboratorToNoteResponseModel(List<NoteResponseModel> notes, int userId)
+        {
+            try
+            {
+                foreach(NoteResponseModel note in notes)
+                {
+                    CollaboratorResponseModel collabUserId = _applicationContext.NotesDetails.
+                            Where(noteUserId => noteUserId.NotesId == note.NoteId && noteUserId.UserId != userId).
+                            Join(_applicationContext.UserDetails,
+                            noteds => noteds.UserId,
+                            user => user.UserId,
+                            (noteds, user) => new CollaboratorResponseModel
+                            {
+                                UserId = noteds.UserId,
+                                FirstName = user.FirstName,
+                                LastName = user.LastName,
+                                EmailId = user.EmailId
+                            }).
+                            FirstOrDefault();
+
+                    List<CollaboratorResponseModel> collaborators = await _applicationContext.UsersNotes.
+                    Where(noted => noted.NoteId == note.NoteId).
+                    Join(_applicationContext.UserDetails,
+                    userNote => userNote.UserId,
+                    user => user.UserId,
+                    (userNote, user) => new CollaboratorResponseModel
+                    {
+                        UserId = userNote.UserId,
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
+                        EmailId = user.EmailId
+                    }).
+                    Where(noted => noted.UserId != userId).
+                    ToListAsync();
+
+                    if(collabUserId != null)
+                    {
+                        if (collaborators != null && collaborators.Count > 0)
+                            collaborators.Insert(0, collabUserId);
+                        else
+                        {
+                            collaborators = new List<CollaboratorResponseModel>();
+                            collaborators.Add(collabUserId);
+                        }
+                    }
+
+                    note.Collaborators = collaborators;
+                }
+
+                return notes;
+            }
+            catch(Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
+        private async Task<NoteResponseModel> AddCollaboratorToNoteResponseModel(NoteResponseModel notesDetails, int userId)
+        {
+            try
+            {
+                ///To get the Owner Data of the notes.
+                CollaboratorResponseModel collabUserId = _applicationContext.NotesDetails.
+                    Where(noteUserId => noteUserId.NotesId == notesDetails.NoteId && noteUserId.UserId != userId).
+                    Join(_applicationContext.UserDetails,
+                    note => note.UserId,
+                    user => user.UserId,
+                    (note, user) => new CollaboratorResponseModel
+                    {
+                        UserId = note.UserId,
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
+                        EmailId = user.EmailId
+                    }).
+                    FirstOrDefault();
+
+                ///List of the user who is collaborating
+                List<CollaboratorResponseModel> collaborators = await _applicationContext.UsersNotes.
+                   Where(note => note.NoteId == notesDetails.NoteId && note.UserId != userId).
+                   Join(_applicationContext.UserDetails,
+                   userNote => userNote.UserId,
+                   user => user.UserId,
+                   (userNote, user) => new CollaboratorResponseModel
+                   {
+                       UserId = userNote.UserId,
+                       FirstName = user.FirstName,
+                       LastName = user.LastName,
+                       EmailId = user.EmailId
+                   }).
+                   ToListAsync();
+
+                if (collabUserId != null)
+                {
+                    if (collaborators != null && collaborators.Count > 0)
+                        collaborators.Insert(0, collabUserId);
+                    else
+                    {
+                        collaborators = new List<CollaboratorResponseModel>();
+                        collaborators.Add(collabUserId);
+                    }
+                }
+                notesDetails.Collaborators = collaborators;
 
                 return notesDetails;
             }

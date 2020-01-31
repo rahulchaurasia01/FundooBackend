@@ -104,6 +104,8 @@ namespace FundooCommonLayer.Model
         public DateTime? Reminder { set; get; }
 
         public List<NotesLabelRequest> Label { set; get; }
+
+        public List<CollaboratorRequest> Collaborators { set; get; }
     }
 
     /// <summary>
@@ -167,5 +169,15 @@ namespace FundooCommonLayer.Model
     {
         public int LabelId { set; get; }
     }
+
+    /// <summary>
+    /// Add A user to Collaborator the notes with them.
+    /// </summary>
+    public class CollaboratorRequest
+    {
+        public int UserId { set; get; }
+
+    }
+
 
 }

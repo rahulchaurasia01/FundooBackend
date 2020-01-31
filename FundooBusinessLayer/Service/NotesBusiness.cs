@@ -116,17 +116,6 @@ namespace FundooBusinessLayer.Service
         }
 
         /// <summary>
-        /// Get All the Register User.
-        /// </summary>
-        /// <returns>List Of All the User</returns>
-        public async Task<List<UserListResponseModel>> GetAllUsers(UserRequest userRequest)
-        {
-            if (userRequest == null || userRequest.EmailId.Length < 3)
-                return null;
-            return await _notesRepository.GetAllUsers(userRequest);
-        }
-
-        /// <summary>
         /// Update the Note Data
         /// </summary>
         /// <param name="notesDetails">Note Data</param>

@@ -22,8 +22,6 @@ namespace FundooRepositoryLayer.Interface
 
         Task<List<NoteResponseModel>> GetAllPinnedNotes(int userId);
 
-        Task<List<UserListResponseModel>> GetAllUsers(UserRequest userRequest);
-
         Task<NoteResponseModel> UpdateNotes(int noteId, int userId, NoteRequest updateNotesDetails);
 
         Task<bool> DeleteNote(int NoteId, int UserId);

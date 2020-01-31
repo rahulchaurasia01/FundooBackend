@@ -7,6 +7,8 @@
   <ItemGroup>
     <Compile Remove="Migrations\20200129070511_AddedstringToReminderInNotesDetails.cs" />
     <Compile Remove="Migrations\20200129070511_AddedstringToReminderInNotesDetails.Designer.cs" />
+    <Compile Remove="Migrations\20200130091950_AddedUsersNotesTableForCollaborators.cs" />
+    <Compile Remove="Migrations\20200130091950_AddedUsersNotesTableForCollaborators.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

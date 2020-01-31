@@ -67,6 +67,8 @@ namespace FundooCommonLayer.Model
 
         public List<LabelResponseModel> Labels { set; get; }
 
+        public List<CollaboratorResponseModel> Collaborators { set; get; }
+
     }
 
     public class LabelResponseModel
@@ -91,5 +93,15 @@ namespace FundooCommonLayer.Model
 
     }
 
+    public class CollaboratorResponseModel
+    {
+        public int UserId { set; get; }
+
+        public string FirstName { set; get; }
+
+        public string LastName { set; get; }
+
+        public string EmailId { set; get; }
+    }
 
 }

@@ -50,6 +50,10 @@ namespace FundooAppBackend.Controllers
                     if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
                     {
                         int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+
+                        if(notesDetails.Image != null && notesDetails.Image != "")
+                            notesDetails.Image = UploadImageToCloudinary(notesDetails.Image);
+
                         NoteResponseModel data = await _notesBusiness.CreateNotes(notesDetails, UserId);
                         if (notesDetails != null)
                         {
@@ -280,47 +284,6 @@ namespace FundooAppBackend.Controllers
         }
 
         /// <summary>
-        /// List Of User.
-        /// </summary>
-        /// <param name="userRequest">User Request data</param>
-        /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
-        /// occured and Not Proper Input Given it return BadRequest.</returns>
-        [HttpPost]
-        [Route("Users")]
-        public async Task<IActionResult> GetAllUsers(UserRequest userRequest)
-        {
-            try
-            {
-                var user = HttpContext.User;
-                bool status;
-                string message;
-                if (user.HasClaim(c => c.Type == "TokenType"))
-                {
-                    if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
-                    {
-                        List<UserListResponseModel> data = await _notesBusiness.GetAllUsers(userRequest);
-                        if (data != null && data.Count > 0)
-                        {
-                            status = true;
-                            message = "Here is the List Of all User.";
-                            return Ok(new { status, message, data });
-                        }
-                        status = false;
-                        message = "No Such User is Present";
-                        return NotFound(new { status, message });
-                    }
-                }
-                status = false;
-                message = "Invalid Token";
-                return BadRequest(new { status, message });
-            }
-            catch(Exception e)
-            {
-                return BadRequest(new { e.Message });
-            }
-        }
-
-        /// <summary>
         /// It Update The Selected Notes
         /// </summary>
         /// <param name="NoteId">Note Id</param>
@@ -340,6 +303,10 @@ namespace FundooAppBackend.Controllers
                     if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
                     {
                         int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+
+                        if (updateNotesDetails.Image != null && updateNotesDetails.Image == "")
+                            updateNotesDetails.Image = UploadImageToCloudinary(updateNotesDetails.Image);
+
                         NoteResponseModel data = await _notesBusiness.UpdateNotes(NoteId, UserId, updateNotesDetails);
                         if (data != null)
                         {
@@ -594,7 +561,7 @@ namespace FundooAppBackend.Controllers
                     {
                         int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
 
-                        imageRequest.Image = UploadImageToCloudinary(imageRequest);
+                        imageRequest.Image = UploadImageToCloudinary(imageRequest.Image);
                         NoteResponseModel data = await _notesBusiness.AddUpdateImage(NoteId, imageRequest, UserId);
                         if (data != null)
                         {
@@ -703,7 +670,7 @@ namespace FundooAppBackend.Controllers
         /// It Upload the Image to Cloudinary and Get the url Of the uploaded Image
         /// </summary>
         /// <param name="imageRequest">Image Data</param>
-        private string UploadImageToCloudinary(ImageRequest imageRequest)
+        private string UploadImageToCloudinary(string imagePath)
         {
             try
             {
@@ -714,7 +681,7 @@ namespace FundooAppBackend.Controllers
 
                 var imageUpload = new ImageUploadParams
                 {
-                    File = new FileDescription(imageRequest.Image),
+                    File = new FileDescription(imagePath),
                     Folder = "FundooNotes"
                 };
 

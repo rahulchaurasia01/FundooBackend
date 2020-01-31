@@ -10,6 +10,8 @@ namespace FundooBusinessLayer.Interface
     public interface IUserBusiness
     {
 
+        Task<List<UserListResponseModel>> GetAllUsers(UserRequest userRequest, int userId);
+
         Task<UserResponseModel> Registration(RegisterRequest userDetails);
 
         UserResponseModel Login(LoginRequest login);

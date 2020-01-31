@@ -8,6 +8,7 @@ namespace FundooRepositoryLayer.Interface
 {
     public interface IUserRepository
     {
+        Task<List<UserListResponseModel>> GetAllUsers(UserRequest userRequest, int userId);
 
         Task<UserResponseModel> Registration(RegisterRequest userDetails);
 

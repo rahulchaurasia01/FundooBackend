@@ -9,6 +9,7 @@ using FundooCommonLayer.Model;
 using FundooCommonLayer.ModelDB;
 using FundooRepositoryLayer.Interface;
 using FundooRepositoryLayer.ModelContext;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,6 +25,36 @@ namespace FundooRepositoryLayer.Service
         public UserRepository(ApplicationContext applicationContext)
         {
             context = applicationContext;
+        }
+
+
+        /// <summary>
+        /// Get The List Of Users.
+        /// </summary>
+        /// <returns>List of all User</returns>
+        public async Task<List<UserListResponseModel>> GetAllUsers(UserRequest userRequest, int userId)
+        {
+            try
+            {
+                List<UserListResponseModel> userLists = await context.UserDetails.
+                    Where(user => user.EmailId.StartsWith(userRequest.EmailId) && user.UserId != userId).
+                    Select(user => new UserListResponseModel
+                    {
+                        UserId = user.UserId,
+                        EmailId = user.EmailId
+                    }).
+                    ToListAsync();
+
+                if (userLists != null && userLists.Count > 0)
+                {
+                    return userLists;
+                }
+                return null;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
         }
 
         /// <summary>

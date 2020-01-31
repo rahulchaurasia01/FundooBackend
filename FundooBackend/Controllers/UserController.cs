@@ -35,6 +35,49 @@ namespace FundooAppBackend.Controllers
         }
 
         /// <summary>
+        /// List Of User.
+        /// </summary>
+        /// <param name="userRequest">User Request data</param>
+        /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
+        /// occured and Not Proper Input Given it return BadRequest.</returns>
+        [HttpPost]
+        [Authorize]
+        [Route("Users")]
+        public async Task<IActionResult> GetAllUsers(UserRequest userRequest)
+        {
+            try
+            {
+                var user = HttpContext.User;
+                bool status;
+                string message;
+                if (user.HasClaim(c => c.Type == "TokenType"))
+                {
+                    if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
+                    {
+                        int userId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+                        List<UserListResponseModel> data = await _userBusiness.GetAllUsers(userRequest, userId);
+                        if (data != null && data.Count > 0)
+                        {
+                            status = true;
+                            message = "Here is the List Of all User.";
+                            return Ok(new { status, message, data });
+                        }
+                        status = false;
+                        message = "No Such User is Present";
+                        return NotFound(new { status, message });
+                    }
+                }
+                status = false;
+                message = "Invalid Token";
+                return BadRequest(new { status, message });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { e.Message });
+            }
+        }
+
+        /// <summary>
         /// Api for Registration
         /// </summary>
         /// <param name="userDetails">User Detials Model</param>

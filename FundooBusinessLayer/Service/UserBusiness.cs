@@ -10,6 +10,7 @@ using FundooCommonLayer.Model;
 using FundooCommonLayer.ModelDB;
 using FundooRepositoryLayer.Interface;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -23,6 +24,17 @@ namespace FundooBusinessLayer.Service
         public UserBusiness(IUserRepository userRepository)
         {
             _userRepository = userRepository;
+        }
+
+        /// <summary>
+        /// Get All the Register User.
+        /// </summary>
+        /// <returns>List Of All the User</returns>
+        public async Task<List<UserListResponseModel>> GetAllUsers(UserRequest userRequest, int userId)
+        {
+            if (userRequest == null || userId <= 0)
+                return null;
+            return await _userRepository.GetAllUsers(userRequest, userId);
         }
 
         /// <summary>

@@ -6,19 +6,19 @@ using System.Text;
 
 namespace FundooCommonLayer.ModelDB
 {
-    [Table("NotesLabel")]
-    public class NotesLabel
+    [Table("UsersNotes")]
+    public class UsersNotes
     {
+
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { set; get; }
 
+        [ForeignKey("UserDetails")]
+        public int UserId { set; get; }
+
         [ForeignKey("NotesDetails")]
-        public int NotesId { set; get; }
-
-        [ForeignKey("LabelDetails")]
-        public int LabelId { set; get; }
-
+        public int NoteId { set; get; }
 
         public DateTime CreatedAt { set; get; }
 

@@ -8,6 +8,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -42,6 +43,7 @@ namespace FundooCommonLayer.ModelDB
         public string Type { set; get; }
 
         [Required]
+        [DefaultValue(true)]
         public bool IsActive { set; get; }
 
         [Required]

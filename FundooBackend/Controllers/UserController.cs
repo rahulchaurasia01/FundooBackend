@@ -251,7 +251,8 @@ namespace FundooAppBackend.Controllers
                 {
                     new Claim("UserId", userToken.UserId.ToString()),
                     new Claim("EmailId", userToken.EmailId.ToString()),
-                    new Claim("TokenType", type)
+                    new Claim("TokenType", type),
+                    new Claim("UserType", userToken.UserRole.ToString())
                 };
 
                 var token = new JwtSecurityToken(_configuration["Jwt:Issuer"], _configuration["Jwt:Issuer"],

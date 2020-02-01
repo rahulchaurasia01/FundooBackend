@@ -46,6 +46,9 @@ namespace FundooCommonLayer.ModelDB
         [DefaultValue(true)]
         public bool IsActive { set; get; }
 
+        [DefaultValue("Regular User")]
+        public string UserRole { set; get; }
+
         [Required]
         public DateTime CreatedAt { set; get; }
 

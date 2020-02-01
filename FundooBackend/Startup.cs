@@ -102,6 +102,9 @@ namespace FundooBackend
             services.AddScoped<ILabelBusiness, LabelBusiness>();
             services.AddScoped<ILabelRepository, LabelRepository>();
 
+            services.AddScoped<IAdminBusiness, AdminBusiness>();
+            services.AddScoped<IAdminRepository, AdminRepository>();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

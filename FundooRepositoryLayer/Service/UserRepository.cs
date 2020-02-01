@@ -37,7 +37,7 @@ namespace FundooRepositoryLayer.Service
             try
             {
                 List<UserListResponseModel> userLists = await context.UserDetails.
-                    Where(user => user.EmailId.StartsWith(userRequest.EmailId) && user.UserId != userId).
+                    Where(user => user.EmailId.Contains(userRequest.EmailId) && user.UserId != userId && user.UserRole == "Regular User").
                     Select(user => new UserListResponseModel
                     {
                         UserId = user.UserId,
@@ -78,6 +78,7 @@ namespace FundooRepositoryLayer.Service
                         EmailId = data.EmailId,
                         Type = data.Type,
                         IsActive = data.IsActive,
+                        UserRole = data.UserRole,
                         CreatedAt = data.CreatedAt,
                         ModifiedAt = data.ModifiedAt
                     };
@@ -113,6 +114,7 @@ namespace FundooRepositoryLayer.Service
                         EmailId = data.EmailId,
                         Type = data.Type,
                         IsActive = data.IsActive,
+                        UserRole = data.UserRole,
                         CreatedAt = data.CreatedAt,
                         ModifiedAt = data.ModifiedAt
                     };
@@ -145,6 +147,7 @@ namespace FundooRepositoryLayer.Service
                     Password = userDetails.Password,
                     Type = userDetails.Type,
                     IsActive = true,
+                    UserRole = "Regular User",
                     CreatedAt = DateTime.Now,
                     ModifiedAt = DateTime.Now
 
@@ -161,6 +164,7 @@ namespace FundooRepositoryLayer.Service
                     EmailId = userData.EmailId,
                     Type = userData.Type,
                     IsActive = userData.IsActive,
+                    UserRole = userData.UserRole,
                     CreatedAt = userData.CreatedAt,
                     ModifiedAt = userData.ModifiedAt
                 };

@@ -32,6 +32,8 @@ namespace FundooCommonLayer.Model
 
         public bool IsActive { set; get; }
 
+        public string UserRole { set; get; }
+
         public DateTime CreatedAt { set; get; }
 
         public DateTime ModifiedAt { set; get; }

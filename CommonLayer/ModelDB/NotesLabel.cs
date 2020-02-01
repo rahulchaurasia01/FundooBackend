@@ -19,7 +19,6 @@ namespace FundooCommonLayer.ModelDB
         [ForeignKey("LabelDetails")]
         public int LabelId { set; get; }
 
-
         public DateTime CreatedAt { set; get; }
 
         public DateTime ModifiedAt { set; get; }

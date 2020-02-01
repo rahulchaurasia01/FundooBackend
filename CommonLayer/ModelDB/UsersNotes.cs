@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
@@ -19,6 +20,9 @@ namespace FundooCommonLayer.ModelDB
 
         [ForeignKey("NotesDetails")]
         public int NoteId { set; get; }
+
+        [DefaultValue(false)]
+        public bool IsDeleted { set; get; }
 
         public DateTime CreatedAt { set; get; }
 

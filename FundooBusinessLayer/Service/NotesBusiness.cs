@@ -68,12 +68,15 @@ namespace FundooBusinessLayer.Service
         /// </summary>
         /// <param name="userId">User Id</param>
         /// <returns>Return null, if user is not authenicated else List of all the Notes.</returns>
-        public async Task<List<NoteResponseModel>> GetAllNotes(int userId)
+        public async Task<List<NoteResponseModel>> GetAllNotes(int userId, string search)
         {
+            if (search == null)
+                search = "";
+
             if (userId <= 0)
                 return null;
             else
-                return await _notesRepository.GetAllNotes(userId);
+                return await _notesRepository.GetAllNotes(userId, search);
         }
 
         /// <summary>

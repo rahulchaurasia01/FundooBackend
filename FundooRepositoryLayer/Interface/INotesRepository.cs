@@ -14,7 +14,7 @@ namespace FundooRepositoryLayer.Interface
 
         Task<NoteResponseModel> GetNote(int NoteId, int UserId);
 
-        Task<List<NoteResponseModel>> GetAllNotes(int userId);
+        Task<List<NoteResponseModel>> GetAllNotes(int userId, string search);
 
         Task<List<NoteResponseModel>> GetAllDeletedNotes(int userId);
 

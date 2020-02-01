@@ -70,7 +70,9 @@ namespace FundooRepositoryLayer.Service
                             var data = new NotesLabel
                             {
                                 LabelId = labelRequest.LabelId,
-                                NotesId = notesDetails.NotesId
+                                NotesId = notesDetails.NotesId,
+                                CreatedAt = DateTime.Now,
+                                ModifiedAt = DateTime.Now
                             };
 
                             _applicationContext.NotesLabels.Add(data);
@@ -90,7 +92,9 @@ namespace FundooRepositoryLayer.Service
                             var data1 = new UsersNotes
                             {
                                 NoteId = notesDetails.NotesId,
-                                UserId = collaborator.UserId
+                                UserId = collaborator.UserId,
+                                CreatedAt = DateTime.Now,
+                                ModifiedAt = DateTime.Now
                             };
 
                             _applicationContext.UsersNotes.Add(data1);
@@ -124,7 +128,7 @@ namespace FundooRepositoryLayer.Service
                     FirstOrDefault(note => note.NotesId == NoteId && note.UserId == UserId && !note.IsDeleted);
 
                 NotesDetails notesDetails1 = _applicationContext.UsersNotes.
-                    Where(userNote => userNote.NoteId == NoteId && userNote.UserId == UserId).
+                    Where(userNote => userNote.NoteId == NoteId && userNote.UserId == UserId && !userNote.IsDeleted).
                     Join(_applicationContext.NotesDetails,
                     usersNotes => usersNotes.NoteId,
                     note => note.NotesId,
@@ -171,12 +175,12 @@ namespace FundooRepositoryLayer.Service
         /// </summary>
         /// <param name="userId">User Id</param>
         /// <returns>List Of All the Notes</returns>
-        public async Task<List<NoteResponseModel>> GetAllNotes(int userId)
+        public async Task<List<NoteResponseModel>> GetAllNotes(int userId, string search)
         {
             try
             {
-                List<NoteResponseModel> collabNotes = await _applicationContext.UsersNotes.
-                    Where(userNote => userNote.UserId == userId).
+                List<NoteResponseModel> collabNotes = _applicationContext.UsersNotes.
+                    Where(userNote => userNote.UserId == userId && !userNote.IsDeleted).
                     Join(_applicationContext.NotesDetails,
                     userNote => userNote.NoteId,
                     note => note.NotesId,
@@ -194,11 +198,12 @@ namespace FundooRepositoryLayer.Service
                         CreatedAt = note.CreatedAt,
                         ModifiedAt = note.ModifiedAt
                     }).
-                    ToListAsync();
+                    Where(note => !note.IsArchived && !note.IsDeleted && (note.Title.Contains(search) || note.Description.Contains(search))).
+                    ToList();
 
 
-                List<NoteResponseModel> notes = await _applicationContext.NotesDetails.
-                    Where(note => (note.UserId == userId) && !note.IsDeleted && !note.IsArchived).
+                List<NoteResponseModel> notes = _applicationContext.NotesDetails.
+                    Where(note => (note.UserId == userId) && !note.IsDeleted && !note.IsArchived && (note.Title.Contains(search) || note.Description.Contains(search))).
                     Select(note => new NoteResponseModel { 
                         NoteId = note.NotesId,
                         Title = note.Title,
@@ -212,7 +217,7 @@ namespace FundooRepositoryLayer.Service
                         CreatedAt = note.CreatedAt,
                         ModifiedAt = note.ModifiedAt
                     }).
-                    ToListAsync();
+                    ToList();
 
 
                 if (notes != null && notes.Count != 0)
@@ -232,47 +237,7 @@ namespace FundooRepositoryLayer.Service
                 }
                 else if (collabNotes != null && collabNotes.Count != 0)
                 {
-                    foreach (NoteResponseModel collabNote in collabNotes)
-                    {
-                        CollaboratorResponseModel collabUserId = _applicationContext.NotesDetails.
-                            Where(noteUserId => noteUserId.NotesId == collabNote.NoteId).
-                            Join(_applicationContext.UserDetails,
-                            note => note.UserId,
-                            user => user.UserId,
-                            (note, user) => new CollaboratorResponseModel {
-                                UserId = note.UserId,
-                                FirstName = user.FirstName,
-                                LastName = user.LastName,
-                                EmailId = user.EmailId
-                            }).
-                            FirstOrDefault();
-
-                        List<CollaboratorResponseModel> collaborators = await _applicationContext.UsersNotes.
-                        Where(noted => noted.NoteId == collabNote.NoteId && noted.UserId != userId).
-                        Join(_applicationContext.UserDetails,
-                        userNote => userNote.UserId,
-                        user => user.UserId,
-                        (userNote, user) => new CollaboratorResponseModel
-                        {
-                            UserId = userNote.UserId,
-                            FirstName = user.FirstName,
-                            LastName = user.LastName,
-                            EmailId = user.EmailId
-                        }).
-                        ToListAsync();
-
-                        if (collabUserId != null)
-                        {
-                            if (collaborators != null && collaborators.Count > 0)
-                                collaborators.Insert(0, collabUserId);
-                            else
-                            {
-                                collaborators = new List<CollaboratorResponseModel>();
-                                collaborators.Add(collabUserId);
-                            }
-                        }
-                        collabNote.Collaborators = collaborators;
-                    }
+                    collabNotes = await AddCollaboratorToNoteResponseModel(collabNotes, userId);
 
                     return collabNotes;
                 }
@@ -294,7 +259,30 @@ namespace FundooRepositoryLayer.Service
         {
             try
             {
-                List<NoteResponseModel> notesDetails = await _applicationContext.NotesDetails.
+
+                List<NoteResponseModel> collabNotes = _applicationContext.UsersNotes.
+                    Where(userNote => userNote.UserId == userId && userNote.IsDeleted).
+                    Join(_applicationContext.NotesDetails,
+                    userNote => userNote.NoteId,
+                    note => note.NotesId,
+                    (userNote, note) => new NoteResponseModel
+                    {
+                        NoteId = userNote.NoteId,
+                        Title = note.Title,
+                        Description = note.Description,
+                        Color = note.Color,
+                        Image = note.Image,
+                        IsPin = note.IsPin,
+                        IsArchived = note.IsArchived,
+                        IsDeleted = note.IsDeleted,
+                        Reminder = note.Reminder,
+                        CreatedAt = note.CreatedAt,
+                        ModifiedAt = note.ModifiedAt
+                    }).
+                    Where(note => !note.IsArchived && note.IsDeleted).
+                    ToList();
+
+                List<NoteResponseModel> notes = await _applicationContext.NotesDetails.
                     Where(note => (note.UserId == userId) && note.IsDeleted).
                     Select(note => new NoteResponseModel
                     {
@@ -312,13 +300,30 @@ namespace FundooRepositoryLayer.Service
                     }).
                     ToListAsync();
 
-                if (notesDetails != null && notesDetails.Count != 0)
+                if (notes != null && notes.Count != 0)
                 {
-                    notesDetails = await AddLabelToNoteResponseModel(notesDetails);
-                    return notesDetails;
-                }
+                    notes = await AddLabelToNoteResponseModel(notes);
+                    notes = await AddCollaboratorToNoteResponseModel(notes, userId);
+                    if (collabNotes != null && collabNotes.Count > 0)
+                    {
+                        collabNotes = await AddCollaboratorToNoteResponseModel(collabNotes, userId);
 
-                return null;
+                        foreach (NoteResponseModel note in notes)
+                            collabNotes.Add(note);
+
+                        return collabNotes;
+                    }
+                    return notes;
+                }
+                else if (collabNotes != null && collabNotes.Count != 0)
+                {
+                    collabNotes = await AddCollaboratorToNoteResponseModel(collabNotes, userId);
+
+                    return collabNotes;
+                }
+                else
+                    return null;
+
             }
             catch (Exception e)
             {
@@ -335,8 +340,32 @@ namespace FundooRepositoryLayer.Service
         {
             try
             {
-                List<NoteResponseModel> notesDetails = await _applicationContext.NotesDetails.
-                    Where(note => (note.UserId == userId) && note.IsArchived).
+
+                List<NoteResponseModel> collabNotes = _applicationContext.UsersNotes.
+                    Where(userNote => userNote.UserId == userId && !userNote.IsDeleted).
+                    Join(_applicationContext.NotesDetails,
+                    userNote => userNote.NoteId,
+                    note => note.NotesId,
+                    (userNote, note) => new NoteResponseModel
+                    {
+                        NoteId = userNote.NoteId,
+                        Title = note.Title,
+                        Description = note.Description,
+                        Color = note.Color,
+                        Image = note.Image,
+                        IsPin = note.IsPin,
+                        IsArchived = note.IsArchived,
+                        IsDeleted = note.IsDeleted,
+                        Reminder = note.Reminder,
+                        CreatedAt = note.CreatedAt,
+                        ModifiedAt = note.ModifiedAt
+                    }).
+                    Where(note => note.IsArchived && !note.IsPin && !note.IsDeleted).
+                    ToList();
+
+
+                List<NoteResponseModel> notesDetails = _applicationContext.NotesDetails.
+                    Where(note => (note.UserId == userId) && note.IsArchived && !note.IsDeleted).
                     Select(note => new NoteResponseModel
                     {
                         NoteId = note.NotesId,
@@ -351,15 +380,31 @@ namespace FundooRepositoryLayer.Service
                         CreatedAt = note.CreatedAt,
                         ModifiedAt = note.ModifiedAt
                     }).
-                    ToListAsync();
+                    ToList();
 
                 if (notesDetails != null && notesDetails.Count != 0)
                 {
                     notesDetails = await AddLabelToNoteResponseModel(notesDetails);
+                    notesDetails = await AddCollaboratorToNoteResponseModel(notesDetails, userId);
+                    if (collabNotes != null && collabNotes.Count > 0)
+                    {
+                        collabNotes = await AddCollaboratorToNoteResponseModel(collabNotes, userId);
+
+                        foreach (NoteResponseModel note in notesDetails)
+                            collabNotes.Add(note);
+
+                        return collabNotes;
+                    }
                     return notesDetails;
                 }
+                else if (collabNotes != null && collabNotes.Count != 0)
+                {
+                    collabNotes = await AddCollaboratorToNoteResponseModel(collabNotes, userId);
 
-                return null;
+                    return collabNotes;
+                }
+                else
+                    return null;
             }
             catch (Exception e)
             {
@@ -376,8 +421,31 @@ namespace FundooRepositoryLayer.Service
         {
             try
             {
-                List<NoteResponseModel> notesDetails = await _applicationContext.NotesDetails.
-                    Where(note => (note.UserId == userId) && note.IsPin).
+
+                List<NoteResponseModel> collabNotes = _applicationContext.UsersNotes.
+                    Where(userNote => userNote.UserId == userId && !userNote.IsDeleted).
+                    Join(_applicationContext.NotesDetails,
+                    userNote => userNote.NoteId,
+                    note => note.NotesId,
+                    (userNote, note) => new NoteResponseModel
+                    {
+                        NoteId = userNote.NoteId,
+                        Title = note.Title,
+                        Description = note.Description,
+                        Color = note.Color,
+                        Image = note.Image,
+                        IsPin = note.IsPin,
+                        IsArchived = note.IsArchived,
+                        IsDeleted = note.IsDeleted,
+                        Reminder = note.Reminder,
+                        CreatedAt = note.CreatedAt,
+                        ModifiedAt = note.ModifiedAt
+                    }).
+                    Where(note => note.IsPin && !note.IsArchived && !note.IsDeleted).
+                    ToList();
+
+                List<NoteResponseModel> notesDetails =  _applicationContext.NotesDetails.
+                    Where(note => (note.UserId == userId) && note.IsPin && !note.IsArchived && !note.IsDeleted).
                     Select(note => new NoteResponseModel
                     {
                         NoteId = note.NotesId,
@@ -392,15 +460,32 @@ namespace FundooRepositoryLayer.Service
                         CreatedAt = note.CreatedAt,
                         ModifiedAt = note.ModifiedAt
                     }).
-                    ToListAsync();
+                    ToList();
 
                 if (notesDetails != null && notesDetails.Count != 0)
                 {
                     notesDetails = await AddLabelToNoteResponseModel(notesDetails);
+                    notesDetails = await AddCollaboratorToNoteResponseModel(notesDetails, userId);
+                    if (collabNotes != null && collabNotes.Count > 0)
+                    {
+                        collabNotes = await AddCollaboratorToNoteResponseModel(collabNotes, userId);
+
+                        foreach (NoteResponseModel note in notesDetails)
+                            collabNotes.Add(note);
+
+                        return collabNotes;
+                    }
                     return notesDetails;
                 }
+                else if (collabNotes != null && collabNotes.Count != 0)
+                {
+                    collabNotes = await AddCollaboratorToNoteResponseModel(collabNotes, userId);
 
-                return null; 
+                    return collabNotes;
+                }
+                else
+                    return null;
+
             }
             catch (Exception e)
             {
@@ -516,7 +601,17 @@ namespace FundooRepositoryLayer.Service
                 {
                     if (notesDetails.IsDeleted)
                     {
-                        List<NotesLabel> labels = await _applicationContext.NotesLabels.Where(note => note.NotesId == NoteId).ToListAsync();
+
+                        List<UsersNotes> usersNotes = _applicationContext.UsersNotes.
+                            Where(userNote => userNote.NoteId == NoteId && userNote.IsDeleted).ToList();
+
+                        if (usersNotes != null && usersNotes.Count > 0)
+                        {
+                            _applicationContext.UsersNotes.RemoveRange(usersNotes);
+                            await _applicationContext.SaveChangesAsync();
+                        }
+
+                        List<NotesLabel> labels = _applicationContext.NotesLabels.Where(note => note.NotesId == NoteId).ToList();
 
                         if (labels != null && labels.Count > 0)
                         {
@@ -531,13 +626,82 @@ namespace FundooRepositoryLayer.Service
                     }
                     else
                     {
+
+                        List<UsersNotes> usersNotes = _applicationContext.UsersNotes.
+                            Where(userNote => userNote.NoteId == NoteId).ToList();
+
+                        if (usersNotes != null && usersNotes.Count > 0)
+                        {
+                            foreach (UsersNotes users in usersNotes)
+                            {
+                                users.IsDeleted = true;
+                                _applicationContext.UsersNotes.Attach(users);
+                                await _applicationContext.SaveChangesAsync();
+                            }
+                        }
+
                         notesDetails.IsDeleted = true;
+                        notesDetails.IsPin = false;
+                        notesDetails.IsArchived = false;
                         var notes = _applicationContext.NotesDetails.Attach(notesDetails);
                         notes.State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                         await _applicationContext.SaveChangesAsync();
                         return true;
                     }
 
+                }
+
+                notesDetails = _applicationContext.NotesDetails.
+                        FirstOrDefault(note => note.NotesId == NoteId);
+
+                if (notesDetails.IsDeleted)
+                {
+                    List<UsersNotes> usersNotes = _applicationContext.UsersNotes.
+                            Where(userNote => userNote.NoteId == NoteId && userNote.IsDeleted).ToList();
+
+                    if (usersNotes != null && usersNotes.Count > 0)
+                    {
+                        _applicationContext.UsersNotes.RemoveRange(usersNotes);
+                        await _applicationContext.SaveChangesAsync();
+                    }
+
+                    List<NotesLabel> labels = _applicationContext.NotesLabels.Where(note => note.NotesId == NoteId).ToList();
+
+                    if (labels != null && labels.Count > 0)
+                    {
+                        _applicationContext.NotesLabels.RemoveRange(labels);
+                        await _applicationContext.SaveChangesAsync();
+                    }
+
+                    var notes = _applicationContext.NotesDetails.Remove(notesDetails);
+                    notes.State = Microsoft.EntityFrameworkCore.EntityState.Deleted;
+                    await _applicationContext.SaveChangesAsync();
+                    return true;
+                }
+                else
+                {
+                    notesDetails.IsDeleted = true;
+                    notesDetails.IsPin = false;
+                    notesDetails.IsArchived = false;
+                    var notes = _applicationContext.NotesDetails.Attach(notesDetails);
+                    notes.State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                    await _applicationContext.SaveChangesAsync();
+
+                    List<UsersNotes> usersNoted = _applicationContext.UsersNotes.
+                                Where(userNote => userNote.NoteId == NoteId).ToList();
+
+                    if (usersNoted != null && usersNoted.Count > 0)
+                    {
+                        foreach (UsersNotes users in usersNoted)
+                        {
+                            users.IsDeleted = true;
+                            _applicationContext.UsersNotes.Attach(users);
+                            await _applicationContext.SaveChangesAsync();
+                        }
+
+
+                        return true;
+                    }
                 }
                 return false;
             }
@@ -602,20 +766,45 @@ namespace FundooRepositoryLayer.Service
                 NotesDetails notesDetails = _applicationContext.NotesDetails.
                     FirstOrDefault(note => note.NotesId == NoteId && note.UserId == userId && !note.IsDeleted);
 
-                if (notesDetails != null)
+                if (notesDetails == null)
                 {
-                    notesDetails.IsPin = pinnedRequest.IsPin;
-                    notesDetails.ModifiedAt = DateTime.Now;
-                    var data = _applicationContext.NotesDetails.Attach(notesDetails);
-                    data.State = EntityState.Modified;
-                    await _applicationContext.SaveChangesAsync();
-
-                    NoteResponseModel noteResponseModel = await NoteResponseModel(notesDetails);
-
-                    return noteResponseModel;
+                    notesDetails = _applicationContext.UsersNotes.
+                    Where(usrNote => usrNote.NoteId == NoteId && usrNote.UserId == userId && !usrNote.IsDeleted).
+                    Join(_applicationContext.NotesDetails,
+                    usrNote => usrNote.NoteId,
+                    note => note.NotesId,
+                    (usrNote, note) => new NotesDetails
+                    {
+                        NotesId = usrNote.NoteId,
+                        Title = note.Title,
+                        UserId = note.UserId,
+                        Description = note.Description,
+                        Color = note.Color,
+                        Image = note.Image,
+                        IsArchived = note.IsArchived,
+                        IsPin = note.IsPin,
+                        IsDeleted = note.IsDeleted,
+                        Reminder = note.Reminder,
+                        CreatedAt = note.CreatedAt,
+                        ModifiedAt = note.ModifiedAt
+                    }).
+                    FirstOrDefault();
+                    if (notesDetails == null)
+                        return null;
                 }
 
-                return null;
+                notesDetails.IsPin = pinnedRequest.IsPin;
+                if (notesDetails.IsPin)
+                    notesDetails.IsArchived = false;
+                notesDetails.ModifiedAt = DateTime.Now;
+                var data = _applicationContext.NotesDetails.Attach(notesDetails);
+                data.State = EntityState.Modified;
+                await _applicationContext.SaveChangesAsync();
+
+                notesDetails.UserId = userId;
+                NoteResponseModel noteResponseModel = await NoteResponseModel(notesDetails);
+
+                return noteResponseModel;
 
             }
             catch (Exception e)
@@ -638,22 +827,48 @@ namespace FundooRepositoryLayer.Service
                 NotesDetails notesDetails = _applicationContext.NotesDetails.
                     FirstOrDefault(note => note.NotesId == NoteId && note.UserId == userId && !note.IsDeleted);
 
-                if (notesDetails != null)
+                if (notesDetails == null)
                 {
-                    notesDetails.IsArchived = archiveRequest.IsArchive;
-                    notesDetails.ModifiedAt = DateTime.Now;
-                    var data = _applicationContext.NotesDetails.Attach(notesDetails);
-                    data.State = EntityState.Modified;
-                    await _applicationContext.SaveChangesAsync();
-
-                    NoteResponseModel noteResponseModel = await NoteResponseModel(notesDetails);
-
-                    return noteResponseModel;
+                    notesDetails = _applicationContext.UsersNotes.
+                    Where(usrNote => usrNote.NoteId == NoteId && usrNote.UserId == userId && !usrNote.IsDeleted).
+                    Join(_applicationContext.NotesDetails,
+                    usrNote => usrNote.NoteId,
+                    note => note.NotesId,
+                    (usrNote, note) => new NotesDetails
+                    {
+                        NotesId = usrNote.NoteId,
+                        Title = note.Title,
+                        UserId = note.UserId,
+                        Description = note.Description,
+                        Color = note.Color,
+                        Image = note.Image,
+                        IsArchived = note.IsArchived,
+                        IsPin = note.IsPin,
+                        IsDeleted = note.IsDeleted,
+                        Reminder = note.Reminder,
+                        CreatedAt = note.CreatedAt,
+                        ModifiedAt = note.ModifiedAt
+                    }).
+                    FirstOrDefault();
+                    if (notesDetails == null)
+                        return null;
                 }
 
-                return null;
+                notesDetails.IsArchived = archiveRequest.IsArchive;
+                if (notesDetails.IsArchived)
+                    notesDetails.IsPin = false;
+                notesDetails.ModifiedAt = DateTime.Now;
+                var data = _applicationContext.NotesDetails.Attach(notesDetails);
+                data.State = EntityState.Modified;
+                await _applicationContext.SaveChangesAsync();
+
+                notesDetails.UserId = userId;
+                NoteResponseModel noteResponseModel = await NoteResponseModel(notesDetails);
+
+                return noteResponseModel;
+
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 throw new Exception(e.Message);
             }
@@ -673,22 +888,44 @@ namespace FundooRepositoryLayer.Service
                 NotesDetails notesDetails = _applicationContext.NotesDetails.
                     FirstOrDefault(note => note.NotesId == NoteId && note.UserId == userId && !note.IsDeleted);
 
-                if (notesDetails != null)
+                if (notesDetails == null)
                 {
-                    notesDetails.Color = colorRequest.Color;
-                    notesDetails.ModifiedAt = DateTime.Now;
-                    var data = _applicationContext.NotesDetails.Attach(notesDetails);
-                    data.State = EntityState.Modified;
-                    await _applicationContext.SaveChangesAsync();
-
-                    NoteResponseModel noteResponseModel = await NoteResponseModel(notesDetails);
-
-                    return noteResponseModel;
+                    notesDetails = _applicationContext.UsersNotes.
+                    Where(usrNote => usrNote.NoteId == NoteId && usrNote.UserId == userId && !usrNote.IsDeleted).
+                    Join(_applicationContext.NotesDetails,
+                    usrNote => usrNote.NoteId,
+                    note => note.NotesId,
+                    (usrNote, note) => new NotesDetails
+                    {
+                        NotesId = usrNote.NoteId,
+                        Title = note.Title,
+                        UserId = note.UserId,
+                        Description = note.Description,
+                        Color = note.Color,
+                        Image = note.Image,
+                        IsArchived = note.IsArchived,
+                        IsPin = note.IsPin,
+                        IsDeleted = note.IsDeleted,
+                        Reminder = note.Reminder,
+                        CreatedAt = note.CreatedAt,
+                        ModifiedAt = note.ModifiedAt
+                    }).
+                    FirstOrDefault();
+                    if (notesDetails == null)
+                        return null;
                 }
 
-                return null;
+                notesDetails.Color = colorRequest.Color;
+                notesDetails.ModifiedAt = DateTime.Now;
+                var data = _applicationContext.NotesDetails.Attach(notesDetails);
+                data.State = EntityState.Modified;
+                await _applicationContext.SaveChangesAsync();
+
+                NoteResponseModel noteResponseModel = await NoteResponseModel(notesDetails);
+
+                return noteResponseModel;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 throw new Exception(e.Message);
             }
@@ -708,22 +945,45 @@ namespace FundooRepositoryLayer.Service
                 NotesDetails notesDetails = _applicationContext.NotesDetails.
                     FirstOrDefault(note => note.NotesId == NoteId && note.UserId == userId && !note.IsDeleted);
 
-                if (notesDetails != null)
+                if (notesDetails == null)
                 {
-                    notesDetails.Image = imageRequest.Image;
-                    notesDetails.ModifiedAt = DateTime.Now;
-                    var data = _applicationContext.NotesDetails.Attach(notesDetails);
-                    data.State = EntityState.Modified;
-                    await _applicationContext.SaveChangesAsync();
-
-                    NoteResponseModel noteResponseModel = await NoteResponseModel(notesDetails);
-
-                    return noteResponseModel;
+                    notesDetails = _applicationContext.UsersNotes.
+                    Where(usrNote => usrNote.NoteId == NoteId && usrNote.UserId == userId && !usrNote.IsDeleted).
+                    Join(_applicationContext.NotesDetails,
+                    usrNote => usrNote.NoteId,
+                    note => note.NotesId,
+                    (usrNote, note) => new NotesDetails
+                    {
+                        NotesId = usrNote.NoteId,
+                        Title = note.Title,
+                        UserId = note.UserId,
+                        Description = note.Description,
+                        Color = note.Color,
+                        Image = note.Image,
+                        IsArchived = note.IsArchived,
+                        IsPin = note.IsPin,
+                        IsDeleted = note.IsDeleted,
+                        Reminder = note.Reminder,
+                        CreatedAt = note.CreatedAt,
+                        ModifiedAt = note.ModifiedAt
+                    }).
+                    FirstOrDefault();
+                    if (notesDetails == null)
+                        return null;
                 }
 
-                return null;
+                notesDetails.Image = imageRequest.Image;
+                notesDetails.ModifiedAt = DateTime.Now;
+                var data = _applicationContext.NotesDetails.Attach(notesDetails);
+                data.State = EntityState.Modified;
+                await _applicationContext.SaveChangesAsync();
+
+                NoteResponseModel noteResponseModel = await NoteResponseModel(notesDetails);
+
+                return noteResponseModel;
+
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 throw new Exception(e.Message);
             }
@@ -780,8 +1040,22 @@ namespace FundooRepositoryLayer.Service
         {
             try
             {
+
+                List<UsersNotes> usersNotes = _applicationContext.UsersNotes.
+                    Where(userNote => userNote.NoteId == noteId).ToList();
+
+                if(usersNotes != null && usersNotes.Count > 0)
+                {
+                    foreach(UsersNotes notes in usersNotes)
+                    {
+                        notes.IsDeleted = false;
+                        _applicationContext.UsersNotes.Attach(notes);
+                        await _applicationContext.SaveChangesAsync();
+                    }
+                }
+
                 NotesDetails notesDetails = _applicationContext.NotesDetails.
-                    FirstOrDefault(note => note.NotesId == noteId && note.UserId == userId && note.IsDeleted);
+                    FirstOrDefault(note => note.NotesId == noteId  && note.IsDeleted);
 
                 if (notesDetails != null)
                 {
@@ -800,6 +1074,8 @@ namespace FundooRepositoryLayer.Service
             }
         }
 
+
+        
 
 
 
@@ -931,8 +1207,10 @@ namespace FundooRepositoryLayer.Service
                             collaborators.Insert(0, collabUserId);
                         else
                         {
-                            collaborators = new List<CollaboratorResponseModel>();
-                            collaborators.Add(collabUserId);
+                            collaborators = new List<CollaboratorResponseModel>
+                            {
+                                collabUserId
+                            };
                         }
                     }
 
@@ -987,8 +1265,10 @@ namespace FundooRepositoryLayer.Service
                         collaborators.Insert(0, collabUserId);
                     else
                     {
-                        collaborators = new List<CollaboratorResponseModel>();
-                        collaborators.Add(collabUserId);
+                        collaborators = new List<CollaboratorResponseModel>
+                        {
+                            collabUserId
+                        };
                     }
                 }
                 notesDetails.Collaborators = collaborators;

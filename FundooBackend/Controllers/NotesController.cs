@@ -126,7 +126,7 @@ namespace FundooAppBackend.Controllers
         /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
         /// occured and Not Proper Input Given it return BadRequest.</returns>
         [HttpGet]
-        public async Task<IActionResult> GetAllNotes()
+        public async Task<IActionResult> GetAllNotes(String search)
         {
             try
             {
@@ -138,7 +138,7 @@ namespace FundooAppBackend.Controllers
                     if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
                     {
                         int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
-                        List<NoteResponseModel> data = await _notesBusiness.GetAllNotes(UserId);
+                        List<NoteResponseModel> data = await _notesBusiness.GetAllNotes(UserId, search);
                         if (data != null && data.Count > 0)
                         {
                             status = true;

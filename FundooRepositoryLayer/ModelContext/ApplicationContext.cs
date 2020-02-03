@@ -24,12 +24,13 @@ namespace FundooRepositoryLayer.ModelContext
 
         public DbSet<UsersNotes> UsersNotes { set; get; }
 
+        public DbSet<NotificationDetails> NotificationDetails { set; get; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<UserDetails>()
                 .HasIndex(user => user.EmailId)
                 .IsUnique();
-
         }
     }
 }

@@ -503,80 +503,104 @@ namespace FundooRepositoryLayer.Service
             try
             {
                 NotesDetails notesDetails1 = _applicationContext.NotesDetails.
-                    FirstOrDefault(note => note.NotesId == noteId && note.UserId == userId);
+                    FirstOrDefault(noted => noted.NotesId == noteId && noted.UserId == userId);
 
-                if(notesDetails1 != null)
+                if(notesDetails1 == null)
                 {
-                    notesDetails1.Title = updateNotesDetails.Title;
-                    notesDetails1.Description = updateNotesDetails.Description;
-                    notesDetails1.Color = updateNotesDetails.Color;
-                    notesDetails1.Image = updateNotesDetails.Image;
-                    notesDetails1.IsPin = updateNotesDetails.IsPin;
-                    notesDetails1.IsArchived = updateNotesDetails.IsArchived;
-                    notesDetails1.IsDeleted = updateNotesDetails.IsDeleted;
-                    notesDetails1.Reminder = updateNotesDetails.Reminder;
-                    notesDetails1.ModifiedAt = DateTime.Now;
+                    UsersNotes usersNotess = _applicationContext.UsersNotes.
+                       FirstOrDefault(userNote => userNote.NoteId == noteId && userNote.UserId == userId);
 
-                    var note = _applicationContext.NotesDetails.Attach(notesDetails1);
-                    note.State = Microsoft.EntityFrameworkCore.EntityState.Modified;
-                    await _applicationContext.SaveChangesAsync();
+                    if (usersNotess == null)
+                        return null;
+                    else
+                    {
+                        notesDetails1 = _applicationContext.NotesDetails.
+                            FirstOrDefault(noted => noted.NotesId == noteId);
+                    }
 
+                }
+
+                notesDetails1.Title = updateNotesDetails.Title;
+                notesDetails1.Description = updateNotesDetails.Description;
+                notesDetails1.Color = updateNotesDetails.Color;
+                notesDetails1.Image = updateNotesDetails.Image;
+                notesDetails1.IsPin = updateNotesDetails.IsPin;
+                notesDetails1.IsArchived = updateNotesDetails.IsArchived;
+                notesDetails1.IsDeleted = updateNotesDetails.IsDeleted;
+                notesDetails1.Reminder = updateNotesDetails.Reminder;
+                notesDetails1.ModifiedAt = DateTime.Now;
+
+                var note = _applicationContext.NotesDetails.Attach(notesDetails1);
+                note.State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                await _applicationContext.SaveChangesAsync();
+
+                if (updateNotesDetails.Label != null && updateNotesDetails.Label.Count != 0)
+                {
                     List<NotesLabel> labels = await _applicationContext.NotesLabels.Where(notes => notes.NotesId == noteId).ToListAsync();
 
-                    if(labels != null && labels.Count != 0)
+                    if (labels != null && labels.Count != 0)
                     {
                         _applicationContext.NotesLabels.RemoveRange(labels);
                         await _applicationContext.SaveChangesAsync();
-
                     }
 
-                    if (updateNotesDetails.Label != null && updateNotesDetails.Label.Count != 0)
+                    List<NotesLabelRequest> labelRequests = updateNotesDetails.Label;
+                    foreach (NotesLabelRequest labelRequest in labelRequests)
                     {
-                        List<NotesLabelRequest> labelRequests = updateNotesDetails.Label;
-                        foreach (NotesLabelRequest labelRequest in labelRequests)
+                        LabelDetails labelDetails = _applicationContext.LabelDetails.
+                        FirstOrDefault(labeled => labeled.UserId == userId && labeled.LabelId == labelRequest.LabelId);
+
+                        if (labelRequest.LabelId > 0 && labelDetails != null)
                         {
-                            LabelDetails labelDetails = _applicationContext.LabelDetails.
-                            FirstOrDefault(labeled => labeled.UserId == userId && labeled.LabelId == labelRequest.LabelId);
-
-                            if (labelRequest.LabelId > 0 && labelDetails != null)
+                            var data = new NotesLabel
                             {
-                                var data = new NotesLabel
-                                {
-                                    LabelId = labelRequest.LabelId,
-                                    NotesId = noteId
-                                };
+                                LabelId = labelRequest.LabelId,
+                                NotesId = noteId
+                            };
 
-                                _applicationContext.NotesLabels.Add(data);
-                                await _applicationContext.SaveChangesAsync();
-                            }
+                            _applicationContext.NotesLabels.Add(data);
+                            await _applicationContext.SaveChangesAsync();
                         }
                     }
-
-                    if (updateNotesDetails.Collaborators != null && updateNotesDetails.Collaborators.Count > 0)
-                    {
-                        List<CollaboratorRequest> collaborators = updateNotesDetails.Collaborators;
-                        foreach (CollaboratorRequest collaborator in collaborators)
-                        {
-                            if (collaborator.UserId > 0)
-                            {
-                                var data = new UsersNotes
-                                {
-                                    NoteId = notesDetails1.NotesId,
-                                    UserId = collaborator.UserId
-                                };
-
-                                _applicationContext.UsersNotes.Add(data);
-                                await _applicationContext.SaveChangesAsync();
-                            }
-
-                        }
-                    }
-
-                    NoteResponseModel noteResponseModel = await NoteResponseModel(notesDetails1);
-
-                    return noteResponseModel;
                 }
-                return null;
+
+                if (updateNotesDetails.Collaborators != null && updateNotesDetails.Collaborators.Count > 0)
+                {
+
+                    List<UsersNotes> usersNotes = _applicationContext.UsersNotes.
+                        Where(noted => noted.NoteId == noteId).ToList();
+
+                    if (usersNotes != null && usersNotes.Count > 0)
+                    {
+                        _applicationContext.UsersNotes.RemoveRange(usersNotes);
+                        await _applicationContext.SaveChangesAsync();
+                    }
+
+
+                    List<CollaboratorRequest> collaborators = updateNotesDetails.Collaborators;
+                    foreach (CollaboratorRequest collaborator in collaborators)
+                    {
+                        if (collaborator.UserId > 0)
+                        {
+                            var data = new UsersNotes
+                            {
+                                NoteId = notesDetails1.NotesId,
+                                UserId = collaborator.UserId,
+                                ModifiedAt = DateTime.Now
+
+                            };
+
+                            _applicationContext.UsersNotes.Add(data);
+                            await _applicationContext.SaveChangesAsync();
+                        }
+
+                    }
+                }
+
+                NoteResponseModel noteResponseModel = await NoteResponseModel(notesDetails1);
+
+                return noteResponseModel;
+
             }
             catch(Exception e)
             {
@@ -597,67 +621,25 @@ namespace FundooRepositoryLayer.Service
                 NotesDetails notesDetails = _applicationContext.NotesDetails.
                     FirstOrDefault(note => note.NotesId == NoteId && note.UserId == UserId);
 
-                if (notesDetails != null)
+                if (notesDetails == null)
                 {
-                    if (notesDetails.IsDeleted)
-                    {
 
-                        List<UsersNotes> usersNotes = _applicationContext.UsersNotes.
-                            Where(userNote => userNote.NoteId == NoteId && userNote.IsDeleted).ToList();
+                    UsersNotes userNotes = _applicationContext.UsersNotes.
+                        FirstOrDefault(user => user.NoteId == NoteId && user.UserId == UserId);
 
-                        if (usersNotes != null && usersNotes.Count > 0)
-                        {
-                            _applicationContext.UsersNotes.RemoveRange(usersNotes);
-                            await _applicationContext.SaveChangesAsync();
-                        }
-
-                        List<NotesLabel> labels = _applicationContext.NotesLabels.Where(note => note.NotesId == NoteId).ToList();
-
-                        if (labels != null && labels.Count > 0)
-                        {
-                            _applicationContext.NotesLabels.RemoveRange(labels);
-                            await _applicationContext.SaveChangesAsync();
-                        }
-
-                        var notes = _applicationContext.NotesDetails.Remove(notesDetails);
-                        notes.State = Microsoft.EntityFrameworkCore.EntityState.Deleted;
-                        await _applicationContext.SaveChangesAsync();
-                        return true;
-                    }
+                    if (userNotes == null)
+                        return false;
                     else
                     {
-
-                        List<UsersNotes> usersNotes = _applicationContext.UsersNotes.
-                            Where(userNote => userNote.NoteId == NoteId).ToList();
-
-                        if (usersNotes != null && usersNotes.Count > 0)
-                        {
-                            foreach (UsersNotes users in usersNotes)
-                            {
-                                users.IsDeleted = true;
-                                _applicationContext.UsersNotes.Attach(users);
-                                await _applicationContext.SaveChangesAsync();
-                            }
-                        }
-
-                        notesDetails.IsDeleted = true;
-                        notesDetails.IsPin = false;
-                        notesDetails.IsArchived = false;
-                        var notes = _applicationContext.NotesDetails.Attach(notesDetails);
-                        notes.State = Microsoft.EntityFrameworkCore.EntityState.Modified;
-                        await _applicationContext.SaveChangesAsync();
-                        return true;
+                        notesDetails = _applicationContext.NotesDetails.
+                                FirstOrDefault(note => note.NotesId == NoteId);
                     }
 
                 }
-
-                notesDetails = _applicationContext.NotesDetails.
-                        FirstOrDefault(note => note.NotesId == NoteId);
-
                 if (notesDetails.IsDeleted)
                 {
                     List<UsersNotes> usersNotes = _applicationContext.UsersNotes.
-                            Where(userNote => userNote.NoteId == NoteId && userNote.IsDeleted).ToList();
+                        Where(userNote => userNote.NoteId == NoteId && userNote.IsDeleted).ToList();
 
                     if (usersNotes != null && usersNotes.Count > 0)
                     {
@@ -680,30 +662,29 @@ namespace FundooRepositoryLayer.Service
                 }
                 else
                 {
+
+                    List<UsersNotes> usersNotes = _applicationContext.UsersNotes.
+                        Where(userNote => userNote.NoteId == NoteId).ToList();
+
+                    if (usersNotes != null && usersNotes.Count > 0)
+                    {
+                        foreach (UsersNotes users in usersNotes)
+                        {
+                            users.IsDeleted = true;
+                            _applicationContext.UsersNotes.Attach(users);
+                            await _applicationContext.SaveChangesAsync();
+                        }
+                    }
+
                     notesDetails.IsDeleted = true;
                     notesDetails.IsPin = false;
                     notesDetails.IsArchived = false;
                     var notes = _applicationContext.NotesDetails.Attach(notesDetails);
                     notes.State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                     await _applicationContext.SaveChangesAsync();
-
-                    List<UsersNotes> usersNoted = _applicationContext.UsersNotes.
-                                Where(userNote => userNote.NoteId == NoteId).ToList();
-
-                    if (usersNoted != null && usersNoted.Count > 0)
-                    {
-                        foreach (UsersNotes users in usersNoted)
-                        {
-                            users.IsDeleted = true;
-                            _applicationContext.UsersNotes.Attach(users);
-                            await _applicationContext.SaveChangesAsync();
-                        }
-
-
-                        return true;
-                    }
+                    return true;
                 }
-                return false;
+
             }
             catch (Exception e)
             {
@@ -990,6 +971,75 @@ namespace FundooRepositoryLayer.Service
         }
 
         /// <summary>
+        /// It will Add or Update the Collaborator to the Note.
+        /// </summary>
+        /// <param name="NoteId">Note Id</param>
+        /// <param name="collaboratorsRequest">Collaborator Data</param>
+        /// <returns>Note Response Model</returns>
+        public async Task<NoteResponseModel> AddUpdateCollaborator(int NoteId, CollaboratorsRequest collaboratorsRequest, int userId)
+        {
+            try
+            {
+                NotesDetails notesDetails = _applicationContext.NotesDetails.
+                    FirstOrDefault(note => note.NotesId == NoteId && note.UserId == userId);
+
+                if(notesDetails == null)
+                {
+
+                    UsersNotes usersNotess = _applicationContext.UsersNotes.
+                       FirstOrDefault(userNote => userNote.NoteId == NoteId && userNote.UserId == userId);
+
+                    if (usersNotess == null)
+                        return null;
+
+                }
+
+                List<UsersNotes> usersNotes = _applicationContext.UsersNotes.
+                        Where(note => note.NoteId == NoteId).ToList();
+
+                if (usersNotes != null && usersNotes.Count > 0)
+                {
+                    _applicationContext.UsersNotes.RemoveRange(usersNotes);
+                    await _applicationContext.SaveChangesAsync();
+                }
+
+                foreach (CollaboratorRequest collaboratorRequest in collaboratorsRequest.Collaborators)
+                {
+                    UsersNotes userNotes = new UsersNotes()
+                    {
+                        NoteId = NoteId,
+                        UserId = collaboratorRequest.UserId,
+                        CreatedAt = DateTime.Now,
+                        ModifiedAt = DateTime.Now,
+                    };
+
+                    _applicationContext.UsersNotes.Add(userNotes);
+                    await _applicationContext.SaveChangesAsync();
+
+                }
+
+                NoteResponseModel noteResponse;
+
+                if(notesDetails != null)
+                    noteResponse = await NoteResponseModel(notesDetails);
+                else
+                {
+                    notesDetails = _applicationContext.NotesDetails.
+                        FirstOrDefault(note => note.NotesId == NoteId);
+
+                    noteResponse = await NoteResponseModel(notesDetails);
+                }
+
+                return noteResponse;
+
+            }
+            catch(Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
+        /// <summary>
         /// It Will Delete the Note Permanently From the Database
         /// </summary>
         /// <param name="userId">User Id</param>
@@ -1000,7 +1050,6 @@ namespace FundooRepositoryLayer.Service
             {
                 List<NotesDetails> notesDetails = await _applicationContext.NotesDetails.
                     Where(note => note.UserId == userId && note.IsDeleted).ToListAsync();
-
 
                 if(notesDetails != null && notesDetails.Count != 0)
                 {

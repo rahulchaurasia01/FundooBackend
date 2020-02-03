@@ -24,6 +24,11 @@ namespace FundooAppBackend.Controllers
         private readonly IConfiguration _configuration;
 
         private static readonly string _login = "Login";
+        private static readonly string _regularUser = "Regular User";
+
+        private static readonly string _tokenType = "TokenType";
+        private static readonly string _userType = "UserType";
+        private static readonly string _userId = "UserId";
 
         public NotesController(INotesBusiness notesBusiness, IConfiguration configuration)
         {
@@ -43,13 +48,14 @@ namespace FundooAppBackend.Controllers
             try
             {
                 var user = HttpContext.User;
-                bool status;
+                bool status = false;
                 string message;
-                if (user.HasClaim(c => c.Type == "TokenType"))
+                if (user.HasClaim(c => c.Type == _tokenType))
                 {
-                    if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
+                    if (user.Claims.FirstOrDefault(c => c.Type == _tokenType).Value == _login &&
+                        user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _regularUser)
                     {
-                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
 
                         if(notesDetails.Image != null && notesDetails.Image != "")
                             notesDetails.Image = UploadImageToCloudinary(notesDetails.Image);
@@ -63,13 +69,11 @@ namespace FundooAppBackend.Controllers
                         }
                         else
                         {
-                            status = false;
                             message = "Unable to Create Notes.";
                             return NotFound(new { status, message });
                         } 
                     }
                 }
-                status = false;
                 message = "Invalid Token";
                 return BadRequest(new { status, message });
             }
@@ -91,13 +95,14 @@ namespace FundooAppBackend.Controllers
             try
             {
                 var user = HttpContext.User;
-                bool status;
+                bool status = false;
                 string message;
-                if (user.HasClaim(c => c.Type == "TokenType"))
+                if (user.HasClaim(c => c.Type == _tokenType))
                 {
-                    if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
+                    if (user.Claims.FirstOrDefault(c => c.Type == _tokenType).Value == _login &&
+                        user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _regularUser)
                     {
-                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
                         NoteResponseModel notesDetails = await _notesBusiness.GetNote(NoteId, UserId);
                         if(notesDetails != null)
                         {
@@ -105,12 +110,10 @@ namespace FundooAppBackend.Controllers
                             message = "Your Note.";
                             return Ok(new { status, message, notesDetails });
                         }
-                        status = false;
                         message = "No Such Notes is Present";
                         return NotFound(new { status, message });
                     }
                 }
-                status = false;
                 message = "Invalid Token";
                 return BadRequest(new { status, message });
             }
@@ -126,18 +129,19 @@ namespace FundooAppBackend.Controllers
         /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
         /// occured and Not Proper Input Given it return BadRequest.</returns>
         [HttpGet]
-        public async Task<IActionResult> GetAllNotes(String search)
+        public async Task<IActionResult> GetAllNotes(string search)
         {
             try
             {
                 var user = HttpContext.User;
-                bool status;
+                bool status = false;
                 string message;
-                if (user.HasClaim(c => c.Type == "TokenType"))
+                if (user.HasClaim(c => c.Type == _tokenType))
                 {
-                    if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
+                    if (user.Claims.FirstOrDefault(c => c.Type == _tokenType).Value == _login &&
+                        user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _regularUser)
                     {
-                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
                         List<NoteResponseModel> data = await _notesBusiness.GetAllNotes(UserId, search);
                         if (data != null && data.Count > 0)
                         {
@@ -145,12 +149,10 @@ namespace FundooAppBackend.Controllers
                             message = "Here is the List Of all Notes.";
                             return Ok(new { status, message, data });
                         }
-                        status = false;
                         message = "No Notes Currently Present";
                         return NotFound(new { status, message });
                     }
                 }
-                status = false;
                 message = "Invalid Token";
                 return BadRequest(new { status, message });
             }
@@ -172,13 +174,14 @@ namespace FundooAppBackend.Controllers
             try
             {
                 var user = HttpContext.User;
-                bool status;
+                bool status = false;
                 string message;
-                if (user.HasClaim(c => c.Type == "TokenType"))
+                if (user.HasClaim(c => c.Type == _tokenType))
                 {
-                    if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
+                    if (user.Claims.FirstOrDefault(c => c.Type == _tokenType).Value == _login &&
+                        user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _regularUser)
                     {
-                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
                         List<NoteResponseModel> data = await _notesBusiness.GetAllDeletedNotes(UserId);
                         if (data != null && data.Count > 0)
                         {
@@ -186,12 +189,10 @@ namespace FundooAppBackend.Controllers
                             message = "Here is the List Of all Deleted Notes.";
                             return Ok(new { status, message, data });
                         }
-                        status = false;
                         message = "No Notes Currently Deleted";
                         return NotFound(new { status, message });
                     }
                 }
-                status = false;
                 message = "Invalid Token";
                 return BadRequest(new { status, message });
             }
@@ -213,13 +214,14 @@ namespace FundooAppBackend.Controllers
             try
             {
                 var user = HttpContext.User;
-                bool status;
+                bool status = false;
                 string message;
-                if (user.HasClaim(c => c.Type == "TokenType"))
+                if (user.HasClaim(c => c.Type == _tokenType))
                 {
-                    if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
+                    if (user.Claims.FirstOrDefault(c => c.Type == _tokenType).Value == _login &&
+                        user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _regularUser)
                     {
-                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
                         List<NoteResponseModel> data = await _notesBusiness.GetAllArchivedNotes(UserId);
                         if (data != null && data.Count > 0)
                         {
@@ -227,12 +229,10 @@ namespace FundooAppBackend.Controllers
                             message = "Here is the List Of all Archived Notes.";
                             return Ok(new { status, message, data });
                         }
-                        status = false;
                         message = "No Notes Currently Archived";
                         return NotFound(new { status, message });
                     }
                 }
-                status = false;
                 message = "Invalid Token";
                 return BadRequest(new { status, message });
             }
@@ -254,13 +254,14 @@ namespace FundooAppBackend.Controllers
             try
             {
                 var user = HttpContext.User;
-                bool status;
+                bool status = false;
                 string message;
-                if (user.HasClaim(c => c.Type == "TokenType"))
+                if (user.HasClaim(c => c.Type == _tokenType))
                 {
-                    if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
+                    if (user.Claims.FirstOrDefault(c => c.Type == _tokenType).Value == _login &&
+                        user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _regularUser)
                     {
-                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
                         List<NoteResponseModel> data = await _notesBusiness.GetAllPinnedNotes(UserId);
                         if (data != null && data.Count > 0)
                         {
@@ -268,12 +269,10 @@ namespace FundooAppBackend.Controllers
                             message = "Here is the List Of all Pinned Notes.";
                             return Ok(new { status, message, data });
                         }
-                        status = false;
                         message = "No Notes Currently Pinned";
                         return NotFound(new { status, message });
                     }
                 }
-                status = false;
                 message = "Invalid Token";
                 return BadRequest(new { status, message });
             }
@@ -296,13 +295,14 @@ namespace FundooAppBackend.Controllers
             try
             {
                 var user = HttpContext.User;
-                bool status;
+                bool status = false;
                 string message;
-                if (user.HasClaim(c => c.Type == "TokenType"))
+                if (user.HasClaim(c => c.Type == _tokenType))
                 {
-                    if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
+                    if (user.Claims.FirstOrDefault(c => c.Type == _tokenType).Value == _login &&
+                        user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _regularUser)
                     {
-                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
 
                         if (updateNotesDetails.Image != null && updateNotesDetails.Image == "")
                             updateNotesDetails.Image = UploadImageToCloudinary(updateNotesDetails.Image);
@@ -314,12 +314,10 @@ namespace FundooAppBackend.Controllers
                             message = "Note Updated Successfull";
                             return Ok(new { status, message, data });
                         }
-                        status = false;
                         message = "Note Cannot be Updated.";
                         return NotFound(new { status, message });
                     }
                 }
-                status = false;
                 message = "Invalid Token.";
                 return BadRequest(new { status, message });
             }
@@ -342,13 +340,14 @@ namespace FundooAppBackend.Controllers
             try
             {
                 var user = HttpContext.User;
-                bool status;
+                bool status = false;
                 string message;
-                if (user.HasClaim(c => c.Type == "TokenType"))
+                if (user.HasClaim(c => c.Type == _tokenType))
                 {
-                    if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
+                    if (user.Claims.FirstOrDefault(c => c.Type == _tokenType).Value == _login &&
+                        user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _regularUser)
                     {
-                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
                         status = await _notesBusiness.DeleteNote(NoteId, UserId);
                         if(status)
                         {
@@ -359,7 +358,6 @@ namespace FundooAppBackend.Controllers
                         return NotFound(new { status, message });
                     }
                 }
-                status = false;
                 message = "Invalid Token";
                 return BadRequest(new { status, message });
             }
@@ -382,13 +380,14 @@ namespace FundooAppBackend.Controllers
             try
             {
                 var user = HttpContext.User;
-                bool status;
+                bool status = false;
                 string message;
-                if (user.HasClaim(c => c.Type == "TokenType"))
+                if (user.HasClaim(c => c.Type == _tokenType))
                 {
-                    if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
+                    if (user.Claims.FirstOrDefault(c => c.Type == _tokenType).Value == _login &&
+                        user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _regularUser)
                     {
-                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
                         List<NoteResponseModel> data = await _notesBusiness.SortByReminderNotes(UserId);
                         if (data != null && data.Count > 0)
                         {
@@ -396,12 +395,10 @@ namespace FundooAppBackend.Controllers
                             message = "Here is the List Of all Notes By Upcoming Reminder.";
                             return Ok(new { status, message, data });
                         }
-                        status = false;
                         message = "No Notes Currently on Reminder.";
                         return NotFound(new { status, message });
                     }
                 }
-                status = false;
                 message = "Invalid Token";
                 return BadRequest(new { status, message });
             }
@@ -424,13 +421,14 @@ namespace FundooAppBackend.Controllers
             try
             {
                 var user = HttpContext.User;
-                bool status;
+                bool status = false;
                 string message;
-                if (user.HasClaim(c => c.Type == "TokenType"))
+                if (user.HasClaim(c => c.Type == _tokenType))
                 {
-                    if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
+                    if (user.Claims.FirstOrDefault(c => c.Type == _tokenType).Value == _login &&
+                        user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _regularUser)
                     {
-                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
                         NoteResponseModel data = await _notesBusiness.PinOrUnPinTheNote(NoteId, pinnedRequest, UserId);
                         if (data != null)
                         {
@@ -438,12 +436,10 @@ namespace FundooAppBackend.Controllers
                             message = "The Note has been Successfully Pinned.";
                             return Ok(new { status, message, data });
                         }
-                        status = false;
                         message = "Unable to Pinned the Note";
                         return NotFound(new { status, message });
                     }
                 }
-                status = false;
                 message = "Invalid Token";
                 return BadRequest(new { status, message });
             }
@@ -467,13 +463,14 @@ namespace FundooAppBackend.Controllers
             try
             {
                 var user = HttpContext.User;
-                bool status;
+                bool status = false;
                 string message;
-                if (user.HasClaim(c => c.Type == "TokenType"))
+                if (user.HasClaim(c => c.Type == _tokenType))
                 {
-                    if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
+                    if (user.Claims.FirstOrDefault(c => c.Type == _tokenType).Value == _login &&
+                        user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _regularUser)
                     {
-                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
                         NoteResponseModel data = await _notesBusiness.ArchiveUnArchiveTheNote(NoteId, archiveRequest, UserId);
                         if (data != null)
                         {
@@ -481,12 +478,10 @@ namespace FundooAppBackend.Controllers
                             message = "The Note has been Successfully Archived.";
                             return Ok(new { status, message, data });
                         }
-                        status = false;
                         message = "Unable to Archived the Note";
                         return NotFound(new { status, message });
                     }
                 }
-                status = false;
                 message = "Invalid Token";
                 return BadRequest(new { status, message });
             }
@@ -510,13 +505,14 @@ namespace FundooAppBackend.Controllers
             try
             {
                 var user = HttpContext.User;
-                bool status;
+                bool status = false;
                 string message;
-                if (user.HasClaim(c => c.Type == "TokenType"))
+                if (user.HasClaim(c => c.Type == _tokenType))
                 {
-                    if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
+                    if (user.Claims.FirstOrDefault(c => c.Type == _tokenType).Value == _login &&
+                        user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _regularUser)
                     {
-                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
                         NoteResponseModel data = await _notesBusiness.ColorTheNote(NoteId, colorRequest, UserId);
                         if (data != null)
                         {
@@ -524,12 +520,10 @@ namespace FundooAppBackend.Controllers
                             message = "The Color Has Been Successfully Added To the Note.";
                             return Ok(new { status, message, data });
                         }
-                        status = false;
                         message = "Unable to Color the Note.";
                         return NotFound(new { status, message });
                     }
                 }
-                status = false;
                 message = "Invalid Token";
                 return BadRequest(new { status, message });
             }
@@ -553,13 +547,14 @@ namespace FundooAppBackend.Controllers
             try
             {
                 var user = HttpContext.User;
-                bool status;
+                bool status = false;
                 string message;
-                if (user.HasClaim(c => c.Type == "TokenType"))
+                if (user.HasClaim(c => c.Type == _tokenType))
                 {
-                    if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
+                    if (user.Claims.FirstOrDefault(c => c.Type == _tokenType).Value == _login &&
+                        user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _regularUser)
                     {
-                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
 
                         imageRequest.Image = UploadImageToCloudinary(imageRequest.Image);
                         NoteResponseModel data = await _notesBusiness.AddUpdateImage(NoteId, imageRequest, UserId);
@@ -569,12 +564,10 @@ namespace FundooAppBackend.Controllers
                             message = "The Image has Been Successfully Added To the Note.";
                             return Ok(new { status, message, data });
                         }
-                        status = false;
                         message = "Unable to Add the Image to the Note.";
                         return NotFound(new { status, message });
                     }
                 }
-                status = false;
                 message = "Invalid Token";
                 return BadRequest(new { status, message });
             }
@@ -583,6 +576,52 @@ namespace FundooAppBackend.Controllers
                 return BadRequest(new { e.Message });
             }
         }
+
+        /// <summary>
+        /// It Add Or Update the Collaborator to the Notes
+        /// </summary>
+        /// <param name="NoteId">Note Id</param>
+        /// <param name="collaboratorsRequest">Collaborator Data</param>
+        /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
+        /// occured and Not Proper Input Given it return BadRequest.</returns>
+        [HttpPut]
+        [Route("{NoteId}/Collaborator")]
+        public async Task<IActionResult> AddUpdateCollaborator(int NoteId, CollaboratorsRequest collaboratorsRequest)
+        {
+            try
+            {
+                var user = HttpContext.User;
+                bool status = false;
+                string message;
+                if (user.HasClaim(c => c.Type == _tokenType))
+                {
+                    if (user.Claims.FirstOrDefault(c => c.Type == _tokenType).Value == _login &&
+                        user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _regularUser)
+                    {
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
+
+                        NoteResponseModel data = await _notesBusiness.AddUpdateCollaborator(NoteId, collaboratorsRequest, UserId);
+                        if (data != null)
+                        {
+                            status = true;
+                            message = "The Collaborators has Been Successfully Added To the Note.";
+                            return Ok(new { status, message, data });
+                        }
+                        message = "Unable to Add the Collaborators to the Note.";
+                        return NotFound(new { status, message });
+                    }
+                }
+                message = "Invalid Token";
+                return BadRequest(new { status, message });
+            }
+            catch(Exception e)
+            {
+                return BadRequest(new { e.Message });
+            }
+        }
+
+
+
 
         /// <summary>
         /// It Delete the List of Notes Permanentely
@@ -596,13 +635,14 @@ namespace FundooAppBackend.Controllers
             try
             {
                 var user = HttpContext.User;
-                bool status;
+                bool status = false;
                 string message;
-                if (user.HasClaim(c => c.Type == "TokenType"))
+                if (user.HasClaim(c => c.Type == _tokenType))
                 {
-                    if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
+                    if (user.Claims.FirstOrDefault(c => c.Type == _tokenType).Value == _login &&
+                        user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _regularUser)
                     {
-                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
                         status = await _notesBusiness.DeleteNotesPermanently(UserId);
                         if (status)
                         {
@@ -613,7 +653,6 @@ namespace FundooAppBackend.Controllers
                         return NotFound(new { status, message });
                     }
                 }
-                status = false;
                 message = "Invalid Token";
                 return BadRequest(new { status, message });
             }
@@ -636,13 +675,14 @@ namespace FundooAppBackend.Controllers
             try
             {
                 var user = HttpContext.User;
-                bool status;
+                bool status = false;
                 string message;
-                if (user.HasClaim(c => c.Type == "TokenType"))
+                if (user.HasClaim(c => c.Type == _tokenType))
                 {
-                    if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
+                    if (user.Claims.FirstOrDefault(c => c.Type == _tokenType).Value == _login &&
+                        user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _regularUser)
                     {
-                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
                         status = await _notesBusiness.RestoreDeletedNotes(NoteId, UserId);
                         if (status)
                         {
@@ -653,7 +693,6 @@ namespace FundooAppBackend.Controllers
                         return NotFound(new { status, message });
                     }
                 }
-                status = false;
                 message = "Invalid Token";
                 return BadRequest(new { status, message });
             }

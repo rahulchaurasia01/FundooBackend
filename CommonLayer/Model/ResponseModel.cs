@@ -106,4 +106,51 @@ namespace FundooCommonLayer.Model
         public string EmailId { set; get; }
     }
 
+    public class AdminResponseModel
+    {
+        public int UserId { set; get; }
+
+        public string FirstName { set; get; }
+
+        public string LastName { set; get; }
+
+        [EmailAddress]
+        public string EmailId { set; get; }
+
+        public bool IsActive { set; get; }
+
+        public string UserRole { set; get; }
+
+        public DateTime CreatedAt { set; get; }
+
+        public DateTime ModifiedAt { set; get; }
+    }
+
+    public class AdminStatisticsResponseModel
+    {
+        public int Basic { set; get; }
+
+        public int Advanced { set; get; }
+
+    }
+
+
+    public class AdminUserListResponseModel
+    {
+
+        public int UserId { set; get; }
+
+        public string FirstName { set; get; }
+
+        public string LastName { set; get; }
+
+        public string EmailId { set; get; }
+
+        public string Type { set; get; }
+
+        public int Notes { set; get; }
+
+    }
+
+
 }

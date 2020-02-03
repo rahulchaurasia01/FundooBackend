@@ -9,9 +9,13 @@ namespace FundooBusinessLayer.Interface
     public interface IAdminBusiness
     {
 
-        Task<UserResponseModel> AdminRegistration(RegisterRequest registerRequest);
+        Task<AdminResponseModel> AdminRegistration(AdminRegisterRequest registerRequest);
 
-        UserResponseModel AdminLogin(LoginRequest loginRequest);
+        AdminResponseModel AdminLogin(LoginRequest loginRequest);
+
+        AdminStatisticsResponseModel AdminStatistics(int userId);
+
+        List<AdminUserListResponseModel> AdminUserLists(int userId, int start);
 
     }
 }

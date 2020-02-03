@@ -36,6 +36,8 @@ namespace FundooBusinessLayer.Interface
 
         Task<NoteResponseModel> AddUpdateImage(int NoteId, ImageRequest imageRequest, int userId);
 
+        Task<NoteResponseModel> AddUpdateCollaborator(int NoteId, CollaboratorsRequest collaboratorsRequest, int userId);
+
         Task<bool> DeleteNotesPermanently(int userId);
 
         Task<bool> RestoreDeletedNotes(int noteId, int userId);

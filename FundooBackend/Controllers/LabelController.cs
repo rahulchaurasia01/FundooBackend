@@ -17,6 +17,11 @@ namespace FundooAppBackend.Controllers
     {
 
         private static readonly string _login = "Login";
+        private static readonly string _regularUser = "Regular User";
+
+        private static readonly string _tokenType = "TokenType";
+        private static readonly string _userType = "UserType";
+        private static readonly string _userId = "UserId";
 
         private readonly ILabelBusiness _labelBusiness;
 
@@ -31,13 +36,14 @@ namespace FundooAppBackend.Controllers
             try
             {
                 var user = HttpContext.User;
-                bool status;
+                bool status = false;
                 string message;
-                if (user.HasClaim(c => c.Type == "TokenType"))
+                if (user.HasClaim(c => c.Type == _tokenType))
                 {
-                    if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
+                    if (user.Claims.FirstOrDefault(c => c.Type == _tokenType).Value == _login &&
+                        user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _regularUser)
                     {
-                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
                         LabelResponseModel data = await _labelBusiness.CreateLabel(label, UserId);
                         if (data != null)
                         {
@@ -45,12 +51,10 @@ namespace FundooAppBackend.Controllers
                             message = "Your Label Has been Successfully Created.";
                             return Ok(new { status, message, data });
                         }
-                        status = false;
                         message = "Unable to Create the Label.";
                         return NotFound(new { status, message });
                     }
                 }
-                status = false;
                 message = "Invalid Token";
                 return BadRequest(new { status, message });
             }
@@ -66,13 +70,14 @@ namespace FundooAppBackend.Controllers
             try
             {
                 var user = HttpContext.User;
-                bool status;
+                bool status = false;
                 string message;
-                if (user.HasClaim(c => c.Type == "TokenType"))
+                if (user.HasClaim(c => c.Type == _tokenType))
                 {
-                    if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
+                    if (user.Claims.FirstOrDefault(c => c.Type == _tokenType).Value == _login &&
+                        user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _regularUser)
                     {
-                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
                         List<LabelResponseModel> data = await _labelBusiness.GetAllLabel(UserId);
                         if (data != null && data.Count > 0)
                         {
@@ -80,12 +85,10 @@ namespace FundooAppBackend.Controllers
                             message = "List Of All the Label.";
                             return Ok(new { status, message, data });
                         }
-                        status = false;
                         message = "No Label Found.";
                         return NotFound(new { status, message });
                     }
                 }
-                status = false;
                 message = "Invalid Token";
                 return BadRequest(new { status, message });
             }
@@ -103,11 +106,12 @@ namespace FundooAppBackend.Controllers
                 var user = HttpContext.User;
                 bool status = false;
                 string message;
-                if (user.HasClaim(c => c.Type == "TokenType"))
+                if (user.HasClaim(c => c.Type == _tokenType))
                 {
-                    if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
+                    if (user.Claims.FirstOrDefault(c => c.Type == _tokenType).Value == _login &&
+                        user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _regularUser)
                     {
-                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
                         List<NoteResponseModel> data = await _labelBusiness.GetNoteByLabelId(LabelId);
                         if (data != null && data.Count > 0)
                         {
@@ -134,13 +138,14 @@ namespace FundooAppBackend.Controllers
             try
             {
                 var user = HttpContext.User;
-                bool status;
+                bool status = false;
                 string message;
-                if (user.HasClaim(c => c.Type == "TokenType"))
+                if (user.HasClaim(c => c.Type == _tokenType))
                 {
-                    if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
+                    if (user.Claims.FirstOrDefault(c => c.Type == _tokenType).Value == _login &&
+                        user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _regularUser)
                     {
-                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
                         LabelResponseModel data = await _labelBusiness.UpdateLabel(updateLabel, LabelId);
                         if (data != null)
                         {
@@ -148,12 +153,10 @@ namespace FundooAppBackend.Controllers
                             message = "Label has been Updated Successfully.";
                             return Ok(new { status, message, data });
                         }
-                        status = false;
                         message = "Unable to Update the label.";
                         return NotFound(new { status, message });
                     }
                 }
-                status = false;
                 message = "Invalid Token";
                 return BadRequest(new { status, message });
             }
@@ -169,13 +172,14 @@ namespace FundooAppBackend.Controllers
             try
             {
                 var user = HttpContext.User;
-                bool status;
+                bool status = false;
                 string message;
-                if (user.HasClaim(c => c.Type == "TokenType"))
+                if (user.HasClaim(c => c.Type == _tokenType))
                 {
-                    if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
+                    if (user.Claims.FirstOrDefault(c => c.Type == _tokenType).Value == _login &&
+                        user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _regularUser)
                     {
-                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
                         status = await _labelBusiness.DeleteLabel(LabelId);
                         if (status)
                         {
@@ -186,7 +190,6 @@ namespace FundooAppBackend.Controllers
                         return NotFound(new { status, message });
                     }
                 }
-                status = false;
                 message = "Invalid Token";
                 return BadRequest(new { status, message });
             }

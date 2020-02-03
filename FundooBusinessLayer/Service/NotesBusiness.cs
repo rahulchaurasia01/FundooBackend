@@ -220,6 +220,27 @@ namespace FundooBusinessLayer.Service
         }
 
         /// <summary>
+        /// It Add Or Update the Collaborator to the Note
+        /// </summary>
+        /// <param name="NoteId">Note Id</param>
+        /// <param name="collaboratorsRequest">Collaborator Data</param>
+        /// <returns>Note Response Model</returns>
+        public async Task<NoteResponseModel> AddUpdateCollaborator(int NoteId, CollaboratorsRequest collaboratorsRequest, int userId)
+        {
+            try
+            {
+                if (NoteId <= 0 || collaboratorsRequest == null || userId <= 0)
+                    return null;
+                else
+                    return await _notesRepository.AddUpdateCollaborator(NoteId, collaboratorsRequest, userId);
+            }
+            catch(Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
+        /// <summary>
         /// Delete the note Permanently from the Database.
         /// </summary>
         /// <param name="userId">User Id</param>

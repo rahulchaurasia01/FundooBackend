@@ -171,11 +171,44 @@ namespace FundooCommonLayer.Model
     }
 
     /// <summary>
+    /// Add a List Of Collaborator to the Notes
+    /// </summary>
+    public class CollaboratorsRequest
+    {
+        public List<CollaboratorRequest> Collaborators { set; get; }
+    }
+
+    /// <summary>
     /// Add A user to Collaborator the notes with them.
     /// </summary>
     public class CollaboratorRequest
     {
         public int UserId { set; get; }
+
+    }
+
+    /// <summary>
+    /// Register a New Admin Model
+    /// </summary>
+    public class AdminRegisterRequest
+    {
+        [Required]
+        [MaxLength(12, ErrorMessage = "Your FirstName Length Should be Less Than 12.")]
+        [MinLength(3, ErrorMessage = "Your FirstName Length Should be more than 3")]
+        public string FirstName { set; get; }
+
+        [Required]
+        [MaxLength(12, ErrorMessage = "Your LastName Length Should be Less Than 12.")]
+        [MinLength(3, ErrorMessage = "Your LastName Length Should be more than 3")]
+        public string LastName { set; get; }
+
+        [Required]
+        [EmailAddress(ErrorMessage = "Please Input a Proper Email-Id")]
+        public string EmailId { set; get; }
+
+        [Required]
+        [MinLength(5, ErrorMessage = "Your Password Should be Minimum Length of 5.")]
+        public string Password { set; get; }
 
     }
 

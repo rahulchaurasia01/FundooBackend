@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using FundooBusinessLayer.Interface;
 using FundooCommonLayer.Model;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -23,6 +24,11 @@ namespace FundooAppBackend.Controllers
         private readonly IConfiguration _configuration;
 
         private static readonly string _login = "Login";
+        private static readonly string _admin = "Admin";
+
+        private static readonly string _tokenType = "TokenType";
+        private static readonly string _userType = "UserType";
+        private static readonly string _userId = "UserId";
 
         public AdminController(IAdminBusiness adminBusiness, IConfiguration configuration)
         {
@@ -30,19 +36,24 @@ namespace FundooAppBackend.Controllers
             _configuration = configuration;
         }
 
+        /// <summary>
+        /// Api for Admin Registration
+        /// </summary>
+        /// <param name="registerRequest">Admin Register Data</param>
+        /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
+        /// occured and Not Proper Input Given it return BadRequest.</returns>
         [HttpPost]
         [Route("Registration")]
-        public async Task<IActionResult> AdminRegistration(RegisterRequest registerRequest)
+        public async Task<IActionResult> AdminRegistration(AdminRegisterRequest registerRequest)
         {
             try
             {
-                UserResponseModel data = await _adminBusiness.AdminRegistration(registerRequest);
-                bool status;
+                AdminResponseModel data = await _adminBusiness.AdminRegistration(registerRequest);
+                bool status = false;
                 string message;
                 string token;
                 if (data == null)
                 {
-                    status = false;
                     message = "No Data Provided";
                     return NotFound(new { status, message });
                 }
@@ -60,19 +71,24 @@ namespace FundooAppBackend.Controllers
             }
         }
 
+        /// <summary>
+        /// Api For Amdin Login
+        /// </summary>
+        /// <param name="loginRequest">Login data</param>
+        /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
+        /// occured and Not Proper Input Given it return BadRequest.</returns>
         [HttpPost]
         [Route("Login")]
         public IActionResult AdminLogin(LoginRequest loginRequest)
         {
             try
             {
-                UserResponseModel data = _adminBusiness.AdminLogin(loginRequest);
-                bool status;
+                AdminResponseModel data = _adminBusiness.AdminLogin(loginRequest);
+                bool status = false;
                 string message;
                 string token;
                 if (data == null)
                 {
-                    status = false;
                     message = "No Admin Account Present with this Email-Id and Password";
                     return NotFound(new { status, message });
                 }
@@ -90,6 +106,88 @@ namespace FundooAppBackend.Controllers
             }
         }
 
+        /// <summary>
+        /// Get the statistics of the Regular Users
+        /// </summary>
+        /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
+        /// occured and Not Proper Input Given it return BadRequest.</returns>
+        [HttpGet]
+        [Route("Statistics")]
+        [Authorize]
+        public IActionResult AdminStatistics()
+        {
+            try
+            {
+                var user = HttpContext.User;
+                bool status = false;
+                string message;
+                if(user.HasClaim(c => c.Type == _tokenType))
+                {
+                    if(user.Claims.FirstOrDefault(c => c.Type == _tokenType).Value == _login && 
+                        user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _admin)
+                    {
+                        int userId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
+                        AdminStatisticsResponseModel data = _adminBusiness.AdminStatistics(userId);
+                        if(data != null)
+                        {
+                            status = true;
+                            message = "Here Is the Statistics of Regular User.";
+                            return Ok(new { status, message, data });
+                        }
+                        message = "No Data Present.";
+                        return NotFound(new { status, message });
+                    }
+                }
+                message = "Invalid Token.";
+                return BadRequest(new { status, message });
+            }
+            catch(Exception e)
+            {
+                return BadRequest(new { e.Message });
+            }
+        }
+
+        /// <summary>
+        /// Get the List of All the Regular User with there no. of Notes.
+        /// </summary>
+        /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
+        /// occured and Not Proper Input Given it return BadRequest.</returns>
+        [HttpGet]
+        [Route("Users")]
+        [Authorize]
+        public IActionResult AdminUserList(int start)
+        {
+            try
+            {
+                var user = HttpContext.User;
+                bool status = false;
+                string message;
+                if (user.HasClaim(c => c.Type == _tokenType))
+                {
+                    if (user.Claims.FirstOrDefault(c => c.Type == _tokenType).Value == _login &&
+                        user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _admin)
+                    {
+                        int userId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
+                        List<AdminUserListResponseModel> data = _adminBusiness.AdminUserLists(userId, start);
+                        if (data != null)
+                        {
+                            status = true;
+                            message = "Here Is the List Of all the Users with there No. Of Notes.";
+                            return Ok(new { status, message, data });
+                        }
+                        message = "No Data Present.";
+                        return NotFound(new { status, message });
+                    }
+                }
+                message = "Invalid Token.";
+                return BadRequest(new { status, message });
+            }
+            catch(Exception e)
+            {
+                return BadRequest(new { e.Message });
+            }
+        }
+
 
         /// <summary>
         /// It Generate the token.
@@ -97,7 +195,7 @@ namespace FundooAppBackend.Controllers
         /// <param name="userToken">Response Model</param>
         /// <param name="type">Token Type</param>
         /// <returns>it return Token</returns>
-        private string GenerateToken(UserResponseModel userToken, string type)
+        private string GenerateToken(AdminResponseModel userToken, string type)
         {
             try
             {

@@ -22,6 +22,9 @@ namespace FundooRepositoryLayer.Service
     {
         private readonly ApplicationContext context;
 
+        //private static readonly string _admin = "Admin";
+        private static readonly string _user = "Regular User";
+
         public UserRepository(ApplicationContext applicationContext)
         {
             context = applicationContext;
@@ -102,7 +105,8 @@ namespace FundooRepositoryLayer.Service
             try
             {
                 login.Password = EncodeDecode.EncodePasswordToBase64(login.Password);
-                var data = context.UserDetails.FirstOrDefault(user => (user.EmailId == login.EmailId) && (user.Password == login.Password));
+                var data = context.UserDetails.FirstOrDefault(user => (user.EmailId == login.EmailId)
+                    && (user.Password == login.Password) && user.UserRole == _user);
 
                 if (data != null)
                 {
@@ -147,7 +151,7 @@ namespace FundooRepositoryLayer.Service
                     Password = userDetails.Password,
                     Type = userDetails.Type,
                     IsActive = true,
-                    UserRole = "Regular User",
+                    UserRole = _user,
                     CreatedAt = DateTime.Now,
                     ModifiedAt = DateTime.Now
 

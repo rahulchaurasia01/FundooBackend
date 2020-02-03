@@ -48,7 +48,7 @@ namespace FundooAppBackend.Controllers
             try
             {
                 var user = HttpContext.User;
-                bool status;
+                bool status = false;
                 string message;
                 if (user.HasClaim(c => c.Type == "TokenType"))
                 {
@@ -62,12 +62,10 @@ namespace FundooAppBackend.Controllers
                             message = "Here is the List Of all User.";
                             return Ok(new { status, message, data });
                         }
-                        status = false;
                         message = "No Such User is Present";
                         return NotFound(new { status, message });
                     }
                 }
-                status = false;
                 message = "Invalid Token";
                 return BadRequest(new { status, message });
             }
@@ -92,12 +90,11 @@ namespace FundooAppBackend.Controllers
                     return BadRequest(new { Message = "Enter Proper Data" });
 
                 UserResponseModel data = await _userBusiness.Registration(userDetails);
-                bool status;
+                bool status = false;
                 string message;
                 string token;
                 if (data == null)
                 {
-                    status = false;
                     message = "No Data Provided";
                     return NotFound(new { status, message });
                 }
@@ -130,12 +127,11 @@ namespace FundooAppBackend.Controllers
                     return BadRequest(new { Message= "Enter Proper Input Value." });
 
                 UserResponseModel data = _userBusiness.Login(login);
-                bool status;
+                bool status = false;
                 string message;
                 string token;
                 if (data == null)
                 {
-                    status = false;
                     message = "No User Present with this Email-Id and Password";
                     return NotFound(new { status, message });
                 }
@@ -168,12 +164,11 @@ namespace FundooAppBackend.Controllers
                     return BadRequest(new { Message = "Please input the Data Properly." });
 
                 UserResponseModel data = _userBusiness.ForgetPassword(forgetPassword);
-                bool status;
+                bool status = false;
                 string message;
                 string token;
                 if (data == null)
                 {
-                    status = false;
                     message = "No User Found with this Email-Id: " + forgetPassword.EmailId;
                     return NotFound(new { status, message });
                 }
@@ -208,7 +203,7 @@ namespace FundooAppBackend.Controllers
                     return BadRequest(new { Message = "Input the Data Properly" });
 
                 var user = HttpContext.User;
-                bool status;
+                bool status = false;
                 string message;
                 if (user.HasClaim(c => c.Type == "TokenType"))
                 {
@@ -222,17 +217,20 @@ namespace FundooAppBackend.Controllers
                             message = "Your Password Has been Successfully Changed";
                             return Ok(new { status, message });
                         }
+                        message = "Unable to Change the Password.";
+                        return NotFound(new { status, message });
                     }
                 }
-                status = false;
                 message = "Invalid Token.";
-                return NotFound(new { status, message });
+                return BadRequest(new { status, message });
             }
             catch (Exception e)
             {
                 return BadRequest(new { e.Message });
             }
         }
+
+
 
         /// <summary>
         /// It Generate the token.

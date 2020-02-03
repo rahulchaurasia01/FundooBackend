@@ -39,14 +39,13 @@ namespace FundooCommonLayer.ModelDB
         [Required]
         public string Password { set; get; }
 
-        [Required]
         public string Type { set; get; }
 
         [Required]
         [DefaultValue(true)]
         public bool IsActive { set; get; }
 
-        [DefaultValue("Regular User")]
+        [Required]
         public string UserRole { set; get; }
 
         [Required]

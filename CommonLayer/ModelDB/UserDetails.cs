@@ -36,6 +36,8 @@ namespace FundooCommonLayer.ModelDB
         [EmailAddress]
         public string EmailId { set; get; }
 
+        public string ProfilePic { set; get; }
+
         [Required]
         public string Password { set; get; }
 

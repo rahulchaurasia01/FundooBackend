@@ -28,6 +28,8 @@ namespace FundooCommonLayer.Model
         [EmailAddress]
         public string EmailId { set; get; }
 
+        public string ProfilePic { set; get; }
+
         public string Type { set; get; }
 
         public bool IsActive { set; get; }

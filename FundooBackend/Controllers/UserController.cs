@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web.Http.Cors;
+using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
 using FundooBusinessLayer.Interface;
 using FundooCommonLayer.Model;
 using FundooCommonLayer.ModelDB;
@@ -16,6 +20,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace FundooAppBackend.Controllers
 {
+
     [Route("api/[controller]")]
     [ApiController]
     public class UserController : ControllerBase
@@ -27,11 +32,58 @@ namespace FundooAppBackend.Controllers
         private static readonly string _forgetPassword = "ForgetPassword";
         private static readonly string _login = "Login";
 
+        private static readonly string _regularUser = "Regular User";
+
+        private static readonly string _tokenType = "TokenType";
+        private static readonly string _userType = "UserType";
+        private static readonly string _userId = "UserId";
+
+
 
         public UserController(IUserBusiness userBusiness, IConfiguration configuration)
         {
             _userBusiness = userBusiness;
             _configuration = configuration;
+        }
+
+        /// <summary>
+        /// Notification Token
+        /// </summary>
+        /// <param name="notificationRequest">Notification data</param>
+        /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
+        /// occured and Not Proper Input Given it return BadRequest.</returns>
+        [HttpPost]
+        [Authorize]
+        [Route("Notification")]
+        public async Task<IActionResult> AddNotification(NotificationRequest notificationRequest)
+        {
+            try
+            {
+                var user = HttpContext.User;
+                bool status = false;
+                string message;
+                if (user.HasClaim(c => c.Type == "TokenType"))
+                {
+                    if (user.Claims.FirstOrDefault(c => c.Type == "TokenType").Value == _login)
+                    {
+                        int userId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+                        status = await _userBusiness.AddNotification(notificationRequest, userId);
+                        if (status)
+                        {
+                            message = "Notification Token Added Successfully.";
+                            return Ok(new { status, message });
+                        }
+                        message = "Unable to Add Notification Token";
+                        return NotFound(new { status, message });
+                    }
+                }
+                message = "Invalid Token";
+                return BadRequest(new { status, message });
+            }
+            catch(Exception e)
+            {
+                return BadRequest(new { e.Message });
+            }
         }
 
         /// <summary>
@@ -64,6 +116,70 @@ namespace FundooAppBackend.Controllers
                         }
                         message = "No Such User is Present";
                         return NotFound(new { status, message });
+                    }
+                }
+                message = "Invalid Token";
+                return BadRequest(new { status, message });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { e.Message });
+            }
+        }
+
+        /// <summary>
+        /// Profile Pic Of User.
+        /// </summary>
+        /// <param name="userRequest">Profile Pic Data</param>
+        /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
+        /// occured and Not Proper Input Given it return BadRequest.</returns>
+        [HttpPost]
+        [Authorize]
+        [Route("ProfilePic")]
+        public async Task<IActionResult> AddUpdateProfilePic([FromForm] GetImageFromApiRequest imageRequest)
+        {
+            try
+            {
+                var user = HttpContext.User;
+                bool status = false;
+                string message;
+                if (user.HasClaim(c => c.Type == _tokenType))
+                {
+                    if (user.Claims.FirstOrDefault(c => c.Type == _tokenType).Value == _login &&
+                        user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _regularUser)
+                    {
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
+
+                        if (imageRequest.Image.Length <= 0)
+                        {
+                            message = "No Image Provided";
+                            return BadRequest(new { status, message });
+                        }
+
+                        if (imageRequest.Image.FileName.EndsWith(".jpg") || imageRequest.Image.FileName.EndsWith(".png"))
+                        {
+                            ImageRequest imageRequest1 = new ImageRequest
+                            {
+                                Image = UploadImageToCloudinary(imageRequest)
+                            };
+
+                            UserResponseModel data = await _userBusiness.AddUpdateProfilePic(imageRequest1, UserId);
+                            if (data != null)
+                            {
+                                status = true;
+                                message = "The Image has Been Successfully Added To the Profile Pic.";
+                                return Ok(new { status, message, data });
+                            }
+                            message = "Unable to Add the Image to the Profile Pic.";
+                            return NotFound(new { status, message });
+
+                        }
+                        else
+                        {
+                            message = "Please Provide the .jpg or .png Images only";
+                            return BadRequest(new { status, message });
+                        }
+                        
                     }
                 }
                 message = "Invalid Token";
@@ -326,6 +442,34 @@ namespace FundooAppBackend.Controllers
             return true;
         }
 
+        /// <summary>
+        /// It Upload the Image to Cloudinary and Get the url Of the uploaded Image
+        /// </summary>
+        /// <param name="imageRequest">Image Data</param>
+        private string UploadImageToCloudinary(GetImageFromApiRequest getImageFrom)
+        {
+            try
+            {
+                var Account = new Account(_configuration["Cloudinary:Cloud_Name"],
+                    _configuration["Cloudinary:Api_Key"], _configuration["Cloudinary:Api_Secret"]);
+
+                Cloudinary cloudinary = new Cloudinary(Account);
+
+                var imageUpload = new ImageUploadParams
+                {
+                    File = new FileDescription(getImageFrom.Image.FileName, getImageFrom.Image.OpenReadStream()),
+                    Folder = "FundooNotes"
+                };
+
+                var uploadImage = cloudinary.Upload(@imageUpload);
+
+                return uploadImage.SecureUri.AbsoluteUri;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
 
     }
 }

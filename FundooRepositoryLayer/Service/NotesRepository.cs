@@ -34,7 +34,7 @@ namespace FundooRepositoryLayer.Service
         /// <param name="noteDetails">Note Data</param>
         /// <param name="userId">User Id</param>
         /// <returns>Notes Details</returns>
-        public async Task<NoteResponseModel> CreateNotes(NoteRequest noteDetails, int userId)
+        public async Task<NoteResponseModel> CreateNotes(NoteRequest noteDetails, int userId, string imagePath)
         {
             try
             {
@@ -45,7 +45,7 @@ namespace FundooRepositoryLayer.Service
                     Title = noteDetails.Title,
                     Description = noteDetails.Description,
                     Color = noteDetails.Color,
-                    Image = noteDetails.Image,
+                    Image = imagePath,
                     IsPin = noteDetails.IsPin,
                     IsArchived = noteDetails.IsArchived,
                     IsDeleted = noteDetails.IsDeleted,
@@ -498,7 +498,7 @@ namespace FundooRepositoryLayer.Service
         /// </summary>
         /// <param name="notesDetails">Note data</param>
         /// <returns>Return Updated Notes</returns>
-        public async Task<NoteResponseModel> UpdateNotes(int noteId, int userId, NoteRequest updateNotesDetails)
+        public async Task<NoteResponseModel> UpdateNotes(int noteId, int userId, NoteRequest updateNotesDetails, string imagePath)
         {
             try
             {
@@ -523,7 +523,7 @@ namespace FundooRepositoryLayer.Service
                 notesDetails1.Title = updateNotesDetails.Title;
                 notesDetails1.Description = updateNotesDetails.Description;
                 notesDetails1.Color = updateNotesDetails.Color;
-                notesDetails1.Image = updateNotesDetails.Image;
+                notesDetails1.Image = imagePath;
                 notesDetails1.IsPin = updateNotesDetails.IsPin;
                 notesDetails1.IsArchived = updateNotesDetails.IsArchived;
                 notesDetails1.IsDeleted = updateNotesDetails.IsDeleted;

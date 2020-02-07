@@ -57,10 +57,20 @@ namespace FundooAppBackend.Controllers
                     {
                         int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
 
-                        if(notesDetails.Image != null && notesDetails.Image != "")
-                            notesDetails.Image = UploadImageToCloudinary(notesDetails.Image);
+                        string imagePath ="";
 
-                        NoteResponseModel data = await _notesBusiness.CreateNotes(notesDetails, UserId);
+                        if(notesDetails.Image != null && notesDetails.Image.Length > 0)
+                        {
+                            if(notesDetails.Image.FileName.EndsWith(".jpg") || notesDetails.Image.FileName.EndsWith(".png"))
+                                imagePath = UploadImageToCloudinary(notesDetails.Image);
+                            else
+                            {
+                                message = "Please Provide the .jpg or .png Images only";
+                                return BadRequest(new { status, message });
+                            }
+                        }
+
+                        NoteResponseModel data = await _notesBusiness.CreateNotes(notesDetails, UserId, imagePath);
                         if (notesDetails != null)
                         {
                             status = true;
@@ -304,10 +314,20 @@ namespace FundooAppBackend.Controllers
                     {
                         int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
 
-                        if (updateNotesDetails.Image != null && updateNotesDetails.Image == "")
-                            updateNotesDetails.Image = UploadImageToCloudinary(updateNotesDetails.Image);
+                        string imagePath = "";
 
-                        NoteResponseModel data = await _notesBusiness.UpdateNotes(NoteId, UserId, updateNotesDetails);
+                        if (updateNotesDetails.Image != null && updateNotesDetails.Image.Length > 0)
+                        {
+                            if(updateNotesDetails.Image.FileName.EndsWith(".jpg") || updateNotesDetails.Image.FileName.EndsWith(".png"))
+                                imagePath = UploadImageToCloudinary(updateNotesDetails.Image);
+                            else
+                            {
+                                message = "Please Provide the .jpg or .png Images only";
+                                return BadRequest(new { status, message });
+                            }
+                        }
+
+                        NoteResponseModel data = await _notesBusiness.UpdateNotes(NoteId, UserId, updateNotesDetails, imagePath);
                         if (data != null)
                         {
                             status = true;
@@ -396,6 +416,45 @@ namespace FundooAppBackend.Controllers
                             return Ok(new { status, message, data });
                         }
                         message = "No Notes Currently on Reminder.";
+                        return NotFound(new { status, message });
+                    }
+                }
+                message = "Invalid Token";
+                return BadRequest(new { status, message });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { e.Message });
+            }
+        }
+
+        /// <summary>
+        /// It Delete the List of Notes Permanentely
+        /// </summary>
+        /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
+        /// occured and Not Proper Input Given it return BadRequest.</returns>
+        [HttpDelete]
+        [Route("BulkDelete")]
+        public async Task<IActionResult> DeleteNotesPermanently()
+        {
+            try
+            {
+                var user = HttpContext.User;
+                bool status = false;
+                string message;
+                if (user.HasClaim(c => c.Type == _tokenType))
+                {
+                    if (user.Claims.FirstOrDefault(c => c.Type == _tokenType).Value == _login &&
+                        user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _regularUser)
+                    {
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
+                        status = await _notesBusiness.DeleteNotesPermanently(UserId);
+                        if (status)
+                        {
+                            message = "Your Notes has been Permanently Deleted";
+                            return Ok(new { status, message });
+                        }
+                        message = "No Note Present to Delete. !!";
                         return NotFound(new { status, message });
                     }
                 }
@@ -542,7 +601,7 @@ namespace FundooAppBackend.Controllers
         /// occured and Not Proper Input Given it return BadRequest.</returns>
         [HttpPut]
         [Route("{NoteId}/Image")]
-        public async Task<IActionResult> AddUpdateImage(int NoteId, ImageRequest imageRequest)
+        public async Task<IActionResult> AddUpdateImage(int NoteId, [FromForm] GetImageFromApiRequest getImageFrom)
         {
             try
             {
@@ -556,16 +615,35 @@ namespace FundooAppBackend.Controllers
                     {
                         int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
 
-                        imageRequest.Image = UploadImageToCloudinary(imageRequest.Image);
-                        NoteResponseModel data = await _notesBusiness.AddUpdateImage(NoteId, imageRequest, UserId);
-                        if (data != null)
+                        if (getImageFrom.Image.Length <= 0)
                         {
-                            status = true;
-                            message = "The Image has Been Successfully Added To the Note.";
-                            return Ok(new { status, message, data });
+                            message = "No Image Provided";
+                            return BadRequest(new { status, message });
                         }
-                        message = "Unable to Add the Image to the Note.";
-                        return NotFound(new { status, message });
+
+                        if (getImageFrom.Image.FileName.EndsWith(".jpg") || getImageFrom.Image.FileName.EndsWith(".png"))
+                        {
+
+                            ImageRequest imageRequest1 = new ImageRequest
+                            {
+                                Image = UploadImageToCloudinary(getImageFrom.Image)
+                            };
+
+                            NoteResponseModel data = await _notesBusiness.AddUpdateImage(NoteId, imageRequest1, UserId);
+                            if (data != null)
+                            {
+                                status = true;
+                                message = "The Image has Been Successfully Added To the Note.";
+                                return Ok(new { status, message, data });
+                            }
+                            message = "Unable to Add the Image to the Note.";
+                            return NotFound(new { status, message });
+                        }
+                        else
+                        {
+                            message = "Please Provide the .jpg or .png Images only";
+                            return BadRequest(new { status, message });
+                        }
                     }
                 }
                 message = "Invalid Token";
@@ -621,47 +699,7 @@ namespace FundooAppBackend.Controllers
         }
 
 
-
-
-        /// <summary>
-        /// It Delete the List of Notes Permanentely
-        /// </summary>
-        /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
-        /// occured and Not Proper Input Given it return BadRequest.</returns>
-        [HttpDelete]
-        [Route("BulkDelete")]
-        public async Task<IActionResult> DeleteNotesPermanently()
-        {
-            try
-            {
-                var user = HttpContext.User;
-                bool status = false;
-                string message;
-                if (user.HasClaim(c => c.Type == _tokenType))
-                {
-                    if (user.Claims.FirstOrDefault(c => c.Type == _tokenType).Value == _login &&
-                        user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _regularUser)
-                    {
-                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
-                        status = await _notesBusiness.DeleteNotesPermanently(UserId);
-                        if (status)
-                        {
-                            message = "Your Notes has been Permanently Deleted";
-                            return Ok(new { status, message });
-                        }
-                        message = "No Note Present to Delete. !!";
-                        return NotFound(new { status, message });
-                    }
-                }
-                message = "Invalid Token";
-                return BadRequest(new { status, message });
-            }
-            catch (Exception e)
-            {
-                return BadRequest(new { e.Message });
-            }
-        }
-
+        
         /// <summary>
         /// It Restore the Deleted Notes.
         /// </summary>
@@ -709,7 +747,7 @@ namespace FundooAppBackend.Controllers
         /// It Upload the Image to Cloudinary and Get the url Of the uploaded Image
         /// </summary>
         /// <param name="imageRequest">Image Data</param>
-        private string UploadImageToCloudinary(string imagePath)
+        private string UploadImageToCloudinary(IFormFile getImageFrom)
         {
             try
             {
@@ -720,7 +758,7 @@ namespace FundooAppBackend.Controllers
 
                 var imageUpload = new ImageUploadParams
                 {
-                    File = new FileDescription(imagePath),
+                    File = new FileDescription(getImageFrom.FileName, getImageFrom.OpenReadStream()),
                     Folder = "FundooNotes"
                 };
 

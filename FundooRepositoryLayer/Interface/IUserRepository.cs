@@ -8,7 +8,12 @@ namespace FundooRepositoryLayer.Interface
 {
     public interface IUserRepository
     {
+
+        Task<bool> AddNotification(NotificationRequest notificationRequest, int userId);
+
         Task<List<UserListResponseModel>> GetAllUsers(UserRequest userRequest, int userId);
+
+        Task<UserResponseModel> AddUpdateProfilePic(ImageRequest imageRequest, int userId);
 
         Task<UserResponseModel> Registration(RegisterRequest userDetails);
 

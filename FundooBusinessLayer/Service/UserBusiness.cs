@@ -27,6 +27,27 @@ namespace FundooBusinessLayer.Service
         }
 
         /// <summary>
+        /// Add the Notification.
+        /// </summary>
+        /// <param name="notificationRequest">Notification Data</param>
+        /// <param name="userId">User Id</param>
+        /// <returns>Return true if successfull or else False</returns>
+        public async Task<bool> AddNotification(NotificationRequest notificationRequest, int userId)
+        {
+            try
+            {
+                if (notificationRequest == null || userId <= 0)
+                    return false;
+                else
+                    return await _userRepository.AddNotification(notificationRequest, userId);
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
+        /// <summary>
         /// Get All the Register User.
         /// </summary>
         /// <returns>List Of All the User</returns>
@@ -35,6 +56,20 @@ namespace FundooBusinessLayer.Service
             if (userRequest == null || userId <= 0)
                 return null;
             return await _userRepository.GetAllUsers(userRequest, userId);
+        }
+
+        /// <summary>
+        /// Add Image to the Profile Pic
+        /// </summary>
+        /// <param name="imageRequest">Image Data</param>
+        /// <param name="userId">User Id</param>
+        /// <returns>User Response Model</returns>
+        public async Task<UserResponseModel> AddUpdateProfilePic(ImageRequest imageRequest, int userId)
+        {
+            if (imageRequest == null || userId <= 0)
+                return null;
+            else
+                return await _userRepository.AddUpdateProfilePic(imageRequest, userId);
         }
 
         /// <summary>

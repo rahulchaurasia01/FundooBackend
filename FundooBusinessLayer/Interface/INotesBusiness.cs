@@ -10,7 +10,7 @@ namespace FundooBusinessLayer.Interface
     public interface INotesBusiness
     {
 
-        Task<NoteResponseModel> CreateNotes(NoteRequest notesDetails, int userId);
+        Task<NoteResponseModel> CreateNotes(NoteRequest notesDetails, int userId, string imagePath);
 
         Task<NoteResponseModel> GetNote(int NoteId, int UserId);
 
@@ -22,7 +22,7 @@ namespace FundooBusinessLayer.Interface
 
         Task<List<NoteResponseModel>> GetAllPinnedNotes(int userId);
 
-        Task<NoteResponseModel> UpdateNotes(int noteId, int userId, NoteRequest updateNotesDetails);
+        Task<NoteResponseModel> UpdateNotes(int noteId, int userId, NoteRequest updateNotesDetails, string imagePath);
 
         Task<bool> DeleteNote(int NoteId, int UserId);
 

@@ -32,6 +32,43 @@ namespace FundooRepositoryLayer.Service
 
 
         /// <summary>
+        /// Add Notification to the NotificationDetails
+        /// </summary>
+        /// <param name="notificationRequest">Notification Token</param>
+        /// <param name="userId">User Id</param>
+        /// <returns>Return True If Added Successfull or else False</returns>
+        public async Task<bool> AddNotification(NotificationRequest notificationRequest, int userId)
+        {
+            try
+            {
+                UserDetails userDetails = context.UserDetails.
+                    FirstOrDefault(user => user.UserId == userId);
+
+                if(userDetails != null)
+                {
+                    NotificationDetails notificationDetails = new NotificationDetails
+                    {
+                        UserId = userId,
+                        Token = notificationRequest.Token,
+                        CreatedAt = DateTime.Now,
+                        ModifiedAt = DateTime.Now
+                    };
+
+                    context.NotificationDetails.Add(notificationDetails);
+                    await context.SaveChangesAsync();
+
+                    return true;
+                }
+
+                return false;
+            }
+            catch(Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
+        /// <summary>
         /// Get The List Of Users.
         /// </summary>
         /// <returns>List of all User</returns>
@@ -40,7 +77,7 @@ namespace FundooRepositoryLayer.Service
             try
             {
                 List<UserListResponseModel> userLists = await context.UserDetails.
-                    Where(user => user.EmailId.Contains(userRequest.EmailId) && user.UserId != userId && user.UserRole == "Regular User").
+                    Where(user => user.EmailId.Contains(userRequest.EmailId) && user.UserId != userId && user.UserRole == _user).
                     Select(user => new UserListResponseModel
                     {
                         UserId = user.UserId,
@@ -55,6 +92,53 @@ namespace FundooRepositoryLayer.Service
                 return null;
             }
             catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
+        /// <summary>
+        /// Add Or Update the Profile Pic Of the User
+        /// </summary>
+        /// <param name="imageRequest">Image Data</param>
+        /// <param name="userId">User Id</param>
+        /// <returns>User Response Model</returns>
+        public async Task<UserResponseModel> AddUpdateProfilePic(ImageRequest imageRequest, int userId)
+        {
+            try
+            {
+                UserDetails userDetails = context.UserDetails.
+                    FirstOrDefault(user => user.UserId == userId);
+
+                if(userDetails != null)
+                {
+                    userDetails.ProfilePic = imageRequest.Image;
+                    context.UserDetails.Attach(userDetails);
+                    await context.SaveChangesAsync();
+
+                    var userData = new UserResponseModel()
+                    {
+                        UserId = userDetails.UserId,
+                        FirstName = userDetails.FirstName,
+                        LastName = userDetails.LastName,
+                        EmailId = userDetails.EmailId,
+                        ProfilePic = userDetails.ProfilePic,
+                        Type = userDetails.Type,
+                        IsActive = userDetails.IsActive,
+                        UserRole = userDetails.UserRole,
+                        CreatedAt = userDetails.CreatedAt,
+                        ModifiedAt = userDetails.ModifiedAt
+                    };
+                    return userData;
+
+
+                }
+
+                return null;
+
+
+            }
+            catch(Exception e)
             {
                 throw new Exception(e.Message);
             }
@@ -79,6 +163,7 @@ namespace FundooRepositoryLayer.Service
                         FirstName = data.FirstName,
                         LastName = data.LastName,
                         EmailId = data.EmailId,
+                        ProfilePic = data.ProfilePic,
                         Type = data.Type,
                         IsActive = data.IsActive,
                         UserRole = data.UserRole,
@@ -116,6 +201,7 @@ namespace FundooRepositoryLayer.Service
                         FirstName = data.FirstName,
                         LastName = data.LastName,
                         EmailId = data.EmailId,
+                        ProfilePic = data.ProfilePic,
                         Type = data.Type,
                         IsActive = data.IsActive,
                         UserRole = data.UserRole,

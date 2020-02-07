@@ -32,14 +32,14 @@ namespace FundooBusinessLayer.Service
         /// <param name="notesDetails">Note Data</param>
         /// <param name="userId">User Id Which has created the Note</param>
         /// <returns>Note data</returns>
-        public async Task<NoteResponseModel> CreateNotes(NoteRequest notesDetails, int userId)
+        public async Task<NoteResponseModel> CreateNotes(NoteRequest notesDetails, int userId, string imagePath)
         {
             try
             {
-                if (notesDetails == null)
+                if (notesDetails == null || userId <= 0)
                     return null;
                 else
-                    return await _notesRepository.CreateNotes(notesDetails, userId);
+                    return await _notesRepository.CreateNotes(notesDetails, userId, imagePath);
             }
             catch (Exception e)
             {
@@ -123,12 +123,12 @@ namespace FundooBusinessLayer.Service
         /// </summary>
         /// <param name="notesDetails">Note Data</param>
         /// <returns>return Updated Notes, if Successfull, or else null</returns>
-        public async Task<NoteResponseModel> UpdateNotes(int noteId, int userId, NoteRequest updateNotesDetails)
+        public async Task<NoteResponseModel> UpdateNotes(int noteId, int userId, NoteRequest updateNotesDetails, string imagePath)
         {
             if (noteId <= 0 || userId <= 0 || updateNotesDetails == null)
                 return null;
             else
-                return await _notesRepository.UpdateNotes(noteId, userId, updateNotesDetails);
+                return await _notesRepository.UpdateNotes(noteId, userId, updateNotesDetails, imagePath);
         }
 
         /// <summary>

@@ -5,6 +5,7 @@
  *  Date: 17-01-2020
  */
 
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -90,7 +91,7 @@ namespace FundooCommonLayer.Model
         [RegularExpression("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$", ErrorMessage = "Enter a Valid Color")]
         public string Color { set; get; }
 
-        public string Image { set; get; }
+        public IFormFile Image { set; get; }
 
         [DefaultValue(false)]
         public bool IsPin { set; get; }
@@ -140,8 +141,15 @@ namespace FundooCommonLayer.Model
     /// </summary>
     public class ImageRequest
     {
-        [Required]
         public string Image { set; get; }
+    }
+
+    /// <summary>
+    /// Get the Image from the client
+    /// </summary>
+    public class GetImageFromApiRequest
+    {
+        public IFormFile Image { set; get; }
     }
 
     /// <summary>
@@ -210,6 +218,14 @@ namespace FundooCommonLayer.Model
         [MinLength(5, ErrorMessage = "Your Password Should be Minimum Length of 5.")]
         public string Password { set; get; }
 
+    }
+
+    /// <summary>
+    /// Notification Token
+    /// </summary>
+    public class NotificationRequest
+    {
+        public string Token { set; get; }
     }
 
 

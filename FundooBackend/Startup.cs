@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web.Http.Cors;
 using FundooBusinessLayer.Interface;
 using FundooBusinessLayer.Service;
 using FundooRepositoryLayer.Interface;
@@ -90,6 +91,15 @@ namespace FundooBackend
                 });
             });
 
+            services.AddCors(c =>
+            {
+                c.AddPolicy("AllowOrigin", options => options.AllowAnyOrigin()
+                .AllowAnyHeader()
+                .AllowAnyMethod().
+                AllowAnyOrigin());
+            });
+
+
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
             services.AddDbContextPool<ApplicationContext>(options => options.UseSqlServer(Configuration["ConnectionStrings:sqlConnection"]));
             
@@ -125,6 +135,8 @@ namespace FundooBackend
             {
                 app.UseHsts();
             }
+
+            app.UseCors("AllowOrigin");
 
             app.UseAuthentication();
             app.UseHttpsRedirection();

@@ -92,6 +92,10 @@ namespace FundooCommonLayer.Model
 
         public int UserId { set; get; }
 
+        public string FirstName { set; get; }
+
+        public string LastName { set; get; }
+
         [EmailAddress]
         public string EmailId { set; get; }
 

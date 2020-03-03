@@ -10,7 +10,7 @@ namespace FundooRepositoryLayer.Interface
     public interface INotesRepository
     {
 
-        Task<NoteResponseModel> CreateNotes(NoteRequest notesDetails, int userId, string imagePath);
+        Task<NoteResponseModel> CreateNotes(NoteRequest notesDetails, int userId);
 
         Task<NoteResponseModel> GetNote(int NoteId, int UserId);
 
@@ -22,11 +22,11 @@ namespace FundooRepositoryLayer.Interface
 
         Task<List<NoteResponseModel>> GetAllPinnedNotes(int userId);
 
-        Task<NoteResponseModel> UpdateNotes(int noteId, int userId, NoteRequest updateNotesDetails, string imagePath);
+        Task<List<NoteResponseModel>> GetAllReminderNotes(int userId);
+
+        Task<NoteResponseModel> UpdateNotes(int noteId, int userId, UpdateNoteRequest updateNotesDetails);
 
         Task<bool> DeleteNote(int NoteId, int UserId);
-
-        Task<List<NoteResponseModel>> SortByReminderNotes(int userId);
 
         Task<NoteResponseModel> PinOrUnPinTheNote(int NoteId, PinnedRequest pinnedRequest, int userId);
 

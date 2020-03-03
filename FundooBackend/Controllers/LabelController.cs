@@ -86,7 +86,7 @@ namespace FundooAppBackend.Controllers
                             return Ok(new { status, message, data });
                         }
                         message = "No Label Found.";
-                        return NotFound(new { status, message });
+                        return Ok(new { status, message });
                     }
                 }
                 message = "Invalid Token";
@@ -120,7 +120,7 @@ namespace FundooAppBackend.Controllers
                             return Ok(new { status, message, data });
                         }
                         message = "No Notes Present for this label";
-                        return NotFound(new { status, message });
+                        return Ok(new { status, message });
                     }
                 }
                 message = "Invalid Token";

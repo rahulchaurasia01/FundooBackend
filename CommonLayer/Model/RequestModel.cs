@@ -91,7 +91,7 @@ namespace FundooCommonLayer.Model
         [RegularExpression("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$", ErrorMessage = "Enter a Valid Color")]
         public string Color { set; get; }
 
-        public IFormFile Image { set; get; }
+        public string Image { set; get; }
 
         [DefaultValue(false)]
         public bool IsPin { set; get; }
@@ -107,6 +107,17 @@ namespace FundooCommonLayer.Model
         public List<NotesLabelRequest> Label { set; get; }
 
         public List<CollaboratorRequest> Collaborators { set; get; }
+    }
+
+    public class UpdateNoteRequest
+    {
+        public string Title { set; get; }
+
+        public string Description { set; get; }
+
+        public DateTime? Reminder { set; get; }
+
+        public List<NotesLabelRequest> Label { set; get; }
     }
 
     /// <summary>
@@ -149,7 +160,7 @@ namespace FundooCommonLayer.Model
     /// </summary>
     public class GetImageFromApiRequest
     {
-        public IFormFile Image { set; get; }
+        public IFormFile file { set; get; }
     }
 
     /// <summary>

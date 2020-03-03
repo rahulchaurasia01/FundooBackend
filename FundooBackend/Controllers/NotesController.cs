@@ -57,20 +57,7 @@ namespace FundooAppBackend.Controllers
                     {
                         int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
 
-                        string imagePath ="";
-
-                        if(notesDetails.Image != null && notesDetails.Image.Length > 0)
-                        {
-                            if(notesDetails.Image.FileName.EndsWith(".jpg") || notesDetails.Image.FileName.EndsWith(".png"))
-                                imagePath = UploadImageToCloudinary(notesDetails.Image);
-                            else
-                            {
-                                message = "Please Provide the .jpg or .png Images only";
-                                return BadRequest(new { status, message });
-                            }
-                        }
-
-                        NoteResponseModel data = await _notesBusiness.CreateNotes(notesDetails, UserId, imagePath);
+                        NoteResponseModel data = await _notesBusiness.CreateNotes(notesDetails, UserId);
                         if (notesDetails != null)
                         {
                             status = true;
@@ -160,7 +147,7 @@ namespace FundooAppBackend.Controllers
                             return Ok(new { status, message, data });
                         }
                         message = "No Notes Currently Present";
-                        return NotFound(new { status, message });
+                        return Ok(new { status, message });
                     }
                 }
                 message = "Invalid Token";
@@ -200,7 +187,7 @@ namespace FundooAppBackend.Controllers
                             return Ok(new { status, message, data });
                         }
                         message = "No Notes Currently Deleted";
-                        return NotFound(new { status, message });
+                        return Ok(new { status, message });
                     }
                 }
                 message = "Invalid Token";
@@ -240,7 +227,7 @@ namespace FundooAppBackend.Controllers
                             return Ok(new { status, message, data });
                         }
                         message = "No Notes Currently Archived";
-                        return NotFound(new { status, message });
+                        return Ok(new { status, message });
                     }
                 }
                 message = "Invalid Token";
@@ -280,7 +267,48 @@ namespace FundooAppBackend.Controllers
                             return Ok(new { status, message, data });
                         }
                         message = "No Notes Currently Pinned";
-                        return NotFound(new { status, message });
+                        return Ok(new { status, message });
+                    }
+                }
+                message = "Invalid Token";
+                return BadRequest(new { status, message });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { e.Message });
+            }
+        }
+
+        /// <summary>
+        /// Api For Getting all the Notes By Reminder.
+        /// </summary>
+        /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
+        /// occured and Not Proper Input Given it return BadRequest.
+        /// </returns>
+        [HttpGet]
+        [Route("Reminder")]
+        public async Task<IActionResult> GetAllReminderNotes()
+        {
+            try
+            {
+                var user = HttpContext.User;
+                bool status = false;
+                string message;
+                if (user.HasClaim(c => c.Type == _tokenType))
+                {
+                    if (user.Claims.FirstOrDefault(c => c.Type == _tokenType).Value == _login &&
+                        user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _regularUser)
+                    {
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
+                        List<NoteResponseModel> data = await _notesBusiness.GetAllReminderNotes(UserId);
+                        if (data != null && data.Count > 0)
+                        {
+                            status = true;
+                            message = "Here is the List Of all Notes By Upcoming Reminder.";
+                            return Ok(new { status, message, data });
+                        }
+                        message = "No Notes Currently on Reminder.";
+                        return Ok(new { status, message });
                     }
                 }
                 message = "Invalid Token";
@@ -300,7 +328,7 @@ namespace FundooAppBackend.Controllers
         /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
         /// occured and Not Proper Input Given it return BadRequest.</returns>
         [HttpPut("{NoteId}")]
-        public async Task<IActionResult> UpdateNote(int NoteId, NoteRequest updateNotesDetails)
+        public async Task<IActionResult> UpdateNote(int NoteId, UpdateNoteRequest updateNotesDetails)
         {
             try
             {
@@ -314,20 +342,7 @@ namespace FundooAppBackend.Controllers
                     {
                         int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
 
-                        string imagePath = "";
-
-                        if (updateNotesDetails.Image != null && updateNotesDetails.Image.Length > 0)
-                        {
-                            if(updateNotesDetails.Image.FileName.EndsWith(".jpg") || updateNotesDetails.Image.FileName.EndsWith(".png"))
-                                imagePath = UploadImageToCloudinary(updateNotesDetails.Image);
-                            else
-                            {
-                                message = "Please Provide the .jpg or .png Images only";
-                                return BadRequest(new { status, message });
-                            }
-                        }
-
-                        NoteResponseModel data = await _notesBusiness.UpdateNotes(NoteId, UserId, updateNotesDetails, imagePath);
+                        NoteResponseModel data = await _notesBusiness.UpdateNotes(NoteId, UserId, updateNotesDetails);
                         if (data != null)
                         {
                             status = true;
@@ -388,47 +403,6 @@ namespace FundooAppBackend.Controllers
         }
 
         /// <summary>
-        /// Api For Getting all the Notes By Reminder.
-        /// </summary>
-        /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
-        /// occured and Not Proper Input Given it return BadRequest.
-        /// </returns>
-        [HttpGet]
-        [Route("Reminder")]
-        public async Task<IActionResult> SortByReminderNotes()
-        {
-            try
-            {
-                var user = HttpContext.User;
-                bool status = false;
-                string message;
-                if (user.HasClaim(c => c.Type == _tokenType))
-                {
-                    if (user.Claims.FirstOrDefault(c => c.Type == _tokenType).Value == _login &&
-                        user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _regularUser)
-                    {
-                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
-                        List<NoteResponseModel> data = await _notesBusiness.SortByReminderNotes(UserId);
-                        if (data != null && data.Count > 0)
-                        {
-                            status = true;
-                            message = "Here is the List Of all Notes By Upcoming Reminder.";
-                            return Ok(new { status, message, data });
-                        }
-                        message = "No Notes Currently on Reminder.";
-                        return NotFound(new { status, message });
-                    }
-                }
-                message = "Invalid Token";
-                return BadRequest(new { status, message });
-            }
-            catch (Exception e)
-            {
-                return BadRequest(new { e.Message });
-            }
-        }
-
-        /// <summary>
         /// It Delete the List of Notes Permanentely
         /// </summary>
         /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
@@ -455,7 +429,7 @@ namespace FundooAppBackend.Controllers
                             return Ok(new { status, message });
                         }
                         message = "No Note Present to Delete. !!";
-                        return NotFound(new { status, message });
+                        return Ok(new { status, message });
                     }
                 }
                 message = "Invalid Token";
@@ -601,7 +575,7 @@ namespace FundooAppBackend.Controllers
         /// occured and Not Proper Input Given it return BadRequest.</returns>
         [HttpPut]
         [Route("{NoteId}/Image")]
-        public async Task<IActionResult> AddUpdateImage(int NoteId, [FromForm] GetImageFromApiRequest getImageFrom)
+        public async Task<IActionResult> AddUpdateImage(int NoteId, [FromForm] IFormFile file)
         {
             try
             {
@@ -615,18 +589,18 @@ namespace FundooAppBackend.Controllers
                     {
                         int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
 
-                        if (getImageFrom.Image.Length <= 0)
+                        if (file == null || file.Length <= 0)
                         {
                             message = "No Image Provided";
                             return BadRequest(new { status, message });
                         }
 
-                        if (getImageFrom.Image.FileName.EndsWith(".jpg") || getImageFrom.Image.FileName.EndsWith(".png"))
+                        if (file.FileName.EndsWith(".jpg") || file.FileName.EndsWith(".png"))
                         {
 
                             ImageRequest imageRequest1 = new ImageRequest
                             {
-                                Image = UploadImageToCloudinary(getImageFrom.Image)
+                                Image = UploadImageToCloudinary(file)
                             };
 
                             NoteResponseModel data = await _notesBusiness.AddUpdateImage(NoteId, imageRequest1, UserId);
@@ -706,7 +680,7 @@ namespace FundooAppBackend.Controllers
         /// <param name="NoteId">Note Id</param>
         /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
         /// occured and Not Proper Input Given it return BadRequest.</returns>
-        [HttpPost]
+        [HttpPut]
         [Route("Restore/{NoteId}")]
         public async Task<IActionResult> RestoreDeletedNotes(int NoteId)
         {
@@ -728,7 +702,7 @@ namespace FundooAppBackend.Controllers
                             return Ok(new { status, message });
                         }
                         message = "No Note Present to be Restored. !!";
-                        return NotFound(new { status, message });
+                        return Ok(new { status, message });
                     }
                 }
                 message = "Invalid Token";

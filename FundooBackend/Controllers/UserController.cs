@@ -15,6 +15,7 @@ using FundooCommonLayer.ModelDB;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
@@ -28,6 +29,7 @@ namespace FundooAppBackend.Controllers
 
         private readonly IUserBusiness _userBusiness;
         private readonly IConfiguration _configuration;
+        private readonly IDistributedCache _distributed;
 
         private static readonly string _forgetPassword = "ForgetPassword";
         private static readonly string _login = "Login";
@@ -44,6 +46,7 @@ namespace FundooAppBackend.Controllers
         {
             _userBusiness = userBusiness;
             _configuration = configuration;
+            //_distributed = distributedCache;
         }
 
         /// <summary>
@@ -115,7 +118,7 @@ namespace FundooAppBackend.Controllers
                             return Ok(new { status, message, data });
                         }
                         message = "No Such User is Present";
-                        return NotFound(new { status, message });
+                        return Ok(new { status, message });
                     }
                 }
                 message = "Invalid Token";
@@ -150,13 +153,13 @@ namespace FundooAppBackend.Controllers
                     {
                         int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
 
-                        if (imageRequest.Image.Length <= 0)
+                        if (imageRequest.file.Length <= 0)
                         {
                             message = "No Image Provided";
                             return BadRequest(new { status, message });
                         }
 
-                        if (imageRequest.Image.FileName.EndsWith(".jpg") || imageRequest.Image.FileName.EndsWith(".png"))
+                        if (imageRequest.file.FileName.EndsWith(".jpg") || imageRequest.file.FileName.EndsWith(".png"))
                         {
                             ImageRequest imageRequest1 = new ImageRequest
                             {
@@ -457,7 +460,7 @@ namespace FundooAppBackend.Controllers
 
                 var imageUpload = new ImageUploadParams
                 {
-                    File = new FileDescription(getImageFrom.Image.FileName, getImageFrom.Image.OpenReadStream()),
+                    File = new FileDescription(getImageFrom.file.FileName, getImageFrom.file.OpenReadStream()),
                     Folder = "FundooNotes"
                 };
 

@@ -28,7 +28,8 @@ namespace FundooCommonLayer.Model
                 }
                 messageQueue = new MessageQueue(path);
                 messageQueue.Label = "Fundoo Email Sending";
-                Message message = new Message(token);
+                string resetPasswordLink = "http://localhost:4200/resetpassword/" + token;
+                Message message = new Message(resetPasswordLink);
                 message.Formatter = new BinaryMessageFormatter();
                 messageQueue.Send(message, email);
             }

@@ -95,14 +95,20 @@ namespace FundooBackend
             {
                 c.AddPolicy("AllowOrigin", options => options.AllowAnyOrigin()
                 .AllowAnyHeader()
-                .AllowAnyMethod().
-                AllowAnyOrigin());
+                .AllowAnyMethod()
+                .AllowAnyOrigin());
             });
 
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
             services.AddDbContextPool<ApplicationContext>(options => options.UseSqlServer(Configuration["ConnectionStrings:sqlConnection"]));
-            
+
+            services.AddDistributedRedisCache(options =>
+            {
+                options.Configuration = "127.0.0.1";
+                options.InstanceName = "master";
+            });
+
             services.AddScoped<IUserBusiness, UserBusiness>();
             services.AddScoped<IUserRepository, UserRepository>();
 

@@ -34,7 +34,7 @@ namespace FundooRepositoryLayer.Service
         /// <param name="noteDetails">Note Data</param>
         /// <param name="userId">User Id</param>
         /// <returns>Notes Details</returns>
-        public async Task<NoteResponseModel> CreateNotes(NoteRequest noteDetails, int userId, string imagePath)
+        public async Task<NoteResponseModel> CreateNotes(NoteRequest noteDetails, int userId)
         {
             try
             {
@@ -45,7 +45,7 @@ namespace FundooRepositoryLayer.Service
                     Title = noteDetails.Title,
                     Description = noteDetails.Description,
                     Color = noteDetails.Color,
-                    Image = imagePath,
+                    Image = noteDetails.Image,
                     IsPin = noteDetails.IsPin,
                     IsArchived = noteDetails.IsArchived,
                     IsDeleted = noteDetails.IsDeleted,
@@ -231,6 +231,8 @@ namespace FundooRepositoryLayer.Service
                         foreach (NoteResponseModel note in notes)
                             collabNotes.Add(note);
 
+                        collabNotes.Sort((note1, note2) => note2.CreatedAt.ToString().CompareTo(note1.CreatedAt.ToString()));
+
                         return collabNotes;
                     }
                     return notes;
@@ -238,6 +240,8 @@ namespace FundooRepositoryLayer.Service
                 else if (collabNotes != null && collabNotes.Count != 0)
                 {
                     collabNotes = await AddCollaboratorToNoteResponseModel(collabNotes, userId);
+
+                    collabNotes.Sort((note1, note2) => note2.CreatedAt.CompareTo(note1.CreatedAt));
 
                     return collabNotes;
                 }
@@ -494,11 +498,53 @@ namespace FundooRepositoryLayer.Service
         }
 
         /// <summary>
+        /// Sort By Upcoming Notes Reminder
+        /// </summary>
+        /// <param name="userId">User Id</param>
+        /// <returns>List Of Notes By Reminder Order</returns>
+        public async Task<List<NoteResponseModel>> GetAllReminderNotes(int userId)
+        {
+            try
+            {
+                List<NoteResponseModel> notesDetails = await _applicationContext.NotesDetails.
+                    Where(note => note.UserId == userId && note.Reminder != null && !note.IsDeleted && note.Reminder.Value >= DateTime.Now).
+                    Select(note => new NoteResponseModel
+                    {
+                        NoteId = note.NotesId,
+                        Title = note.Title,
+                        Description = note.Description,
+                        Color = note.Color,
+                        Image = note.Image,
+                        IsPin = note.IsPin,
+                        IsArchived = note.IsArchived,
+                        IsDeleted = note.IsDeleted,
+                        Reminder = note.Reminder,
+                        CreatedAt = note.CreatedAt,
+                        ModifiedAt = note.ModifiedAt
+                    }).
+                    ToListAsync();
+
+                if (notesDetails != null && notesDetails.Count > 0)
+                {
+                    notesDetails = await AddLabelToNoteResponseModel(notesDetails);
+                    notesDetails.Sort((note1, note2) => note1.Reminder.Value.CompareTo(note2.Reminder.Value));
+                    return notesDetails;
+                }
+
+                return null;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
+        /// <summary>
         /// Update The Notes
         /// </summary>
         /// <param name="notesDetails">Note data</param>
         /// <returns>Return Updated Notes</returns>
-        public async Task<NoteResponseModel> UpdateNotes(int noteId, int userId, NoteRequest updateNotesDetails, string imagePath)
+        public async Task<NoteResponseModel> UpdateNotes(int noteId, int userId, UpdateNoteRequest updateNotesDetails)
         {
             try
             {
@@ -522,11 +568,6 @@ namespace FundooRepositoryLayer.Service
 
                 notesDetails1.Title = updateNotesDetails.Title;
                 notesDetails1.Description = updateNotesDetails.Description;
-                notesDetails1.Color = updateNotesDetails.Color;
-                notesDetails1.Image = imagePath;
-                notesDetails1.IsPin = updateNotesDetails.IsPin;
-                notesDetails1.IsArchived = updateNotesDetails.IsArchived;
-                notesDetails1.IsDeleted = updateNotesDetails.IsDeleted;
                 notesDetails1.Reminder = updateNotesDetails.Reminder;
                 notesDetails1.ModifiedAt = DateTime.Now;
 
@@ -534,7 +575,7 @@ namespace FundooRepositoryLayer.Service
                 note.State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                 await _applicationContext.SaveChangesAsync();
 
-                if (updateNotesDetails.Label != null && updateNotesDetails.Label.Count != 0)
+                if (updateNotesDetails.Label != null)
                 {
                     List<NotesLabel> labels = await _applicationContext.NotesLabels.Where(notes => notes.NotesId == noteId).ToListAsync();
 
@@ -544,56 +585,27 @@ namespace FundooRepositoryLayer.Service
                         await _applicationContext.SaveChangesAsync();
                     }
 
-                    List<NotesLabelRequest> labelRequests = updateNotesDetails.Label;
-                    foreach (NotesLabelRequest labelRequest in labelRequests)
+                    if (updateNotesDetails.Label.Count > 0)
                     {
-                        LabelDetails labelDetails = _applicationContext.LabelDetails.
-                        FirstOrDefault(labeled => labeled.UserId == userId && labeled.LabelId == labelRequest.LabelId);
 
-                        if (labelRequest.LabelId > 0 && labelDetails != null)
+                        List<NotesLabelRequest> labelRequests = updateNotesDetails.Label;
+                        foreach (NotesLabelRequest labelRequest in labelRequests)
                         {
-                            var data = new NotesLabel
+                            LabelDetails labelDetails = _applicationContext.LabelDetails.
+                            FirstOrDefault(labeled => labeled.UserId == userId && labeled.LabelId == labelRequest.LabelId);
+
+                            if (labelRequest.LabelId > 0 && labelDetails != null)
                             {
-                                LabelId = labelRequest.LabelId,
-                                NotesId = noteId
-                            };
+                                var data = new NotesLabel
+                                {
+                                    LabelId = labelRequest.LabelId,
+                                    NotesId = noteId
+                                };
 
-                            _applicationContext.NotesLabels.Add(data);
-                            await _applicationContext.SaveChangesAsync();
+                                _applicationContext.NotesLabels.Add(data);
+                                await _applicationContext.SaveChangesAsync();
+                            }
                         }
-                    }
-                }
-
-                if (updateNotesDetails.Collaborators != null && updateNotesDetails.Collaborators.Count > 0)
-                {
-
-                    List<UsersNotes> usersNotes = _applicationContext.UsersNotes.
-                        Where(noted => noted.NoteId == noteId).ToList();
-
-                    if (usersNotes != null && usersNotes.Count > 0)
-                    {
-                        _applicationContext.UsersNotes.RemoveRange(usersNotes);
-                        await _applicationContext.SaveChangesAsync();
-                    }
-
-
-                    List<CollaboratorRequest> collaborators = updateNotesDetails.Collaborators;
-                    foreach (CollaboratorRequest collaborator in collaborators)
-                    {
-                        if (collaborator.UserId > 0)
-                        {
-                            var data = new UsersNotes
-                            {
-                                NoteId = notesDetails1.NotesId,
-                                UserId = collaborator.UserId,
-                                ModifiedAt = DateTime.Now
-
-                            };
-
-                            _applicationContext.UsersNotes.Add(data);
-                            await _applicationContext.SaveChangesAsync();
-                        }
-
                     }
                 }
 
@@ -685,48 +697,6 @@ namespace FundooRepositoryLayer.Service
                     return true;
                 }
 
-            }
-            catch (Exception e)
-            {
-                throw new Exception(e.Message);
-            }
-        }
-
-        /// <summary>
-        /// Sort By Upcoming Notes Reminder
-        /// </summary>
-        /// <param name="userId">User Id</param>
-        /// <returns>List Of Notes By Reminder Order</returns>
-        public async Task<List<NoteResponseModel>> SortByReminderNotes(int userId)
-        {
-            try
-            {
-                List<NoteResponseModel> notesDetails = await _applicationContext.NotesDetails.
-                    Where(note => note.UserId == userId && note.Reminder != null && !note.IsDeleted).
-                    Select(note => new NoteResponseModel
-                    {
-                        NoteId = note.NotesId,
-                        Title = note.Title,
-                        Description = note.Description,
-                        Color = note.Color,
-                        Image = note.Image,
-                        IsPin = note.IsPin,
-                        IsArchived = note.IsArchived,
-                        IsDeleted = note.IsDeleted,
-                        Reminder = note.Reminder,
-                        CreatedAt = note.CreatedAt,
-                        ModifiedAt = note.ModifiedAt
-                    }).
-                    ToListAsync();
-
-                if (notesDetails != null && notesDetails.Count > 0)
-                {
-                    notesDetails = await AddLabelToNoteResponseModel(notesDetails);
-                    notesDetails.Sort((note1, note2) => DateTime.Now.CompareTo(note1.Reminder.Value));
-                    return notesDetails;
-                }
-
-                return null;
             }
             catch (Exception e)
             {

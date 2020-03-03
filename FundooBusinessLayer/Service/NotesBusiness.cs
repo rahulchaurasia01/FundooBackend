@@ -32,14 +32,14 @@ namespace FundooBusinessLayer.Service
         /// <param name="notesDetails">Note Data</param>
         /// <param name="userId">User Id Which has created the Note</param>
         /// <returns>Note data</returns>
-        public async Task<NoteResponseModel> CreateNotes(NoteRequest notesDetails, int userId, string imagePath)
+        public async Task<NoteResponseModel> CreateNotes(NoteRequest notesDetails, int userId)
         {
             try
             {
                 if (notesDetails == null || userId <= 0)
                     return null;
                 else
-                    return await _notesRepository.CreateNotes(notesDetails, userId, imagePath);
+                    return await _notesRepository.CreateNotes(notesDetails, userId);
             }
             catch (Exception e)
             {
@@ -119,16 +119,29 @@ namespace FundooBusinessLayer.Service
         }
 
         /// <summary>
+        /// Sort the Notes by upcoming reminder.
+        /// </summary>
+        /// <param name="userId">user iD</param>
+        /// <returns>Return Sort List</returns>
+        public async Task<List<NoteResponseModel>> GetAllReminderNotes(int userId)
+        {
+            if (userId <= 0)
+                return null;
+            else
+                return await _notesRepository.GetAllReminderNotes(userId);
+        }
+
+        /// <summary>
         /// Update the Note Data
         /// </summary>
         /// <param name="notesDetails">Note Data</param>
         /// <returns>return Updated Notes, if Successfull, or else null</returns>
-        public async Task<NoteResponseModel> UpdateNotes(int noteId, int userId, NoteRequest updateNotesDetails, string imagePath)
+        public async Task<NoteResponseModel> UpdateNotes(int noteId, int userId, UpdateNoteRequest updateNotesDetails)
         {
             if (noteId <= 0 || userId <= 0 || updateNotesDetails == null)
                 return null;
             else
-                return await _notesRepository.UpdateNotes(noteId, userId, updateNotesDetails, imagePath);
+                return await _notesRepository.UpdateNotes(noteId, userId, updateNotesDetails);
         }
 
         /// <summary>
@@ -145,19 +158,6 @@ namespace FundooBusinessLayer.Service
             else
                 return await _notesRepository.DeleteNote(NoteId, UserId);
 
-        }
-
-        /// <summary>
-        /// Sort the Notes by upcoming reminder.
-        /// </summary>
-        /// <param name="userId">user iD</param>
-        /// <returns>Return Sort List</returns>
-        public async Task<List<NoteResponseModel>> SortByReminderNotes(int userId)
-        {
-            if (userId <= 0)
-                return null;
-            else
-                return await _notesRepository.SortByReminderNotes(userId);
         }
 
         /// <summary>

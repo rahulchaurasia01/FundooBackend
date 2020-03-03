@@ -81,6 +81,8 @@ namespace FundooRepositoryLayer.Service
                     Select(user => new UserListResponseModel
                     {
                         UserId = user.UserId,
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
                         EmailId = user.EmailId
                     }).
                     ToListAsync();

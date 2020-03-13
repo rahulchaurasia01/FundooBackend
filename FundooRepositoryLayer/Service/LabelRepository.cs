@@ -120,6 +120,7 @@ namespace FundooRepositoryLayer.Service
                         CreatedAt = label.CreatedAt,
                         ModifiedAt = label.ModifiedAt
                     }).
+                    Where(note => !note.IsDeleted).
                     ToListAsync();
 
                 if (noteResponseModels != null && noteResponseModels.Count != 0)

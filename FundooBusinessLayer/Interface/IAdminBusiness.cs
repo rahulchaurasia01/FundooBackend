@@ -15,7 +15,7 @@ namespace FundooBusinessLayer.Interface
 
         AdminStatisticsResponseModel AdminStatistics(int userId);
 
-        List<AdminUserListResponseModel> AdminUserLists(int userId, int start);
+        AdminUserListResponseModel AdminUserLists(int userId, int take, int skip);
 
     }
 }

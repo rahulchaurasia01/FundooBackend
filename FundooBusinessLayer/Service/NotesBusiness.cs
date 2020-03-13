@@ -55,11 +55,17 @@ namespace FundooBusinessLayer.Service
         /// <returns>Note Data</returns>
         public async Task<NoteResponseModel> GetNote(int NoteId, int UserId)
         {
-
-            if (NoteId <= 0 || UserId <= 0)
-                return null;
-            else
-                return await _notesRepository.GetNote(NoteId, UserId);
+            try
+            {
+                if (NoteId <= 0 || UserId <= 0)
+                    return null;
+                else
+                    return await _notesRepository.GetNote(NoteId, UserId);
+            }
+            catch(Exception e)
+            {
+                throw new Exception(e.Message);
+            }
 
         }
 
@@ -70,13 +76,20 @@ namespace FundooBusinessLayer.Service
         /// <returns>Return null, if user is not authenicated else List of all the Notes.</returns>
         public async Task<List<NoteResponseModel>> GetAllNotes(int userId, string search)
         {
-            if (search == null)
-                search = "";
+            try
+            {
+                if (search == null)
+                    search = "";
 
-            if (userId <= 0)
-                return null;
-            else
-                return await _notesRepository.GetAllNotes(userId, search);
+                if (userId <= 0)
+                    return null;
+                else
+                    return await _notesRepository.GetAllNotes(userId, search);
+            }
+            catch(Exception e)
+            {
+                throw new Exception(e.Message);
+            }
         }
 
         /// <summary>
@@ -86,10 +99,17 @@ namespace FundooBusinessLayer.Service
         /// <returns>Return null, If No Deleted Notes Found else list of deleted notes</returns>
         public async Task<List<NoteResponseModel>> GetAllDeletedNotes(int userId)
         {
-            if (userId <= 0)
-                return null;
-            else
-                return await _notesRepository.GetAllDeletedNotes(userId);
+            try
+            {
+                if (userId <= 0)
+                    return null;
+                else
+                    return await _notesRepository.GetAllDeletedNotes(userId);
+            }
+            catch(Exception e)
+            {
+                throw new Exception(e.Message);
+            }
         }
 
         /// <summary>
@@ -99,10 +119,17 @@ namespace FundooBusinessLayer.Service
         /// <returns>Return null, If No Archived Notes Found else list of Archived notes</returns>
         public async Task<List<NoteResponseModel>> GetAllArchivedNotes(int userId)
         {
-            if (userId <= 0)
-                return null;
-            else
-                return await _notesRepository.GetAllArchivedNotes(userId);
+            try
+            {
+                if (userId <= 0)
+                    return null;
+                else
+                    return await _notesRepository.GetAllArchivedNotes(userId);
+            }
+            catch(Exception e)
+            {
+                throw new Exception(e.Message);
+            }
         }
 
         /// <summary>
@@ -112,10 +139,17 @@ namespace FundooBusinessLayer.Service
         /// <returns>Return null, If No Pinned Notes Found else list of pinned notes</returns>
         public async Task<List<NoteResponseModel>> GetAllPinnedNotes(int userId)
         {
-            if (userId <= 0)
-                return null;
-            else
-                return await _notesRepository.GetAllPinnedNotes(userId);
+            try
+            {
+                if (userId <= 0)
+                    return null;
+                else
+                    return await _notesRepository.GetAllPinnedNotes(userId);
+            }
+            catch(Exception e)
+            {
+                throw new Exception(e.Message);
+            }
         }
 
         /// <summary>
@@ -125,10 +159,17 @@ namespace FundooBusinessLayer.Service
         /// <returns>Return Sort List</returns>
         public async Task<List<NoteResponseModel>> GetAllReminderNotes(int userId)
         {
-            if (userId <= 0)
-                return null;
-            else
-                return await _notesRepository.GetAllReminderNotes(userId);
+            try
+            {
+                if (userId <= 0)
+                    return null;
+                else
+                    return await _notesRepository.GetAllReminderNotes(userId);
+            }
+            catch(Exception e)
+            {
+                throw new Exception(e.Message);
+            }
         }
 
         /// <summary>
@@ -138,10 +179,59 @@ namespace FundooBusinessLayer.Service
         /// <returns>return Updated Notes, if Successfull, or else null</returns>
         public async Task<NoteResponseModel> UpdateNotes(int noteId, int userId, UpdateNoteRequest updateNotesDetails)
         {
-            if (noteId <= 0 || userId <= 0 || updateNotesDetails == null)
-                return null;
-            else
-                return await _notesRepository.UpdateNotes(noteId, userId, updateNotesDetails);
+            try
+            {
+                if (noteId <= 0 || userId <= 0 || updateNotesDetails == null)
+                    return null;
+                else
+                    return await _notesRepository.UpdateNotes(noteId, userId, updateNotesDetails);
+            }
+            catch(Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
+        /// <summary>
+        /// It Remove the Image from Notes.
+        /// </summary>
+        /// <param name="NoteId">Note Id</param>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public async Task<NoteResponseModel> RemoveImage(int NoteId, int userId)
+        {
+            try
+            {
+                if (NoteId <= 0 || userId <= 0)
+                    return null;
+                else
+                    return await _notesRepository.RemoveImage(NoteId, userId);
+            }
+            catch(Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
+        /// <summary>
+        /// Update Labels to Notes
+        /// </summary>
+        /// <param name="NoteId"> NoteId </param>
+        /// <param name="addLabelNote">Add Label To Note</param>
+        /// <returns></returns>
+        public async Task<NoteResponseModel> AddlabelsToNote(int NoteId, int UserId, AddLabelNoteRequest addLabelNote)
+        {
+            try
+            {
+                if (NoteId <= 0 || addLabelNote == null)
+                    return null;
+                else
+                    return await _notesRepository.AddlabelsToNote(NoteId, UserId, addLabelNote);
+            }
+            catch(Exception e)
+            {
+                throw new Exception(e.Message);
+            }
         }
 
         /// <summary>
@@ -150,14 +240,59 @@ namespace FundooBusinessLayer.Service
         /// <param name="NoteId">Note Id</param>
         /// <param name="UserId">user Id</param>
         /// <returns>return true, If Deleted Successfull or else False</returns>
-        public async Task<bool> DeleteNote(int NoteId, int UserId)
+        public async Task<bool> SendToTrash(ListOfDeleteNotes deleteNotes, int UserId)
+        {
+            try
+            {
+                if (deleteNotes == null || UserId <= 0)
+                    return false;
+                else
+                    return await _notesRepository.SendToTrash(deleteNotes, UserId);
+            }
+            catch(Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+
+        }
+
+        public async Task<bool> DeleteNotePermantely(ListOfDeleteNotes deleteNotes, int UserId)
         {
 
-            if (NoteId <= 0 || UserId <= 0)
-                return false;
-            else
-                return await _notesRepository.DeleteNote(NoteId, UserId);
+            try
+            {
+                if (deleteNotes == null || UserId <= 0)
+                    return false;
+                else
+                    return await _notesRepository.DeleteNotePermantely(deleteNotes, UserId);
+            }
+            catch(Exception e)
+            {
+                throw new Exception(e.Message);
+            }
 
+        }
+
+        /// <summary>
+        /// It Add a Reminder to the Notes.
+        /// </summary>
+        /// <param name="NoteId">Note Id</param>
+        /// <param name="reminder">Reminder Data</param>
+        /// <param name="userId">User Id</param>
+        /// <returns>If Successfull it return NoteResponse Model or else Null</returns>
+        public async Task<NoteResponseModel> UpdateRemoveReminder(int NoteId, ReminderRequest reminder, int userId)
+        {
+            try
+            {
+                if (NoteId <= 0 || reminder == null || userId <= 0)
+                    return null;
+                else
+                    return await _notesRepository.UpdateRemoveReminder(NoteId, reminder, userId);
+            }
+            catch(Exception e)
+            {
+                throw new Exception(e.Message);
+            }
         }
 
         /// <summary>
@@ -166,12 +301,19 @@ namespace FundooBusinessLayer.Service
         /// <param name="pinnedRequest">Note Id</param>
         /// <param name="userId">User Id</param>
         /// <returns>Note Response Model</returns>
-        public async Task<NoteResponseModel> PinOrUnPinTheNote(int NoteId, PinnedRequest pinnedRequest, int userId)
+        public async Task<List<NoteResponseModel>> PinOrUnPinTheNote(ListOfPinnedNotes pinnedNotes, int userId)
         {
-            if (pinnedRequest == null || userId <= 0 || NoteId <= 0)
-                return null;
-            else
-                return await _notesRepository.PinOrUnPinTheNote(NoteId, pinnedRequest, userId);
+            try
+            {
+                if (pinnedNotes == null || userId <= 0)
+                    return null;
+                else
+                    return await _notesRepository.PinOrUnPinTheNote(pinnedNotes, userId);
+            }
+            catch(Exception e)
+            {
+                throw new Exception(e.Message);
+            }
         }
 
         /// <summary>
@@ -183,10 +325,17 @@ namespace FundooBusinessLayer.Service
         /// <returns>Note Response Model</returns>
         public async Task<NoteResponseModel> ArchiveUnArchiveTheNote(int NoteId, ArchiveRequest archiveRequest, int userId)
         {
-            if (archiveRequest == null || NoteId <= 0 || userId <= 0)
-                return null;
-            else
-                return await _notesRepository.ArchiveUnArchiveTheNote(NoteId, archiveRequest, userId);
+            try
+            {
+                if (archiveRequest == null || NoteId <= 0 || userId <= 0)
+                    return null;
+                else
+                    return await _notesRepository.ArchiveUnArchiveTheNote(NoteId, archiveRequest, userId);
+            }
+            catch(Exception e)
+            {
+                throw new Exception(e.Message);
+            }
         }
 
         /// <summary>
@@ -198,10 +347,17 @@ namespace FundooBusinessLayer.Service
         /// <returns>Note Response Model</returns>
         public async Task<NoteResponseModel> ColorTheNote(int NoteId, ColorRequest colorRequest, int userId)
         {
-            if (colorRequest == null || NoteId <= 0 || userId <= 0)
-                return null;
-            else
-                return await _notesRepository.ColorTheNote(NoteId, colorRequest, userId);
+            try
+            {
+                if (colorRequest == null || NoteId <= 0 || userId <= 0)
+                    return null;
+                else
+                    return await _notesRepository.ColorTheNote(NoteId, colorRequest, userId);
+            }
+            catch(Exception e)
+            {
+                throw new Exception(e.Message);
+            }
         }
 
         /// <summary>
@@ -213,10 +369,17 @@ namespace FundooBusinessLayer.Service
         /// <returns>Note Response Model</returns>
         public async Task<NoteResponseModel> AddUpdateImage(int NoteId, ImageRequest imageRequest, int userId)
         {
-            if (imageRequest == null || NoteId <= 0 || userId <= 0)
-                return null;
-            else
-                return await _notesRepository.AddUpdateImage(NoteId, imageRequest, userId);
+            try
+            {
+                if (imageRequest == null || NoteId <= 0 || userId <= 0)
+                    return null;
+                else
+                    return await _notesRepository.AddUpdateImage(NoteId, imageRequest, userId);
+            }
+            catch(Exception e)
+            {
+                throw new Exception(e.Message);
+            }
         }
 
         /// <summary>
@@ -245,12 +408,19 @@ namespace FundooBusinessLayer.Service
         /// </summary>
         /// <param name="userId">User Id</param>
         /// <returns>return true if deleted successfully or else false</returns>
-        public async Task<bool> DeleteNotesPermanently(int userId)
+        public async Task<bool> BulkDeleteNote(int userId)
         {
-            if (userId <= 0)
-                return false;
-            else
-                return await _notesRepository.DeleteNotesPermanently(userId);
+            try
+            {
+                if (userId <= 0)
+                    return false;
+                else
+                    return await _notesRepository.BulkDeleteNote(userId);
+            }
+            catch(Exception e)
+            {
+                throw new Exception(e.Message);
+            }
         }
 
         /// <summary>
@@ -261,10 +431,17 @@ namespace FundooBusinessLayer.Service
         /// <returns>return true if restore successfull or else false</returns>
         public async Task<bool> RestoreDeletedNotes(int noteId, int userId)
         {
-            if (noteId <= 0 || userId <= 0)
-                return false;
-            else
-                return await _notesRepository.RestoreDeletedNotes(noteId, userId);
+            try
+            {
+                if (noteId <= 0 || userId <= 0)
+                    return false;
+                else
+                    return await _notesRepository.RestoreDeletedNotes(noteId, userId);
+            }
+            catch(Exception e)
+            {
+                throw new Exception(e.Message);
+            }
         }
 
     }

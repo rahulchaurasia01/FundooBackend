@@ -155,7 +155,7 @@ namespace FundooRepositoryLayer.Service
         /// </summary>
         /// <param name="userId">Admin User Id</param>
         /// <returns>List Of Users With there No. Of Notes.</returns>
-        public List<AdminUserListResponseModel> AdminUserLists(int userId, int start)
+        public AdminUserListResponseModel AdminUserLists(int userId, int take, int skip)
         {
             try
             {
@@ -164,33 +164,40 @@ namespace FundooRepositoryLayer.Service
 
                 if (userDetails != null)
                 {
-                    List<AdminUserListResponseModel> adminUserLists = _applicationContext.UserDetails.
+                    List<UserList> adminUserLists = _applicationContext.UserDetails.
                         Where(user => user.UserRole == _regularUser).
-                        Select(user => new AdminUserListResponseModel
+                        Select(user => new UserList
                         {
                             UserId = user.UserId,
                             FirstName = user.FirstName,
                             LastName = user.LastName,
                             EmailId = user.EmailId,
-                            Type = user.Type
+                            Service = user.Type
                         }).
                         ToList();
 
-                    if (start > adminUserLists.Count)
+                    if (take > adminUserLists.Count)
                         return null;
 
-                    foreach(AdminUserListResponseModel adminUserList in adminUserLists)
+                    foreach(UserList adminUserList in adminUserLists)
                     {
                         adminUserList.Notes = _applicationContext.NotesDetails.
                             Where(note => note.UserId == adminUserList.UserId).Count();
                     }
 
-                    int end=start+10;
+                    if (skip == 0)
+                        skip = 10;
+
+                    int end=take+skip;
 
                     if(end >= adminUserLists.Count)
-                        end = adminUserLists.Count - start;
+                        end = adminUserLists.Count - take;
 
-                    return adminUserLists.GetRange(start, end);
+                    AdminUserListResponseModel userListResponseModel = new AdminUserListResponseModel();
+
+                    userListResponseModel.records = adminUserLists.GetRange(take, end);
+
+                    return userListResponseModel;
 
                 }
 

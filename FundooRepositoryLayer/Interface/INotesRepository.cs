@@ -26,9 +26,15 @@ namespace FundooRepositoryLayer.Interface
 
         Task<NoteResponseModel> UpdateNotes(int noteId, int userId, UpdateNoteRequest updateNotesDetails);
 
-        Task<bool> DeleteNote(int NoteId, int UserId);
+        Task<NoteResponseModel> AddlabelsToNote(int NoteId, int UserId, AddLabelNoteRequest addLabelNote);
 
-        Task<NoteResponseModel> PinOrUnPinTheNote(int NoteId, PinnedRequest pinnedRequest, int userId);
+        Task<bool> SendToTrash(ListOfDeleteNotes deleteNotes, int UserId);
+
+        Task<bool> DeleteNotePermantely(ListOfDeleteNotes deleteNotes, int UserId);
+
+        Task<NoteResponseModel> UpdateRemoveReminder(int NoteId, ReminderRequest reminder, int userId);
+
+        Task<List<NoteResponseModel>> PinOrUnPinTheNote(ListOfPinnedNotes pinnedNotes, int userId);
 
         Task<NoteResponseModel> ArchiveUnArchiveTheNote(int NoteId, ArchiveRequest archiveRequest, int userId);
 
@@ -36,9 +42,11 @@ namespace FundooRepositoryLayer.Interface
 
         Task<NoteResponseModel> AddUpdateImage(int NoteId, ImageRequest imageRequest, int userId);
 
+        Task<NoteResponseModel> RemoveImage(int NoteId, int userId);
+
         Task<NoteResponseModel> AddUpdateCollaborator(int NoteId, CollaboratorsRequest collaboratorsRequest, int userId);
 
-        Task<bool> DeleteNotesPermanently(int userId);
+        Task<bool> BulkDeleteNote(int userId);
 
         Task<bool> RestoreDeletedNotes(int noteId, int userId);
 

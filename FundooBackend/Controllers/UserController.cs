@@ -136,10 +136,10 @@ namespace FundooAppBackend.Controllers
         /// <param name="userRequest">Profile Pic Data</param>
         /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
         /// occured and Not Proper Input Given it return BadRequest.</returns>
-        [HttpPost]
+        [HttpPut]
         [Authorize]
         [Route("ProfilePic")]
-        public async Task<IActionResult> AddUpdateProfilePic([FromForm] GetImageFromApiRequest imageRequest)
+        public async Task<IActionResult> AddUpdateProfilePic([FromForm] IFormFile file)
         {
             try
             {
@@ -153,17 +153,17 @@ namespace FundooAppBackend.Controllers
                     {
                         int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
 
-                        if (imageRequest.file.Length <= 0)
+                        if (file.Length <= 0)
                         {
                             message = "No Image Provided";
                             return BadRequest(new { status, message });
                         }
 
-                        if (imageRequest.file.FileName.EndsWith(".jpg") || imageRequest.file.FileName.EndsWith(".png"))
+                        if (file.FileName.EndsWith(".jpg") || file.FileName.EndsWith(".png"))
                         {
                             ImageRequest imageRequest1 = new ImageRequest
                             {
-                                Image = UploadImageToCloudinary(imageRequest)
+                                Image = UploadImageToCloudinary(file)
                             };
 
                             UserResponseModel data = await _userBusiness.AddUpdateProfilePic(imageRequest1, UserId);
@@ -174,7 +174,7 @@ namespace FundooAppBackend.Controllers
                                 return Ok(new { status, message, data });
                             }
                             message = "Unable to Add the Image to the Profile Pic.";
-                            return NotFound(new { status, message });
+                            return Ok(new { status, message });
 
                         }
                         else
@@ -449,7 +449,7 @@ namespace FundooAppBackend.Controllers
         /// It Upload the Image to Cloudinary and Get the url Of the uploaded Image
         /// </summary>
         /// <param name="imageRequest">Image Data</param>
-        private string UploadImageToCloudinary(GetImageFromApiRequest getImageFrom)
+        private string UploadImageToCloudinary(IFormFile getImageFrom)
         {
             try
             {
@@ -460,7 +460,7 @@ namespace FundooAppBackend.Controllers
 
                 var imageUpload = new ImageUploadParams
                 {
-                    File = new FileDescription(getImageFrom.file.FileName, getImageFrom.file.OpenReadStream()),
+                    File = new FileDescription(getImageFrom.FileName, getImageFrom.OpenReadStream()),
                     Folder = "FundooNotes"
                 };
 

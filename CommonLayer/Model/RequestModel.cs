@@ -109,15 +109,41 @@ namespace FundooCommonLayer.Model
         public List<CollaboratorRequest> Collaborators { set; get; }
     }
 
+    /// <summary>
+    /// It Update The Notes
+    /// </summary>
     public class UpdateNoteRequest
     {
         public string Title { set; get; }
 
         public string Description { set; get; }
 
-        public DateTime? Reminder { set; get; }
+    }
 
-        public List<NotesLabelRequest> Label { set; get; }
+    /// <summary>
+    /// It Add Or Remove the Reminder
+    /// </summary>
+    public class ReminderRequest
+    {
+        public DateTime? Reminder { set; get; }
+    }
+
+    public class ListOfDeleteNotes
+    {
+        public List<DeleteIdRequest> DeleteNotes { set; get; }
+    }
+
+    public class DeleteIdRequest
+    {
+        public int NoteId { set; get;}
+    }
+
+    /// <summary>
+    /// It Update the pin value of the list of Notes
+    /// </summary>
+    public class ListOfPinnedNotes
+    {
+        public List<PinnedRequest> PinnedNotes { set; get; }
     }
 
     /// <summary>
@@ -125,6 +151,9 @@ namespace FundooCommonLayer.Model
     /// </summary>
     public class PinnedRequest
     {
+
+        public int NoteId { set; get; }
+
         [Required]
         public bool IsPin { set; get; }
     }
@@ -156,14 +185,6 @@ namespace FundooCommonLayer.Model
     }
 
     /// <summary>
-    /// Get the Image from the client
-    /// </summary>
-    public class GetImageFromApiRequest
-    {
-        public IFormFile file { set; get; }
-    }
-
-    /// <summary>
     /// User Request: To Get the List Of user Register.
     /// </summary>
     public class UserRequest
@@ -179,6 +200,14 @@ namespace FundooCommonLayer.Model
     {
         [Required]
         public string Name { set; get; }
+    }
+
+    /// <summary>
+    /// This Model Is used for Adding Label to notes.
+    /// </summary>
+    public class AddLabelNoteRequest
+    {
+        public List<NotesLabelRequest> Label { set; get; }
     }
 
     /// <summary>

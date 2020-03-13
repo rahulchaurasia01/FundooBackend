@@ -49,14 +49,14 @@ namespace FundooBusinessLayer.Service
             }
         }
 
-        public List<AdminUserListResponseModel> AdminUserLists(int userId, int start)
+        public AdminUserListResponseModel AdminUserLists(int userId, int take, int skip)
         {
             try
             {
-                if (userId <= 0 || start < 0)
+                if (userId <= 0 || take < 0)
                     return null;
                 else
-                    return _adminRepository.AdminUserLists(userId, start);
+                    return _adminRepository.AdminUserLists(userId, take, skip);
             }
             catch(Exception e)
             {

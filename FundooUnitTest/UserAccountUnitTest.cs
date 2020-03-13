@@ -174,7 +174,7 @@ namespace FundooUnitTest
             {
                 FirstName = "Lucy",
                 LastName = "Nelson",
-                EmailId = "lucynelson@gmail.com",
+                EmailId = "lucynelson2014@gmail.com",
                 Password = "789456123",
                 Type = "Basic"
             };

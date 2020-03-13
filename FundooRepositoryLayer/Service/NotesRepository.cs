@@ -507,7 +507,7 @@ namespace FundooRepositoryLayer.Service
             try
             {
                 List<NoteResponseModel> notesDetails = await _applicationContext.NotesDetails.
-                    Where(note => note.UserId == userId && note.Reminder != null && !note.IsDeleted && note.Reminder.Value >= DateTime.Now).
+                    Where(note => note.UserId == userId && note.Reminder != null && !note.IsDeleted).
                     Select(note => new NoteResponseModel
                     {
                         NoteId = note.NotesId,
@@ -568,46 +568,11 @@ namespace FundooRepositoryLayer.Service
 
                 notesDetails1.Title = updateNotesDetails.Title;
                 notesDetails1.Description = updateNotesDetails.Description;
-                notesDetails1.Reminder = updateNotesDetails.Reminder;
                 notesDetails1.ModifiedAt = DateTime.Now;
 
                 var note = _applicationContext.NotesDetails.Attach(notesDetails1);
                 note.State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                 await _applicationContext.SaveChangesAsync();
-
-                if (updateNotesDetails.Label != null)
-                {
-                    List<NotesLabel> labels = await _applicationContext.NotesLabels.Where(notes => notes.NotesId == noteId).ToListAsync();
-
-                    if (labels != null && labels.Count != 0)
-                    {
-                        _applicationContext.NotesLabels.RemoveRange(labels);
-                        await _applicationContext.SaveChangesAsync();
-                    }
-
-                    if (updateNotesDetails.Label.Count > 0)
-                    {
-
-                        List<NotesLabelRequest> labelRequests = updateNotesDetails.Label;
-                        foreach (NotesLabelRequest labelRequest in labelRequests)
-                        {
-                            LabelDetails labelDetails = _applicationContext.LabelDetails.
-                            FirstOrDefault(labeled => labeled.UserId == userId && labeled.LabelId == labelRequest.LabelId);
-
-                            if (labelRequest.LabelId > 0 && labelDetails != null)
-                            {
-                                var data = new NotesLabel
-                                {
-                                    LabelId = labelRequest.LabelId,
-                                    NotesId = noteId
-                                };
-
-                                _applicationContext.NotesLabels.Add(data);
-                                await _applicationContext.SaveChangesAsync();
-                            }
-                        }
-                    }
-                }
 
                 NoteResponseModel noteResponseModel = await NoteResponseModel(notesDetails1);
 
@@ -621,82 +586,64 @@ namespace FundooRepositoryLayer.Service
         }
 
         /// <summary>
-        /// It Delete the Note From the Database
+        /// It Put the Note in the Trash
         /// </summary>
-        /// <param name="NoteId"></param>
-        /// <param name="UserId"></param>
-        /// <returns></returns>
-        public async Task<bool> DeleteNote(int NoteId, int UserId)
+        /// <param name="UserId">User Id</param>
+        /// <returns>Return true if note is successfully trash or else false</returns>
+        public async Task<bool> SendToTrash(ListOfDeleteNotes deleteNotes, int UserId)
         {
             try
             {
-                NotesDetails notesDetails = _applicationContext.NotesDetails.
-                    FirstOrDefault(note => note.NotesId == NoteId && note.UserId == UserId);
+                int count = 0;
 
-                if (notesDetails == null)
+                foreach (DeleteIdRequest deleteId in deleteNotes.DeleteNotes)
                 {
 
-                    UsersNotes userNotes = _applicationContext.UsersNotes.
-                        FirstOrDefault(user => user.NoteId == NoteId && user.UserId == UserId);
+                    NotesDetails notesDetails = _applicationContext.NotesDetails.
+                        FirstOrDefault(note => note.NotesId == deleteId.NoteId && note.UserId == UserId);
 
-                    if (userNotes == null)
-                        return false;
-                    else
+                    if (notesDetails == null)
                     {
-                        notesDetails = _applicationContext.NotesDetails.
-                                FirstOrDefault(note => note.NotesId == NoteId);
-                    }
 
-                }
-                if (notesDetails.IsDeleted)
-                {
-                    List<UsersNotes> usersNotes = _applicationContext.UsersNotes.
-                        Where(userNote => userNote.NoteId == NoteId && userNote.IsDeleted).ToList();
+                        UsersNotes userNotes = _applicationContext.UsersNotes.
+                            FirstOrDefault(user => user.NoteId == deleteId.NoteId && user.UserId == UserId);
 
-                    if (usersNotes != null && usersNotes.Count > 0)
-                    {
-                        _applicationContext.UsersNotes.RemoveRange(usersNotes);
-                        await _applicationContext.SaveChangesAsync();
-                    }
-
-                    List<NotesLabel> labels = _applicationContext.NotesLabels.Where(note => note.NotesId == NoteId).ToList();
-
-                    if (labels != null && labels.Count > 0)
-                    {
-                        _applicationContext.NotesLabels.RemoveRange(labels);
-                        await _applicationContext.SaveChangesAsync();
-                    }
-
-                    var notes = _applicationContext.NotesDetails.Remove(notesDetails);
-                    notes.State = Microsoft.EntityFrameworkCore.EntityState.Deleted;
-                    await _applicationContext.SaveChangesAsync();
-                    return true;
-                }
-                else
-                {
-
-                    List<UsersNotes> usersNotes = _applicationContext.UsersNotes.
-                        Where(userNote => userNote.NoteId == NoteId).ToList();
-
-                    if (usersNotes != null && usersNotes.Count > 0)
-                    {
-                        foreach (UsersNotes users in usersNotes)
+                        if (userNotes != null)
                         {
-                            users.IsDeleted = true;
-                            _applicationContext.UsersNotes.Attach(users);
-                            await _applicationContext.SaveChangesAsync();
+                            notesDetails = _applicationContext.NotesDetails.
+                                    FirstOrDefault(note => note.NotesId == deleteId.NoteId);
                         }
+
                     }
+                    if (!notesDetails.IsDeleted)
+                    {
+                    
+                        List<UsersNotes> usersNotes = _applicationContext.UsersNotes.
+                            Where(userNote => userNote.NoteId == deleteId.NoteId).ToList();
 
-                    notesDetails.IsDeleted = true;
-                    notesDetails.IsPin = false;
-                    notesDetails.IsArchived = false;
-                    var notes = _applicationContext.NotesDetails.Attach(notesDetails);
-                    notes.State = Microsoft.EntityFrameworkCore.EntityState.Modified;
-                    await _applicationContext.SaveChangesAsync();
-                    return true;
+                        if (usersNotes != null && usersNotes.Count > 0)
+                        {
+                            foreach (UsersNotes users in usersNotes)
+                            {
+                                users.IsDeleted = true;
+                                _applicationContext.UsersNotes.Attach(users);
+                                await _applicationContext.SaveChangesAsync();
+                            }
+                        }
+
+                        notesDetails.IsDeleted = true;
+                        notesDetails.IsPin = false;
+                        notesDetails.IsArchived = false;
+                        var notes = _applicationContext.NotesDetails.Attach(notesDetails);
+                        notes.State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                        await _applicationContext.SaveChangesAsync();
+                        count++;
+                    }
                 }
-
+                if (count == deleteNotes.DeleteNotes.Count)
+                    return true;
+                else
+                    return false;
             }
             catch (Exception e)
             {
@@ -705,12 +652,158 @@ namespace FundooRepositoryLayer.Service
         }
 
         /// <summary>
-        /// It will pin or Unpin the Single Note
+        /// It Remove The Notes Permantenly
         /// </summary>
-        /// <param name="pinnedRequest">Pin Value</param>
+        /// <param name="deleteNotes">Notes Id</param>
+        /// <param name="UserId">User Id</param>
+        /// <returns>True If Deleted Successfully or else false</returns>
+        public async Task<bool> DeleteNotePermantely(ListOfDeleteNotes deleteNotes, int UserId)
+        {
+            try
+            {
+                int count = 0;
+
+                foreach (DeleteIdRequest deleteId in deleteNotes.DeleteNotes)
+                {
+
+                    NotesDetails notesDetails = _applicationContext.NotesDetails.
+                        FirstOrDefault(note => note.NotesId == deleteId.NoteId && note.UserId == UserId);
+
+                    if (notesDetails == null)
+                    {
+
+                        UsersNotes userNotes = _applicationContext.UsersNotes.
+                            FirstOrDefault(user => user.NoteId == deleteId.NoteId && user.UserId == UserId);
+
+                        if (userNotes != null)
+                        {
+                            notesDetails = _applicationContext.NotesDetails.
+                                    FirstOrDefault(note => note.NotesId == deleteId.NoteId);
+                        }
+
+                    }
+                    if (notesDetails.IsDeleted)
+                    {
+                        List<UsersNotes> usersNotes = _applicationContext.UsersNotes.
+                            Where(userNote => userNote.NoteId == deleteId.NoteId && userNote.IsDeleted).ToList();
+
+                        if (usersNotes != null && usersNotes.Count > 0)
+                        {
+                            _applicationContext.UsersNotes.RemoveRange(usersNotes);
+                            await _applicationContext.SaveChangesAsync();
+                        }
+
+                        List<NotesLabel> labels = _applicationContext.NotesLabels.Where(note => note.NotesId == deleteId.NoteId).ToList();
+
+                        if (labels != null && labels.Count > 0)
+                        {
+                            _applicationContext.NotesLabels.RemoveRange(labels);
+                            await _applicationContext.SaveChangesAsync();
+                        }
+
+                        var notes = _applicationContext.NotesDetails.Remove(notesDetails);
+                        notes.State = Microsoft.EntityFrameworkCore.EntityState.Deleted;
+                        await _applicationContext.SaveChangesAsync();
+                        count++; ;
+                    }
+                }
+                if (count == deleteNotes.DeleteNotes.Count)
+                    return true;
+                else
+                    return false;
+            }
+            catch(Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
+        /// <summary>
+        /// It Add Labels To Note
+        /// </summary>
+        /// <param name="NoteId">Note Id</param>
         /// <param name="userId">User Id</param>
-        /// <returns>Return NoteResponseModel if Successfull or else null</returns>
-        public async Task<NoteResponseModel> PinOrUnPinTheNote(int NoteId, PinnedRequest pinnedRequest, int userId)
+        /// <param name="addLabelNote">Label Data</param>
+        /// <returns></returns>
+        public async Task<NoteResponseModel> AddlabelsToNote(int NoteId, int userId, AddLabelNoteRequest addLabelNote)
+        {
+            try
+            {
+                NotesDetails notesDetails1 = _applicationContext.NotesDetails.
+                    FirstOrDefault(noted => noted.NotesId == NoteId && noted.UserId == userId);
+
+                if (notesDetails1 == null)
+                {
+                    UsersNotes usersNotess = _applicationContext.UsersNotes.
+                       FirstOrDefault(userNote => userNote.NoteId == NoteId && userNote.UserId == userId);
+
+                    if (usersNotess == null)
+                        return null;
+                    else
+                    {
+                        notesDetails1 = _applicationContext.NotesDetails.
+                            FirstOrDefault(noted => noted.NotesId == NoteId);
+                    }
+
+                }
+
+                if(notesDetails1 != null && addLabelNote.Label != null)
+                {
+                    List<NotesLabel> labels = await _applicationContext.NotesLabels.Where(notes => notes.NotesId == NoteId).ToListAsync();
+
+                    if (labels != null && labels.Count != 0)
+                    {
+                        _applicationContext.NotesLabels.RemoveRange(labels);
+                        await _applicationContext.SaveChangesAsync();
+                    }
+
+                    if (addLabelNote.Label.Count > 0)
+                    {
+
+                        List<NotesLabelRequest> labelRequests = addLabelNote.Label;
+                        foreach (NotesLabelRequest labelRequest in labelRequests)
+                        {
+                            LabelDetails labelDetails = _applicationContext.LabelDetails.
+                            FirstOrDefault(labeled => labeled.UserId == userId && labeled.LabelId == labelRequest.LabelId);
+
+                            if (labelRequest.LabelId > 0 && labelDetails != null)
+                            {
+                                var data = new NotesLabel
+                                {
+                                    LabelId = labelRequest.LabelId,
+                                    NotesId = NoteId,
+                                    CreatedAt = DateTime.Now,
+                                    ModifiedAt = DateTime.Now
+                                };
+
+                                _applicationContext.NotesLabels.Add(data);
+                                await _applicationContext.SaveChangesAsync();
+                            }
+                        }
+                    }
+
+                }
+
+                NoteResponseModel noteResponseModel = await NoteResponseModel(notesDetails1);
+
+                return noteResponseModel;
+
+
+            }
+            catch(Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
+        /// <summary>
+        /// It Add or Removes the reminder from the Notes
+        /// </summary>
+        /// <param name="NoteId">Note Id</param>
+        /// <param name="reminder">Reminder Data</param>
+        /// <param name="userId">User Id</param>
+        /// <returns></returns>
+        public async Task<NoteResponseModel> UpdateRemoveReminder(int NoteId, ReminderRequest reminder, int userId)
         {
             try
             {
@@ -744,18 +837,87 @@ namespace FundooRepositoryLayer.Service
                         return null;
                 }
 
-                notesDetails.IsPin = pinnedRequest.IsPin;
-                if (notesDetails.IsPin)
-                    notesDetails.IsArchived = false;
+                notesDetails.Reminder = reminder.Reminder;
                 notesDetails.ModifiedAt = DateTime.Now;
                 var data = _applicationContext.NotesDetails.Attach(notesDetails);
                 data.State = EntityState.Modified;
                 await _applicationContext.SaveChangesAsync();
 
-                notesDetails.UserId = userId;
                 NoteResponseModel noteResponseModel = await NoteResponseModel(notesDetails);
 
                 return noteResponseModel;
+
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
+        /// <summary>
+        /// It will pin or Unpin the Single Note
+        /// </summary>
+        /// <param name="pinnedRequest">Pin Value</param>
+        /// <param name="userId">User Id</param>
+        /// <returns>Return NoteResponseModel if Successfull or else null</returns>
+        public async Task<List<NoteResponseModel>> PinOrUnPinTheNote(ListOfPinnedNotes pinnedNotes, int userId)
+        {
+            try
+            {
+                List<NoteResponseModel> noteResponses = new List<NoteResponseModel>();
+
+                foreach (PinnedRequest pinned in pinnedNotes.PinnedNotes)
+                {
+
+                    NotesDetails notesDetails = _applicationContext.NotesDetails.
+                        FirstOrDefault(note => note.NotesId == pinned.NoteId && note.UserId == userId && !note.IsDeleted);
+
+                    if (notesDetails == null)
+                    {
+                        notesDetails = _applicationContext.UsersNotes.
+                        Where(usrNote => usrNote.NoteId == pinned.NoteId && usrNote.UserId == userId && !usrNote.IsDeleted).
+                        Join(_applicationContext.NotesDetails,
+                        usrNote => usrNote.NoteId,
+                        note => note.NotesId,
+                        (usrNote, note) => new NotesDetails
+                        {
+                            NotesId = usrNote.NoteId,
+                            Title = note.Title,
+                            UserId = note.UserId,
+                            Description = note.Description,
+                            Color = note.Color,
+                            Image = note.Image,
+                            IsArchived = note.IsArchived,
+                            IsPin = note.IsPin,
+                            IsDeleted = note.IsDeleted,
+                            Reminder = note.Reminder,
+                            CreatedAt = note.CreatedAt,
+                            ModifiedAt = note.ModifiedAt
+                        }).
+                        FirstOrDefault();
+                        if (notesDetails == null)
+                            return null;
+                    }
+
+                    if (notesDetails != null)
+                    {
+                        notesDetails.IsPin = pinned.IsPin;
+                        if (notesDetails.IsPin)
+                            notesDetails.IsArchived = false;
+                        notesDetails.ModifiedAt = DateTime.Now;
+                        var data = _applicationContext.NotesDetails.Attach(notesDetails);
+                        data.State = EntityState.Modified;
+                        await _applicationContext.SaveChangesAsync();
+
+                        notesDetails.UserId = userId;
+                        NoteResponseModel noteResponseModel = await NoteResponseModel(notesDetails);
+
+                        noteResponses.Add(noteResponseModel);
+                    }
+
+                }
+
+                return noteResponses;
 
             }
             catch (Exception e)
@@ -941,6 +1103,63 @@ namespace FundooRepositoryLayer.Service
         }
 
         /// <summary>
+        /// It Will Remove the Images From the Notes.
+        /// </summary>
+        /// <param name="NoteId">Note Id</param>
+        /// <param name="userId">User Id</param>
+        /// <returns>Note Response Model</returns>
+        public async Task<NoteResponseModel> RemoveImage(int NoteId, int userId)
+        {
+            try
+            {
+                NotesDetails notesDetails = _applicationContext.NotesDetails.
+                    FirstOrDefault(note => note.NotesId == NoteId && note.UserId == userId && !note.IsDeleted);
+
+                if (notesDetails == null)
+                {
+                    notesDetails = _applicationContext.UsersNotes.
+                    Where(usrNote => usrNote.NoteId == NoteId && usrNote.UserId == userId && !usrNote.IsDeleted).
+                    Join(_applicationContext.NotesDetails,
+                    usrNote => usrNote.NoteId,
+                    note => note.NotesId,
+                    (usrNote, note) => new NotesDetails
+                    {
+                        NotesId = usrNote.NoteId,
+                        Title = note.Title,
+                        UserId = note.UserId,
+                        Description = note.Description,
+                        Color = note.Color,
+                        Image = note.Image,
+                        IsArchived = note.IsArchived,
+                        IsPin = note.IsPin,
+                        IsDeleted = note.IsDeleted,
+                        Reminder = note.Reminder,
+                        CreatedAt = note.CreatedAt,
+                        ModifiedAt = note.ModifiedAt
+                    }).
+                    FirstOrDefault();
+                    if (notesDetails == null)
+                        return null;
+                }
+
+                notesDetails.Image = "";
+                notesDetails.ModifiedAt = DateTime.Now;
+                var data = _applicationContext.NotesDetails.Attach(notesDetails);
+                data.State = EntityState.Modified;
+                await _applicationContext.SaveChangesAsync();
+
+                NoteResponseModel noteResponseModel = await NoteResponseModel(notesDetails);
+
+                return noteResponseModel;
+
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
+        /// <summary>
         /// It will Add or Update the Collaborator to the Note.
         /// </summary>
         /// <param name="NoteId">Note Id</param>
@@ -1014,7 +1233,7 @@ namespace FundooRepositoryLayer.Service
         /// </summary>
         /// <param name="userId">User Id</param>
         /// <returns>Retturn true If Successfull or else False</returns>
-        public async Task<bool> DeleteNotesPermanently(int userId)
+        public async Task<bool> BulkDeleteNote(int userId)
         {
             try
             {

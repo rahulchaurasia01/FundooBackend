@@ -67,7 +67,7 @@ namespace FundooAppBackend.Controllers
                         else
                         {
                             message = "Unable to Create Notes.";
-                            return NotFound(new { status, message });
+                            return Ok(new { status, message });
                         } 
                     }
                 }
@@ -350,7 +350,7 @@ namespace FundooAppBackend.Controllers
                             return Ok(new { status, message, data });
                         }
                         message = "Note Cannot be Updated.";
-                        return NotFound(new { status, message });
+                        return Ok(new { status, message });
                     }
                 }
                 message = "Invalid Token.";
@@ -363,14 +363,13 @@ namespace FundooAppBackend.Controllers
         }
 
         /// <summary>
-        /// It Delete the Note and Put it in Trash, and If Deleted from trash it remove it Permanentely
+        /// It Put the Note in the Trash.
         /// </summary>
-        /// <param name="NoteId">Note Id</param>
         /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
         /// occured and Not Proper Input Given it return BadRequest.</returns>
-        [HttpDelete]
-        [Route("{NoteId}")]
-        public async Task<IActionResult> DeleteNote(int NoteId)
+        [HttpPut]
+        [Route("TrashNotes")]
+        public async Task<IActionResult> SendToTrash(ListOfDeleteNotes deleteNotes)
         {
             try
             {
@@ -383,14 +382,53 @@ namespace FundooAppBackend.Controllers
                         user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _regularUser)
                     {
                         int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
-                        status = await _notesBusiness.DeleteNote(NoteId, UserId);
+                        status = await _notesBusiness.SendToTrash(deleteNotes, UserId);
                         if(status)
                         {
-                            message = "Note Deleted Successfully";
+                            message = "Notes Deleted Successfully";
                             return Ok(new { status, message });
                         }
-                        message = "No Such Note Present to Delete. !!";
-                        return NotFound(new { status, message });
+                        message = "No Such Notes Present to Delete. !!";
+                        return Ok(new { status, message });
+                    }
+                }
+                message = "Invalid Token";
+                return BadRequest(new { status, message });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { e.Message });
+            }
+        }
+
+        /// <summary>
+        /// It Remove the Notes Permanentely from the Database
+        /// </summary>
+        /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
+        /// occured and Not Proper Input Given it return BadRequest.</returns>
+        [HttpPut]
+        [Route("DeleteNotes")]
+        public async Task<IActionResult> DeleteNotePermantely(ListOfDeleteNotes deleteNotes)
+        {
+            try
+            {
+                var user = HttpContext.User;
+                bool status = false;
+                string message;
+                if (user.HasClaim(c => c.Type == _tokenType))
+                {
+                    if (user.Claims.FirstOrDefault(c => c.Type == _tokenType).Value == _login &&
+                        user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _regularUser)
+                    {
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
+                        status = await _notesBusiness.DeleteNotePermantely(deleteNotes, UserId);
+                        if (status)
+                        {
+                            message = "Notes Deleted Successfully";
+                            return Ok(new { status, message });
+                        }
+                        message = "No Such Notes Present to Delete. !!";
+                        return Ok(new { status, message });
                     }
                 }
                 message = "Invalid Token";
@@ -409,7 +447,7 @@ namespace FundooAppBackend.Controllers
         /// occured and Not Proper Input Given it return BadRequest.</returns>
         [HttpDelete]
         [Route("BulkDelete")]
-        public async Task<IActionResult> DeleteNotesPermanently()
+        public async Task<IActionResult> BulkDeleteNote()
         {
             try
             {
@@ -422,14 +460,94 @@ namespace FundooAppBackend.Controllers
                         user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _regularUser)
                     {
                         int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
-                        status = await _notesBusiness.DeleteNotesPermanently(UserId);
+                        status = await _notesBusiness.BulkDeleteNote(UserId);
                         if (status)
                         {
                             message = "Your Notes has been Permanently Deleted";
                             return Ok(new { status, message });
                         }
-                        message = "No Note Present to Delete. !!";
+                        message = "No Notes Present to Delete. !!";
                         return Ok(new { status, message });
+                    }
+                }
+                message = "Invalid Token";
+                return BadRequest(new { status, message });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { e.Message });
+            }
+        }
+
+        [HttpPut]
+        [Route("Label/{NoteId}")]
+        public async Task<IActionResult> AddlabelsToNote(int NoteId, AddLabelNoteRequest addLabelNote)
+        {
+            try
+            {
+                var user = HttpContext.User;
+                bool status = false;
+                string message;
+                if (user.HasClaim(c => c.Type == _tokenType))
+                {
+                    if (user.Claims.FirstOrDefault(c => c.Type == _tokenType).Value == _login &&
+                        user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _regularUser)
+                    {
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
+
+                        NoteResponseModel data = await _notesBusiness.AddlabelsToNote(NoteId, UserId, addLabelNote);
+                        if (data != null)
+                        {
+                            status = true;
+                            message = "Labels Updated Successfull";
+                            return Ok(new { status, message, data });
+                        }
+                        message = "Labels Cannot be Updated.";
+                        return Ok(new { status, message });
+                    }
+                }
+                message = "Invalid Token.";
+                return BadRequest(new { status, message });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { e.Message });
+            }
+        }
+
+        [HttpPut]
+        [Route("{NoteId}/Reminder")]
+        public async Task<IActionResult> UpdateRemoveReminder(int NoteId, ReminderRequest reminder)
+        {
+            try
+            {
+                var user = HttpContext.User;
+                bool status = false;
+                string message;
+                if (user.HasClaim(c => c.Type == _tokenType))
+                {
+                    if (user.Claims.FirstOrDefault(c => c.Type == _tokenType).Value == _login &&
+                        user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _regularUser)
+                    {
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
+
+                        if (reminder.Reminder != null)
+                        {
+
+                            TimeZoneInfo time = TimeZoneInfo.Local;
+
+                            reminder.Reminder = TimeZoneInfo.ConvertTimeFromUtc(reminder.Reminder.Value, time);
+                        }
+
+                        NoteResponseModel data = await _notesBusiness.UpdateRemoveReminder(NoteId, reminder, UserId);
+                        if (data != null)
+                        {
+                            status = true;
+                            message = "Reminder Has Been Successfully Updated to the note";
+                            return Ok(new { status, message, data });
+                        }
+                        message = "Unable to update the reminder to the note";
+                        return NotFound(new { status, message });
                     }
                 }
                 message = "Invalid Token";
@@ -448,8 +566,8 @@ namespace FundooAppBackend.Controllers
         /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
         /// occured and Not Proper Input Given it return BadRequest.</returns>
         [HttpPut]
-        [Route("{NoteId}/Pin")]
-        public async Task<IActionResult> PinUnpinNotes(int NoteId, PinnedRequest pinnedRequest)
+        [Route("Pin")]
+        public async Task<IActionResult> PinUnpinNotes(ListOfPinnedNotes pinnedNotes)
         {
             try
             {
@@ -462,8 +580,8 @@ namespace FundooAppBackend.Controllers
                         user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _regularUser)
                     {
                         int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
-                        NoteResponseModel data = await _notesBusiness.PinOrUnPinTheNote(NoteId, pinnedRequest, UserId);
-                        if (data != null)
+                        List<NoteResponseModel> data = await _notesBusiness.PinOrUnPinTheNote(pinnedNotes, UserId);
+                        if (data != null && data.Count > 0)
                         {
                             status = true;
                             message = "The Note has been Successfully Pinned.";
@@ -570,7 +688,6 @@ namespace FundooAppBackend.Controllers
         /// It Add or Update the Image of the notes.
         /// </summary>
         /// <param name="NoteId">Note Id</param>
-        /// <param name="imageRequest">Image Data</param>
         /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
         /// occured and Not Proper Input Given it return BadRequest.</returns>
         [HttpPut]
@@ -630,6 +747,50 @@ namespace FundooAppBackend.Controllers
         }
 
         /// <summary>
+        /// It Removes the Image from the Notes
+        /// </summary>
+        /// <param name="NoteId">Note Id</param>
+        /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
+        /// occured and Not Proper Input Given it return BadRequest.</returns>
+        [HttpPut]
+        [Route("{NoteId}/RemoveImage")]
+        public async Task<IActionResult> RemoveImage(int NoteId)
+        {
+            try
+            {
+                var user = HttpContext.User;
+                bool status = false;
+                string message;
+                if (user.HasClaim(c => c.Type == _tokenType))
+                {
+                    if (user.Claims.FirstOrDefault(c => c.Type == _tokenType).Value == _login &&
+                        user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _regularUser)
+                    {
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
+
+
+                        NoteResponseModel data = await _notesBusiness.RemoveImage(NoteId, UserId);
+                        if (data != null)
+                        {
+                            status = true;
+                            message = "The Image has Been Successfully Removed from the Note.";
+                            return Ok(new { status, message, data });
+                        }
+                        message = "Unable to remove the Image from the Note.";
+                        return NotFound(new { status, message });
+
+                    }
+                }
+                message = "Invalid Token";
+                return BadRequest(new { status, message });
+            }
+            catch(Exception e)
+            {
+                return BadRequest(new { e.Message });
+            }
+        }
+
+        /// <summary>
         /// It Add Or Update the Collaborator to the Notes
         /// </summary>
         /// <param name="NoteId">Note Id</param>
@@ -671,8 +832,6 @@ namespace FundooAppBackend.Controllers
                 return BadRequest(new { e.Message });
             }
         }
-
-
         
         /// <summary>
         /// It Restore the Deleted Notes.
@@ -714,6 +873,57 @@ namespace FundooAppBackend.Controllers
             }
         }
 
+        [HttpPut]
+        [Route("UploadImage")]
+        public IActionResult AddImageToCloudinary([FromForm] IFormFile file)
+        {
+            try
+            {
+                var user = HttpContext.User;
+                bool status = false;
+                string message;
+                if (user.HasClaim(c => c.Type == _tokenType))
+                {
+                    if (user.Claims.FirstOrDefault(c => c.Type == _tokenType).Value == _login &&
+                        user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _regularUser)
+                    {
+                        int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
+
+                        if (file == null || file.Length <= 0)
+                        {
+                            message = "No Image Provided";
+                            return BadRequest(new { status, message });
+                        }
+
+                        if (file.FileName.EndsWith(".jpg") || file.FileName.EndsWith(".png"))
+                        {
+
+                            string imagePath = UploadImageToCloudinary(file);
+
+                            if (!string.IsNullOrWhiteSpace(imagePath))
+                            {
+                                status = true;
+                                message = "The Image has Been Successfully Added To the Cloudinary.";
+                                return Ok(new { status, message, imagePath });
+                            }
+                            message = "Unable to Add the Image to the Note.";
+                            return Ok(new { status, message });
+                        }
+                        else
+                        {
+                            message = "Please Provide the .jpg or .png Images only";
+                            return BadRequest(new { status, message });
+                        }
+                    }
+                }
+                message = "Invalid Token";
+                return BadRequest(new { status, message });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { e.Message });
+            }
+        }
 
 
 

@@ -140,8 +140,20 @@ namespace FundooCommonLayer.Model
 
     }
 
-
     public class AdminUserListResponseModel
+    {
+        public List<UserList> records { set; get; }
+
+        public string previous { set; get; }
+
+        public string next { set; get; }
+
+        public int count { set; get; }
+
+    }
+
+
+    public class UserList
     {
 
         public int UserId { set; get; }
@@ -152,7 +164,7 @@ namespace FundooCommonLayer.Model
 
         public string EmailId { set; get; }
 
-        public string Type { set; get; }
+        public string Service { set; get; }
 
         public int Notes { set; get; }
 

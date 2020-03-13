@@ -55,7 +55,7 @@ namespace FundooAppBackend.Controllers
                 if (data == null)
                 {
                     message = "No Data Provided";
-                    return NotFound(new { status, message });
+                    return Ok(new { status, message });
                 }
                 else
                 {
@@ -90,7 +90,7 @@ namespace FundooAppBackend.Controllers
                 if (data == null)
                 {
                     message = "No Admin Account Present with this Email-Id and Password";
-                    return NotFound(new { status, message });
+                    return Ok(new { status, message });
                 }
                 else
                 {
@@ -135,7 +135,7 @@ namespace FundooAppBackend.Controllers
                             return Ok(new { status, message, data });
                         }
                         message = "No Data Present.";
-                        return NotFound(new { status, message });
+                        return Ok(new { status, message });
                     }
                 }
                 message = "Invalid Token.";
@@ -155,7 +155,7 @@ namespace FundooAppBackend.Controllers
         [HttpGet]
         [Route("Users")]
         [Authorize]
-        public IActionResult AdminUserList(int start)
+        public IActionResult AdminUserList(int take, int skip)
         {
             try
             {
@@ -168,7 +168,7 @@ namespace FundooAppBackend.Controllers
                         user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _admin)
                     {
                         int userId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
-                        List<AdminUserListResponseModel> data = _adminBusiness.AdminUserLists(userId, start);
+                        AdminUserListResponseModel data = _adminBusiness.AdminUserLists(userId, take, skip);
                         if (data != null)
                         {
                             status = true;
@@ -176,7 +176,7 @@ namespace FundooAppBackend.Controllers
                             return Ok(new { status, message, data });
                         }
                         message = "No Data Present.";
-                        return NotFound(new { status, message });
+                        return Ok(new { status, message });
                     }
                 }
                 message = "Invalid Token.";

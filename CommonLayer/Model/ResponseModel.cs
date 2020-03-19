@@ -152,7 +152,6 @@ namespace FundooCommonLayer.Model
 
     }
 
-
     public class UserList
     {
 
@@ -167,6 +166,23 @@ namespace FundooCommonLayer.Model
         public string Service { set; get; }
 
         public int Notes { set; get; }
+
+    }
+
+    
+    public class ReminderNotificationResponseModel
+    {
+        public int UserId { set; get; }
+
+        public string Token { set; get; }
+
+        public int NoteId { set; get; }
+
+        public string Title { set; get; }
+
+        public string Desciption { set; get; }
+
+        public DateTime Reminder { set; get; }
 
     }
 

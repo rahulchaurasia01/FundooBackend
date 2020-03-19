@@ -168,7 +168,7 @@ namespace FundooAppBackend.Controllers
                         user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _admin)
                     {
                         int userId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
-                        AdminUserListResponseModel data = _adminBusiness.AdminUserLists(userId, take, skip);
+                        List<UserList> data = _adminBusiness.AdminUserLists(userId, take, skip);
                         if (data != null)
                         {
                             status = true;

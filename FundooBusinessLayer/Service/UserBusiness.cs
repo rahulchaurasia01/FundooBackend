@@ -59,6 +59,23 @@ namespace FundooBusinessLayer.Service
         }
 
         /// <summary>
+        /// Get all the Notes with userId and Notification Token.
+        /// </summary>
+        /// <param name="currentTime">Current Time</param>
+        /// <param name="endTime">End Time</param>
+        public List<ReminderNotificationResponseModel> ReminderNotification(DateTime currentTime, DateTime endTime)
+        {
+            try
+            {
+                return _userRepository.ReminderNotification(currentTime, endTime);
+            }
+            catch(Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
+        /// <summary>
         /// Add Image to the Profile Pic
         /// </summary>
         /// <param name="imageRequest">Image Data</param>

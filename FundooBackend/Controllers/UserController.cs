@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,6 +20,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 
 namespace FundooAppBackend.Controllers
 {
@@ -39,8 +42,6 @@ namespace FundooAppBackend.Controllers
         private static readonly string _tokenType = "TokenType";
         private static readonly string _userType = "UserType";
         private static readonly string _userId = "UserId";
-
-
 
         public UserController(IUserBusiness userBusiness, IConfiguration configuration)
         {
@@ -83,7 +84,7 @@ namespace FundooAppBackend.Controllers
                 message = "Invalid Token";
                 return BadRequest(new { status, message });
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 return BadRequest(new { e.Message });
             }
@@ -182,7 +183,7 @@ namespace FundooAppBackend.Controllers
                             message = "Please Provide the .jpg or .png Images only";
                             return BadRequest(new { status, message });
                         }
-                        
+
                     }
                 }
                 message = "Invalid Token";
@@ -193,6 +194,31 @@ namespace FundooAppBackend.Controllers
                 return BadRequest(new { e.Message });
             }
         }
+
+        [HttpPost]
+        [Route("ReminderNotification")]
+        public async Task<IActionResult> CheckForReminderNotificationAsync()
+        {
+            try
+            {
+                bool status = false;
+                string message;
+                DateTime currentTime = DateTime.Now;
+                DateTime EndTime = currentTime.AddHours(1);
+
+                List<ReminderNotificationResponseModel> data = _userBusiness.ReminderNotification(currentTime, EndTime);
+
+                if (data != null && data.Count > 0)
+                    await SendNotification(data);
+                message = "No Notes present to Send The Notification";
+                return Ok(new { status, message });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { e.Message });
+            }
+        }
+
 
         /// <summary>
         /// Api for Registration
@@ -205,7 +231,7 @@ namespace FundooAppBackend.Controllers
         {
             try
             {
-                if(!ValidateRegisterRequest(userDetails))
+                if (!ValidateRegisterRequest(userDetails))
                     return BadRequest(new { Message = "Enter Proper Data" });
 
                 UserResponseModel data = await _userBusiness.Registration(userDetails);
@@ -243,7 +269,7 @@ namespace FundooAppBackend.Controllers
             try
             {
                 if (!ValidateLoginRequest(login))
-                    return BadRequest(new { Message= "Enter Proper Input Value." });
+                    return BadRequest(new { Message = "Enter Proper Input Value." });
 
                 UserResponseModel data = _userBusiness.Login(login);
                 bool status = false;
@@ -330,7 +356,7 @@ namespace FundooAppBackend.Controllers
                     {
                         int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
                         status = await _userBusiness.ResetPassword(resetPassword, UserId);
-                        if(status)
+                        if (status)
                         {
                             status = true;
                             message = "Your Password Has been Successfully Changed";
@@ -474,5 +500,102 @@ namespace FundooAppBackend.Controllers
             }
         }
 
+
+        private async Task<IActionResult> SendNotification(List<ReminderNotificationResponseModel> reminders)
+        {
+            int count = 0;
+            bool status = false;
+            string message;
+            string serverKey = _configuration["Firebase:Server_Key"];
+            string senderId = _configuration["Firebase:SenderId"];
+            string fcmLink = "https://fcm.googleapis.com/fcm/send";
+
+
+            foreach (ReminderNotificationResponseModel reminder in reminders)
+            {
+                var notificationData = new NotificationModel()
+                {
+                    Notification = new NoteModel()
+                    {
+                        Title = reminder.Title,
+                        Body = reminder.Desciption
+                    },
+                    To = reminder.Token
+                };
+
+
+                //var httpWebRequest = (HttpWebRequest)WebRequest.Create(fcmLink);
+                //httpWebRequest.ContentType = "application/json";
+                //httpWebRequest.Headers.Add(string.Format("Authorization: Key={0}", serverKey));
+                //httpWebRequest.Headers.Add(string.Format("Sender: id={0}", senderId));
+                //httpWebRequest.Method = "POST";
+
+
+                //var json = JsonConvert.SerializeObject(notificationData);
+                //var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+
+                //var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+
+                string jsonMessage = JsonConvert.SerializeObject(notificationData);
+                var request = new HttpRequestMessage(System.Net.Http.HttpMethod.Post, fcmLink);
+
+                request.Headers.TryAddWithoutValidation("Authorization", "key=" + serverKey);
+                request.Content = new StringContent(jsonMessage, Encoding.UTF8, "application/json");
+
+                HttpResponseMessage result;
+
+                using(var client = new HttpClient())
+                {
+                    result = await client.SendAsync(request);
+                }
+
+                //using (var client = new HttpClient())
+                //{
+
+                //    client.BaseAddress = new Uri("https://fcm.googleapis.com/");
+                //    client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+                //    client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"key={serverKey}");
+                //    client.DefaultRequestHeaders.TryAddWithoutValidation("Sender", $"id={senderId}");
+
+                //    var json = JsonConvert.SerializeObject(notificationData);
+                //    var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+
+
+                //    //var request = new HttpRequestMessage
+                //    //{
+                //    //    RequestUri = new Uri("https://fcm.googleapis.com/fcm/send"),
+                //    //    Method = System.Net.Http.HttpMethod.Post,
+                //    //    //Headers =
+                //    //    //{
+                //    //    //    { HttpRequestHeader.Authorization.ToString(), _configuration["Firebase:Server_Key"] },
+                //    //    //    { HttpRequestHeader.ContentType.ToString(), "application/json" }
+                //    //    //},
+                //    //    Content = new StringContent(JsonConvert.SerializeObject(notificationData))
+                //    //};
+
+                //    //request.Headers.Add("Content-Type", "application/json");
+                //    //request.Headers.TryAddWithoutValidation("Authorization", _configuration["Firebase:Server_Key"]);
+
+                //    HttpResponseMessage httpResponse = await client.PostAsync("fcm/send", httpContent);
+
+                //    if (httpResponse.IsSuccessStatusCode)
+                //        count++;
+                //}
+
+            }
+
+            if (count == reminders.Count)
+            {
+                status = true;
+                message = "Reminder Notification Send Successfully";
+                return Ok(new { status, message });
+            }
+            else
+            {
+                message = "Unable to Send Notification";
+                return Ok(new { status, message });
+            }
+
+        }
     }
 }

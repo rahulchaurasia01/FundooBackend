@@ -155,7 +155,7 @@ namespace FundooRepositoryLayer.Service
         /// </summary>
         /// <param name="userId">Admin User Id</param>
         /// <returns>List Of Users With there No. Of Notes.</returns>
-        public AdminUserListResponseModel AdminUserLists(int userId, int take, int skip)
+        public List<UserList> AdminUserLists(int userId, int take, int skip)
         {
             try
             {
@@ -176,8 +176,8 @@ namespace FundooRepositoryLayer.Service
                         }).
                         ToList();
 
-                    if (take > adminUserLists.Count)
-                        return null;
+                    //if (take > adminUserLists.Count)
+                    //    return null;
 
                     foreach(UserList adminUserList in adminUserLists)
                     {
@@ -185,19 +185,19 @@ namespace FundooRepositoryLayer.Service
                             Where(note => note.UserId == adminUserList.UserId).Count();
                     }
 
-                    if (skip == 0)
-                        skip = 10;
+                    //if (skip == 0)
+                    //    skip = 10;
 
-                    int end=take+skip;
+                    //int end=take+skip;
 
-                    if(end >= adminUserLists.Count)
-                        end = adminUserLists.Count - take;
+                    //if(end >= adminUserLists.Count)
+                    //    end = adminUserLists.Count - take;
 
-                    AdminUserListResponseModel userListResponseModel = new AdminUserListResponseModel();
+                    //AdminUserListResponseModel userListResponseModel = new AdminUserListResponseModel();
 
-                    userListResponseModel.records = adminUserLists.GetRange(take, end);
+                    //userListResponseModel.records = adminUserLists.GetRange(take, end);
 
-                    return userListResponseModel;
+                    return adminUserLists;
 
                 }
 

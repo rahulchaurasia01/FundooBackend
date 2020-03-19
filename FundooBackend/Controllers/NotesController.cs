@@ -480,7 +480,7 @@ namespace FundooAppBackend.Controllers
         }
 
         [HttpPut]
-        [Route("Label/{NoteId}")]
+        [Route("{NoteId}/Label")]
         public async Task<IActionResult> AddlabelsToNote(int NoteId, AddLabelNoteRequest addLabelNote)
         {
             try
@@ -608,8 +608,8 @@ namespace FundooAppBackend.Controllers
         /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
         /// occured and Not Proper Input Given it return BadRequest.</returns>
         [HttpPut]
-        [Route("{NoteId}/Archive")]
-        public async Task<IActionResult> ArchiveUnArchiveNote(int NoteId, ArchiveRequest archiveRequest)
+        [Route("Archive")]
+        public async Task<IActionResult> ArchiveUnArchiveNote(ListOfArchiveNotes archiveRequest)
         {
             try
             {
@@ -622,8 +622,8 @@ namespace FundooAppBackend.Controllers
                         user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _regularUser)
                     {
                         int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
-                        NoteResponseModel data = await _notesBusiness.ArchiveUnArchiveTheNote(NoteId, archiveRequest, UserId);
-                        if (data != null)
+                        List<NoteResponseModel> data = await _notesBusiness.ArchiveUnArchiveTheNote(archiveRequest, UserId);
+                        if (data != null && data.Count > 0)
                         {
                             status = true;
                             message = "The Note has been Successfully Archived.";
@@ -650,8 +650,8 @@ namespace FundooAppBackend.Controllers
         /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
         /// occured and Not Proper Input Given it return BadRequest.</returns>
         [HttpPut]
-        [Route("{NoteId}/Color")]
-        public async Task<IActionResult> ColorNote(int NoteId, ColorRequest colorRequest)
+        [Route("Color")]
+        public async Task<IActionResult> ColorNote(ListOfColorNotes colorRequest)
         {
             try
             {
@@ -664,8 +664,8 @@ namespace FundooAppBackend.Controllers
                         user.Claims.FirstOrDefault(c => c.Type == _userType).Value == _regularUser)
                     {
                         int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
-                        NoteResponseModel data = await _notesBusiness.ColorTheNote(NoteId, colorRequest, UserId);
-                        if (data != null)
+                        List<NoteResponseModel> data = await _notesBusiness.ColorTheNote(colorRequest, UserId);
+                        if (data != null && data.Count > 0)
                         {
                             status = true;
                             message = "The Color Has Been Successfully Added To the Note.";

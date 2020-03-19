@@ -13,6 +13,8 @@ namespace FundooRepositoryLayer.Interface
 
         Task<List<UserListResponseModel>> GetAllUsers(UserRequest userRequest, int userId);
 
+        List<ReminderNotificationResponseModel> ReminderNotification(DateTime currentTime, DateTime endTime);
+
         Task<UserResponseModel> AddUpdateProfilePic(ImageRequest imageRequest, int userId);
 
         Task<UserResponseModel> Registration(RegisterRequest userDetails);

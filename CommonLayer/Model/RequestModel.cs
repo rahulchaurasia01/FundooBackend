@@ -128,11 +128,17 @@ namespace FundooCommonLayer.Model
         public DateTime? Reminder { set; get; }
     }
 
+    /// <summary>
+    /// It Delete the list of notes with there NoteId
+    /// </summary>
     public class ListOfDeleteNotes
     {
         public List<DeleteIdRequest> DeleteNotes { set; get; }
     }
 
+    /// <summary>
+    /// Noteid Of the Note to be deleted
+    /// </summary>
     public class DeleteIdRequest
     {
         public int NoteId { set; get;}
@@ -159,11 +165,29 @@ namespace FundooCommonLayer.Model
     }
 
     /// <summary>
+    /// It Update the archive value of the list of Notes.
+    /// </summary>
+    public class ListOfArchiveNotes
+    {
+        public List<ArchiveRequest> ArchiveNotes { set; get; }
+    }
+
+    /// <summary>
     /// Archive Request: When User tries to Archive its notes.
     /// </summary>
     public class ArchiveRequest
     {
+        public int NoteId { set; get; }
+
         public bool IsArchive { set; get; }
+    }
+
+    /// <summary>
+    /// It Update the color of the list of notes.
+    /// </summary>
+    public class ListOfColorNotes
+    {
+        public List<ColorRequest> ColorNotes { set; get; }
     }
 
     /// <summary>
@@ -171,6 +195,8 @@ namespace FundooCommonLayer.Model
     /// </summary>
     public class ColorRequest
     {
+        public int NoteId { set; get; }
+
         [Required]
         [RegularExpression("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$", ErrorMessage = "Enter a Valid Color")]
         public string Color { set; get; }

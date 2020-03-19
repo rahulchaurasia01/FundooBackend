@@ -49,7 +49,7 @@ namespace FundooBusinessLayer.Service
             }
         }
 
-        public AdminUserListResponseModel AdminUserLists(int userId, int take, int skip)
+        public List<UserList> AdminUserLists(int userId, int take, int skip)
         {
             try
             {

@@ -36,9 +36,9 @@ namespace FundooBusinessLayer.Interface
 
         Task<List<NoteResponseModel>> PinOrUnPinTheNote(ListOfPinnedNotes pinnedNotes, int userId);
 
-        Task<NoteResponseModel> ArchiveUnArchiveTheNote(int NoteId, ArchiveRequest archiveRequest, int userId);
+        Task<List<NoteResponseModel>> ArchiveUnArchiveTheNote(ListOfArchiveNotes archiveRequest, int userId);
 
-        Task<NoteResponseModel> ColorTheNote(int NoteId, ColorRequest colorRequest, int userId);
+        Task<List<NoteResponseModel>> ColorTheNote(ListOfColorNotes colorRequest, int userId);
 
         Task<NoteResponseModel> AddUpdateImage(int NoteId, ImageRequest imageRequest, int userId);
 

@@ -46,18 +46,33 @@ namespace FundooRepositoryLayer.Service
 
                 if(userDetails != null)
                 {
-                    NotificationDetails notificationDetails = new NotificationDetails
+                    NotificationDetails notification = context.NotificationDetails.
+                        FirstOrDefault(user => user.UserId == userId);
+
+                    if (notification == null)
                     {
-                        UserId = userId,
-                        Token = notificationRequest.Token,
-                        CreatedAt = DateTime.Now,
-                        ModifiedAt = DateTime.Now
-                    };
+                        NotificationDetails notificationDetails = new NotificationDetails
+                        {
+                            UserId = userId,
+                            Token = notificationRequest.Token,
+                            CreatedAt = DateTime.Now,
+                            ModifiedAt = DateTime.Now
+                        };
 
-                    context.NotificationDetails.Add(notificationDetails);
-                    await context.SaveChangesAsync();
+                        context.NotificationDetails.Add(notificationDetails);
+                        await context.SaveChangesAsync();
 
-                    return true;
+                        return true;
+                    }
+                    else
+                    {
+                        notification.Token = notificationRequest.Token;
+                        notification.ModifiedAt = DateTime.Now;
+                        context.NotificationDetails.Attach(notification);
+                        await context.SaveChangesAsync();
+
+                        return true;
+                    }
                 }
 
                 return false;
@@ -94,6 +109,49 @@ namespace FundooRepositoryLayer.Service
                 return null;
             }
             catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
+        /// <summary>
+        /// Get All the Notes WithIn CurrentTime and EndTime with UserId and Notification Token 
+        /// </summary>
+        /// <param name="currentTime">Current Time</param>
+        /// <param name="endTime">End Time, (1 hour Gap)</param>
+        /// <returns>Reminder Notification Response Model</returns>
+        public List<ReminderNotificationResponseModel> ReminderNotification(DateTime currentTime, DateTime endTime)
+        {
+            try
+            {
+                List<NotesDetails> notesDetails = context.NotesDetails.
+                    Where(note => (note.Reminder.Value >= currentTime) && (note.Reminder.Value <= endTime)).ToList();
+
+                List<ReminderNotificationResponseModel> notes = context.NotesDetails.
+                    Where(note => (note.Reminder.Value >= currentTime) && (note.Reminder.Value <= endTime)).
+                    Join(context.NotificationDetails,
+                    noteUser => noteUser.UserId,
+                    notificationUser => notificationUser.UserId,
+                    (noteUser, notificationuser) => new ReminderNotificationResponseModel
+                    {
+                        UserId = noteUser.NotesId,
+                        Token = notificationuser.Token,
+                        NoteId = noteUser.NotesId,
+                        Title = noteUser.Title,
+                        Desciption = noteUser.Description,
+                        Reminder = noteUser.Reminder.Value
+                    }).
+                    ToList();
+
+                if(notes != null && notes.Count > 0)
+                {
+                    return notes;
+                }
+
+                return null;
+
+            }
+            catch(Exception e)
             {
                 throw new Exception(e.Message);
             }

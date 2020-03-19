@@ -323,14 +323,14 @@ namespace FundooBusinessLayer.Service
         /// <param name="archiveRequest">Archive value</param>
         /// <param name="userId">User Id</param>
         /// <returns>Note Response Model</returns>
-        public async Task<NoteResponseModel> ArchiveUnArchiveTheNote(int NoteId, ArchiveRequest archiveRequest, int userId)
+        public async Task<List<NoteResponseModel>> ArchiveUnArchiveTheNote(ListOfArchiveNotes archiveRequest, int userId)
         {
             try
             {
-                if (archiveRequest == null || NoteId <= 0 || userId <= 0)
+                if (archiveRequest == null || userId <= 0)
                     return null;
                 else
-                    return await _notesRepository.ArchiveUnArchiveTheNote(NoteId, archiveRequest, userId);
+                    return await _notesRepository.ArchiveUnArchiveTheNote(archiveRequest, userId);
             }
             catch(Exception e)
             {
@@ -345,14 +345,14 @@ namespace FundooBusinessLayer.Service
         /// <param name="colorRequest">Color Value</param>
         /// <param name="userId">User Id</param>
         /// <returns>Note Response Model</returns>
-        public async Task<NoteResponseModel> ColorTheNote(int NoteId, ColorRequest colorRequest, int userId)
+        public async Task<List<NoteResponseModel>> ColorTheNote(ListOfColorNotes colorRequest, int userId)
         {
             try
             {
-                if (colorRequest == null || NoteId <= 0 || userId <= 0)
+                if (colorRequest == null || userId <= 0)
                     return null;
                 else
-                    return await _notesRepository.ColorTheNote(NoteId, colorRequest, userId);
+                    return await _notesRepository.ColorTheNote(colorRequest, userId);
             }
             catch(Exception e)
             {

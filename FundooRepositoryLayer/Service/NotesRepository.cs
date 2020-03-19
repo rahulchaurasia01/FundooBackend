@@ -933,53 +933,64 @@ namespace FundooRepositoryLayer.Service
         /// <param name="archiveRequest">Archive Value</param>
         /// <param name="userId">User Id</param>
         /// <returns>Note Repsonse Model</returns>
-        public async Task<NoteResponseModel> ArchiveUnArchiveTheNote(int NoteId, ArchiveRequest archiveRequest, int userId)
+        public async Task<List<NoteResponseModel>> ArchiveUnArchiveTheNote(ListOfArchiveNotes archiveNotes, int userId)
         {
             try
             {
-                NotesDetails notesDetails = _applicationContext.NotesDetails.
-                    FirstOrDefault(note => note.NotesId == NoteId && note.UserId == userId && !note.IsDeleted);
+                List<NoteResponseModel> noteResponses = new List<NoteResponseModel>();
 
-                if (notesDetails == null)
+                foreach (ArchiveRequest archiveRequest in archiveNotes.ArchiveNotes)
                 {
-                    notesDetails = _applicationContext.UsersNotes.
-                    Where(usrNote => usrNote.NoteId == NoteId && usrNote.UserId == userId && !usrNote.IsDeleted).
-                    Join(_applicationContext.NotesDetails,
-                    usrNote => usrNote.NoteId,
-                    note => note.NotesId,
-                    (usrNote, note) => new NotesDetails
-                    {
-                        NotesId = usrNote.NoteId,
-                        Title = note.Title,
-                        UserId = note.UserId,
-                        Description = note.Description,
-                        Color = note.Color,
-                        Image = note.Image,
-                        IsArchived = note.IsArchived,
-                        IsPin = note.IsPin,
-                        IsDeleted = note.IsDeleted,
-                        Reminder = note.Reminder,
-                        CreatedAt = note.CreatedAt,
-                        ModifiedAt = note.ModifiedAt
-                    }).
-                    FirstOrDefault();
+
+                    NotesDetails notesDetails = _applicationContext.NotesDetails.
+                        FirstOrDefault(note => note.NotesId == archiveRequest.NoteId && note.UserId == userId && !note.IsDeleted);
+
                     if (notesDetails == null)
-                        return null;
+                    {
+                        notesDetails = _applicationContext.UsersNotes.
+                        Where(usrNote => usrNote.NoteId == archiveRequest.NoteId && usrNote.UserId == userId && !usrNote.IsDeleted).
+                        Join(_applicationContext.NotesDetails,
+                        usrNote => usrNote.NoteId,
+                        note => note.NotesId,
+                        (usrNote, note) => new NotesDetails
+                        {
+                            NotesId = usrNote.NoteId,
+                            Title = note.Title,
+                            UserId = note.UserId,
+                            Description = note.Description,
+                            Color = note.Color,
+                            Image = note.Image,
+                            IsArchived = note.IsArchived,
+                            IsPin = note.IsPin,
+                            IsDeleted = note.IsDeleted,
+                            Reminder = note.Reminder,
+                            CreatedAt = note.CreatedAt,
+                            ModifiedAt = note.ModifiedAt
+                        }).
+                        FirstOrDefault();
+                        if (notesDetails == null)
+                            return null;
+                    }
+
+                    if (notesDetails != null)
+                    {
+
+                        notesDetails.IsArchived = archiveRequest.IsArchive;
+                        if (notesDetails.IsArchived)
+                            notesDetails.IsPin = false;
+                        notesDetails.ModifiedAt = DateTime.Now;
+                        var data = _applicationContext.NotesDetails.Attach(notesDetails);
+                        data.State = EntityState.Modified;
+                        await _applicationContext.SaveChangesAsync();
+
+                        notesDetails.UserId = userId;
+                        NoteResponseModel noteResponseModel = await NoteResponseModel(notesDetails);
+
+                        noteResponses.Add(noteResponseModel);
+                    }
                 }
 
-                notesDetails.IsArchived = archiveRequest.IsArchive;
-                if (notesDetails.IsArchived)
-                    notesDetails.IsPin = false;
-                notesDetails.ModifiedAt = DateTime.Now;
-                var data = _applicationContext.NotesDetails.Attach(notesDetails);
-                data.State = EntityState.Modified;
-                await _applicationContext.SaveChangesAsync();
-
-                notesDetails.UserId = userId;
-                NoteResponseModel noteResponseModel = await NoteResponseModel(notesDetails);
-
-                return noteResponseModel;
-
+                return noteResponses;
             }
             catch (Exception e)
             {
@@ -994,49 +1005,61 @@ namespace FundooRepositoryLayer.Service
         /// <param name="colorRequest">Color Value</param>
         /// <param name="userId">User Id</param>
         /// <returns>Note Response Model</returns>
-        public async Task<NoteResponseModel> ColorTheNote(int NoteId, ColorRequest colorRequest, int userId)
+        public async Task<List<NoteResponseModel>> ColorTheNote(ListOfColorNotes colorNotes, int userId)
         {
             try
             {
-                NotesDetails notesDetails = _applicationContext.NotesDetails.
-                    FirstOrDefault(note => note.NotesId == NoteId && note.UserId == userId && !note.IsDeleted);
+                List<NoteResponseModel> noteResponseModels = new List<NoteResponseModel>();
 
-                if (notesDetails == null)
+                foreach (ColorRequest colorRequest in colorNotes.ColorNotes)
                 {
-                    notesDetails = _applicationContext.UsersNotes.
-                    Where(usrNote => usrNote.NoteId == NoteId && usrNote.UserId == userId && !usrNote.IsDeleted).
-                    Join(_applicationContext.NotesDetails,
-                    usrNote => usrNote.NoteId,
-                    note => note.NotesId,
-                    (usrNote, note) => new NotesDetails
-                    {
-                        NotesId = usrNote.NoteId,
-                        Title = note.Title,
-                        UserId = note.UserId,
-                        Description = note.Description,
-                        Color = note.Color,
-                        Image = note.Image,
-                        IsArchived = note.IsArchived,
-                        IsPin = note.IsPin,
-                        IsDeleted = note.IsDeleted,
-                        Reminder = note.Reminder,
-                        CreatedAt = note.CreatedAt,
-                        ModifiedAt = note.ModifiedAt
-                    }).
-                    FirstOrDefault();
+
+                    NotesDetails notesDetails = _applicationContext.NotesDetails.
+                        FirstOrDefault(note => note.NotesId == colorRequest.NoteId && note.UserId == userId && !note.IsDeleted);
+
                     if (notesDetails == null)
-                        return null;
+                    {
+                        notesDetails = _applicationContext.UsersNotes.
+                        Where(usrNote => usrNote.NoteId == colorRequest.NoteId && usrNote.UserId == userId && !usrNote.IsDeleted).
+                        Join(_applicationContext.NotesDetails,
+                        usrNote => usrNote.NoteId,
+                        note => note.NotesId,
+                        (usrNote, note) => new NotesDetails
+                        {
+                            NotesId = usrNote.NoteId,
+                            Title = note.Title,
+                            UserId = note.UserId,
+                            Description = note.Description,
+                            Color = note.Color,
+                            Image = note.Image,
+                            IsArchived = note.IsArchived,
+                            IsPin = note.IsPin,
+                            IsDeleted = note.IsDeleted,
+                            Reminder = note.Reminder,
+                            CreatedAt = note.CreatedAt,
+                            ModifiedAt = note.ModifiedAt
+                        }).
+                        FirstOrDefault();
+                        if (notesDetails == null)
+                            return null;
+                    }
+
+                    if (notesDetails != null)
+                    {
+                        notesDetails.Color = colorRequest.Color;
+                        notesDetails.ModifiedAt = DateTime.Now;
+                        var data = _applicationContext.NotesDetails.Attach(notesDetails);
+                        data.State = EntityState.Modified;
+                        await _applicationContext.SaveChangesAsync();
+
+                        NoteResponseModel noteResponseModel = await NoteResponseModel(notesDetails);
+
+                        noteResponseModels.Add(noteResponseModel);
+                    }
                 }
 
-                notesDetails.Color = colorRequest.Color;
-                notesDetails.ModifiedAt = DateTime.Now;
-                var data = _applicationContext.NotesDetails.Attach(notesDetails);
-                data.State = EntityState.Modified;
-                await _applicationContext.SaveChangesAsync();
+                return noteResponseModels;
 
-                NoteResponseModel noteResponseModel = await NoteResponseModel(notesDetails);
-
-                return noteResponseModel;
             }
             catch (Exception e)
             {

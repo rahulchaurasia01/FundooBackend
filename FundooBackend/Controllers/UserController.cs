@@ -11,10 +11,14 @@ using System.Threading.Tasks;
 using System.Web.Http.Cors;
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
+using FirebaseAdmin;
+using FirebaseAdmin.Messaging;
 using FundooBusinessLayer.Interface;
 using FundooCommonLayer.Model;
 using FundooCommonLayer.ModelDB;
+using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
@@ -32,6 +36,7 @@ namespace FundooAppBackend.Controllers
 
         private readonly IUserBusiness _userBusiness;
         private readonly IConfiguration _configuration;
+        private readonly IHostingEnvironment _environment;
         private readonly IDistributedCache _distributed;
 
         private static readonly string _forgetPassword = "ForgetPassword";
@@ -43,10 +48,11 @@ namespace FundooAppBackend.Controllers
         private static readonly string _userType = "UserType";
         private static readonly string _userId = "UserId";
 
-        public UserController(IUserBusiness userBusiness, IConfiguration configuration)
+        public UserController(IUserBusiness userBusiness, IConfiguration configuration, IHostingEnvironment environment)
         {
             _userBusiness = userBusiness;
             _configuration = configuration;
+            _environment = environment;
             //_distributed = distributedCache;
         }
 
@@ -78,7 +84,7 @@ namespace FundooAppBackend.Controllers
                             return Ok(new { status, message });
                         }
                         message = "Unable to Add Notification Token";
-                        return NotFound(new { status, message });
+                        return Ok(new { status, message });
                     }
                 }
                 message = "Invalid Token";
@@ -195,6 +201,12 @@ namespace FundooAppBackend.Controllers
             }
         }
 
+        /// <summary>
+        /// Get All Notes with Upcoming reminder with 1hr range and send
+        /// notification to user.
+        /// </summary>
+        /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
+        /// occured and Not Proper Input Given it return BadRequest.</returns>
         [HttpPost]
         [Route("ReminderNotification")]
         public async Task<IActionResult> CheckForReminderNotificationAsync()
@@ -203,22 +215,37 @@ namespace FundooAppBackend.Controllers
             {
                 bool status = false;
                 string message;
+                int count;
                 DateTime currentTime = DateTime.Now;
                 DateTime EndTime = currentTime.AddHours(1);
 
                 List<ReminderNotificationResponseModel> data = _userBusiness.ReminderNotification(currentTime, EndTime);
 
                 if (data != null && data.Count > 0)
-                    await SendNotification(data);
-                message = "No Notes present to Send The Notification";
-                return Ok(new { status, message });
+                {
+                    //await SendNotification(data);
+                    count = await FirebaseNotification(data);
+
+                    if (count == data.Count)
+                    {
+                        status = true;
+                        message = "Notification send Successfully";
+                        return Ok(new { status, message });
+                    }
+                    message = "Unablt to Notify all the user";
+                    return Ok(new { status, message  });
+                }
+                else
+                {
+                    message = "No Notes present to Send The Notification";
+                    return Ok(new { status, message });
+                }
             }
             catch (Exception e)
             {
                 return BadRequest(new { e.Message });
             }
         }
-
 
         /// <summary>
         /// Api for Registration
@@ -241,7 +268,7 @@ namespace FundooAppBackend.Controllers
                 if (data == null)
                 {
                     message = "No Data Provided";
-                    return NotFound(new { status, message });
+                    return Ok(new { status, message });
                 }
                 else
                 {
@@ -278,7 +305,7 @@ namespace FundooAppBackend.Controllers
                 if (data == null)
                 {
                     message = "No User Present with this Email-Id and Password";
-                    return NotFound(new { status, message });
+                    return Ok(new { status, message });
                 }
                 else
                 {
@@ -315,7 +342,7 @@ namespace FundooAppBackend.Controllers
                 if (data == null)
                 {
                     message = "No User Found with this Email-Id: " + forgetPassword.EmailId;
-                    return NotFound(new { status, message });
+                    return Ok(new { status, message });
                 }
                 else
                 {
@@ -363,7 +390,7 @@ namespace FundooAppBackend.Controllers
                             return Ok(new { status, message });
                         }
                         message = "Unable to Change the Password.";
-                        return NotFound(new { status, message });
+                        return Ok(new { status, message });
                     }
                 }
                 message = "Invalid Token.";
@@ -501,101 +528,150 @@ namespace FundooAppBackend.Controllers
         }
 
 
-        private async Task<IActionResult> SendNotification(List<ReminderNotificationResponseModel> reminders)
-        {
-            int count = 0;
-            bool status = false;
-            string message;
-            string serverKey = _configuration["Firebase:Server_Key"];
-            string senderId = _configuration["Firebase:SenderId"];
-            string fcmLink = "https://fcm.googleapis.com/fcm/send";
+        //private async Task<IActionResult> SendNotification(List<ReminderNotificationResponseModel> reminders)
+        //{
+        //    int count = 0;
+        //    bool status = false;
+        //    string message;
+        //    string serverKey = _configuration["Firebase:Server_Key"];
+        //    string senderId = _configuration["Firebase:SenderId"];
+        //    string fcmLink = "https://fcm.googleapis.com/fcm/send";
 
+
+        //    foreach (ReminderNotificationResponseModel reminder in reminders)
+        //    {
+        //        var notificationData = new NotificationModel()
+        //        {
+        //            Notification = new NoteModel()
+        //            {
+        //                Title = reminder.Title,
+        //                Body = reminder.Desciption
+        //            },
+        //            To = reminder.Token
+        //        };
+
+
+        //        //var httpWebRequest = (HttpWebRequest)WebRequest.Create(fcmLink);
+        //        //httpWebRequest.ContentType = "application/json";
+        //        //httpWebRequest.Headers.Add(string.Format("Authorization: Key={0}", serverKey));
+        //        //httpWebRequest.Headers.Add(string.Format("Sender: id={0}", senderId));
+        //        //httpWebRequest.Method = "POST";
+
+
+        //        //var json = JsonConvert.SerializeObject(notificationData);
+        //        //var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+
+        //        //var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+
+        //        //string jsonMessage = JsonConvert.SerializeObject(notificationData);
+        //        //var request = new HttpRequestMessage(System.Net.Http.HttpMethod.Post, fcmLink);
+
+        //        //request.Headers.TryAddWithoutValidation("Authorization", "key=" + serverKey);
+        //        //request.Content = new StringContent(jsonMessage, Encoding.UTF8, "application/json");
+
+        //        //HttpResponseMessage result;
+
+        //        //using(var client = new HttpClient())
+        //        //{
+        //        //    result = await client.SendAsync(request);
+        //        //}
+
+        //        using (var client = new HttpClient())
+        //        {
+
+        //            //    client.BaseAddress = new Uri("https://fcm.googleapis.com/");
+        //            //    client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+        //            //    client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"key={serverKey}");
+        //            //    client.DefaultRequestHeaders.TryAddWithoutValidation("Sender", $"id={senderId}");
+
+        //            //    var json = JsonConvert.SerializeObject(notificationData);
+        //            //    var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+
+
+        //            var request = new HttpRequestMessage
+        //            {
+        //                RequestUri = new Uri("https://fcm.googleapis.com/fcm/send"),
+        //                Method = System.Net.Http.HttpMethod.Post,
+        //                Headers =
+        //                {
+        //                    { HttpRequestHeader.Authorization.ToString(), "Key="+serverKey },
+        //                    { HttpRequestHeader.ContentType.ToString(), "application/json" }
+        //                },
+        //                Content = new StringContent(JsonConvert.SerializeObject(notificationData))
+        //            };
+
+        //            //request.Headers.Add("Content-Type", "application/json");
+        //            //request.Headers.TryAddWithoutValidation("Authorization", _configuration["Firebase:Server_Key"]);
+
+        //            HttpResponseMessage httpResponse = await client.SendAsync(request);
+
+        //            if (httpResponse.IsSuccessStatusCode)
+        //                count++;
+        //        }
+
+        //    }
+
+        //    if (count == reminders.Count)
+        //    {
+        //        status = true;
+        //        message = "Reminder Notification Send Successfully";
+        //        return Ok(new { status, message });
+        //    }
+        //    else
+        //    {
+        //        message = "Unable to Send Notification";
+        //        return Ok(new { status, message });
+        //    }
+
+        //}
+
+        
+        /// <summary>
+        /// It Notify the user of upcoming note reminder 
+        /// </summary>
+        /// <param name="reminders">contains all data to send notification</param>
+        /// <returns></returns>
+        private async Task<int> FirebaseNotification(List<ReminderNotificationResponseModel> reminders)
+        {
+            string result;
+            int count = 0;
+
+            var path = _environment.ContentRootPath;
+            path += "\\firebase.json";
+
+            FirebaseApp app;
+            try
+            {
+                app = FirebaseApp.Create(new AppOptions()
+                {
+                    Credential = GoogleCredential.FromFile(path)
+                }, "FundooNotes");
+            }
+            catch
+            {
+                app = FirebaseApp.GetInstance("FundooNotes");
+            }
+
+            var fcm = FirebaseMessaging.GetMessaging(app);
 
             foreach (ReminderNotificationResponseModel reminder in reminders)
             {
-                var notificationData = new NotificationModel()
+                Message message = new Message()
                 {
-                    Notification = new NoteModel()
+                    Notification = new Notification
                     {
                         Title = reminder.Title,
                         Body = reminder.Desciption
                     },
-                    To = reminder.Token
+                    Token = reminder.Token
                 };
 
-
-                //var httpWebRequest = (HttpWebRequest)WebRequest.Create(fcmLink);
-                //httpWebRequest.ContentType = "application/json";
-                //httpWebRequest.Headers.Add(string.Format("Authorization: Key={0}", serverKey));
-                //httpWebRequest.Headers.Add(string.Format("Sender: id={0}", senderId));
-                //httpWebRequest.Method = "POST";
-
-
-                //var json = JsonConvert.SerializeObject(notificationData);
-                //var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
-
-                //var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
-
-                string jsonMessage = JsonConvert.SerializeObject(notificationData);
-                var request = new HttpRequestMessage(System.Net.Http.HttpMethod.Post, fcmLink);
-
-                request.Headers.TryAddWithoutValidation("Authorization", "key=" + serverKey);
-                request.Content = new StringContent(jsonMessage, Encoding.UTF8, "application/json");
-
-                HttpResponseMessage result;
-
-                using(var client = new HttpClient())
-                {
-                    result = await client.SendAsync(request);
-                }
-
-                //using (var client = new HttpClient())
-                //{
-
-                //    client.BaseAddress = new Uri("https://fcm.googleapis.com/");
-                //    client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-                //    client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"key={serverKey}");
-                //    client.DefaultRequestHeaders.TryAddWithoutValidation("Sender", $"id={senderId}");
-
-                //    var json = JsonConvert.SerializeObject(notificationData);
-                //    var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
-
-
-                //    //var request = new HttpRequestMessage
-                //    //{
-                //    //    RequestUri = new Uri("https://fcm.googleapis.com/fcm/send"),
-                //    //    Method = System.Net.Http.HttpMethod.Post,
-                //    //    //Headers =
-                //    //    //{
-                //    //    //    { HttpRequestHeader.Authorization.ToString(), _configuration["Firebase:Server_Key"] },
-                //    //    //    { HttpRequestHeader.ContentType.ToString(), "application/json" }
-                //    //    //},
-                //    //    Content = new StringContent(JsonConvert.SerializeObject(notificationData))
-                //    //};
-
-                //    //request.Headers.Add("Content-Type", "application/json");
-                //    //request.Headers.TryAddWithoutValidation("Authorization", _configuration["Firebase:Server_Key"]);
-
-                //    HttpResponseMessage httpResponse = await client.PostAsync("fcm/send", httpContent);
-
-                //    if (httpResponse.IsSuccessStatusCode)
-                //        count++;
-                //}
-
+                result = await fcm.SendAsync(message);
+                count++;
             }
 
-            if (count == reminders.Count)
-            {
-                status = true;
-                message = "Reminder Notification Send Successfully";
-                return Ok(new { status, message });
-            }
-            else
-            {
-                message = "Unable to Send Notification";
-                return Ok(new { status, message });
-            }
-
+            return count;
         }
+
     }
 }

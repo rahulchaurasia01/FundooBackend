@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.Http.Cors;
+using FundooAppBackend.Services;
 using FundooBusinessLayer.Interface;
 using FundooBusinessLayer.Service;
 using FundooRepositoryLayer.Interface;
@@ -17,6 +18,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -121,10 +123,13 @@ namespace FundooBackend
             services.AddScoped<IAdminBusiness, AdminBusiness>();
             services.AddScoped<IAdminRepository, AdminRepository>();
 
+            services.AddSingleton<NotificationProvider>();
+            services.AddSingleton<IHostedService, NotificationService>();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, Microsoft.AspNetCore.Hosting.IHostingEnvironment env)
         {
             app.UseSwagger();
             app.UseSwaggerUI(c => {

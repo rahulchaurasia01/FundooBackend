@@ -108,7 +108,7 @@ namespace FundooAppBackend.Controllers
                             return Ok(new { status, message, notesDetails });
                         }
                         message = "No Such Notes is Present";
-                        return NotFound(new { status, message });
+                        return Ok(new { status, message });
                     }
                 }
                 message = "Invalid Token";
@@ -479,6 +479,13 @@ namespace FundooAppBackend.Controllers
             }
         }
 
+        /// <summary>
+        /// It Add Labels to the Note
+        /// </summary>
+        /// <param name="NoteId">Note Id</param>
+        /// <param name="addLabelNote">Labels to add to the notes</param>
+        /// <returnsIf Found, It return 200 or else NotFound Response or Any Execption
+        /// occured and Not Proper Input Given it return BadRequest.></returns>
         [HttpPut]
         [Route("{NoteId}/Label")]
         public async Task<IActionResult> AddlabelsToNote(int NoteId, AddLabelNoteRequest addLabelNote)
@@ -515,6 +522,13 @@ namespace FundooAppBackend.Controllers
             }
         }
 
+        /// <summary>
+        /// It Add, Update or remove the reminder from the note.
+        /// </summary>
+        /// <param name="NoteId">Note Id</param>
+        /// <param name="reminder">Reminder</param>
+        /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
+        /// occured and Not Proper Input Given it return BadRequest.</returns>
         [HttpPut]
         [Route("{NoteId}/Reminder")]
         public async Task<IActionResult> UpdateRemoveReminder(int NoteId, ReminderRequest reminder)
@@ -533,9 +547,7 @@ namespace FundooAppBackend.Controllers
 
                         if (reminder.Reminder != null)
                         {
-
                             TimeZoneInfo time = TimeZoneInfo.Local;
-
                             reminder.Reminder = TimeZoneInfo.ConvertTimeFromUtc(reminder.Reminder.Value, time);
                         }
 
@@ -547,7 +559,7 @@ namespace FundooAppBackend.Controllers
                             return Ok(new { status, message, data });
                         }
                         message = "Unable to update the reminder to the note";
-                        return NotFound(new { status, message });
+                        return Ok(new { status, message });
                     }
                 }
                 message = "Invalid Token";
@@ -588,7 +600,7 @@ namespace FundooAppBackend.Controllers
                             return Ok(new { status, message, data });
                         }
                         message = "Unable to Pinned the Note";
-                        return NotFound(new { status, message });
+                        return Ok(new { status, message });
                     }
                 }
                 message = "Invalid Token";
@@ -603,7 +615,6 @@ namespace FundooAppBackend.Controllers
         /// <summary>
         /// It Mark the Notes as Archive.
         /// </summary>
-        /// <param name="NoteId">Note Id</param>
         /// <param name="archiveRequest">Archive Value</param>
         /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
         /// occured and Not Proper Input Given it return BadRequest.</returns>
@@ -630,7 +641,7 @@ namespace FundooAppBackend.Controllers
                             return Ok(new { status, message, data });
                         }
                         message = "Unable to Archived the Note";
-                        return NotFound(new { status, message });
+                        return Ok(new { status, message });
                     }
                 }
                 message = "Invalid Token";
@@ -645,7 +656,6 @@ namespace FundooAppBackend.Controllers
         /// <summary>
         /// It Mark the color of the Note
         /// </summary>
-        /// <param name="NoteId">Note Id</param>
         /// <param name="colorRequest">Color Value</param>
         /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
         /// occured and Not Proper Input Given it return BadRequest.</returns>
@@ -672,7 +682,7 @@ namespace FundooAppBackend.Controllers
                             return Ok(new { status, message, data });
                         }
                         message = "Unable to Color the Note.";
-                        return NotFound(new { status, message });
+                        return Ok(new { status, message });
                     }
                 }
                 message = "Invalid Token";
@@ -728,7 +738,7 @@ namespace FundooAppBackend.Controllers
                                 return Ok(new { status, message, data });
                             }
                             message = "Unable to Add the Image to the Note.";
-                            return NotFound(new { status, message });
+                            return Ok(new { status, message });
                         }
                         else
                         {
@@ -768,7 +778,6 @@ namespace FundooAppBackend.Controllers
                     {
                         int UserId = Convert.ToInt32(user.Claims.FirstOrDefault(c => c.Type == _userId).Value);
 
-
                         NoteResponseModel data = await _notesBusiness.RemoveImage(NoteId, UserId);
                         if (data != null)
                         {
@@ -777,7 +786,7 @@ namespace FundooAppBackend.Controllers
                             return Ok(new { status, message, data });
                         }
                         message = "Unable to remove the Image from the Note.";
-                        return NotFound(new { status, message });
+                        return Ok(new { status, message });
 
                     }
                 }
@@ -821,7 +830,7 @@ namespace FundooAppBackend.Controllers
                             return Ok(new { status, message, data });
                         }
                         message = "Unable to Add the Collaborators to the Note.";
-                        return NotFound(new { status, message });
+                        return Ok(new { status, message });
                     }
                 }
                 message = "Invalid Token";
@@ -873,6 +882,12 @@ namespace FundooAppBackend.Controllers
             }
         }
 
+        /// <summary>
+        /// It simply add Image to the cloudinary
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns>If Found, It return 200 or else NotFound Response or Any Execption
+        /// occured and Not Proper Input Given it return BadRequest.</returns>
         [HttpPut]
         [Route("UploadImage")]
         public IActionResult AddImageToCloudinary([FromForm] IFormFile file)

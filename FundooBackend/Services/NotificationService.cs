@@ -22,7 +22,7 @@ namespace FundooAppBackend.Services
             while(!stoppingToken.IsCancellationRequested)
             {
                 await _notificationProvider.SendNotification(stoppingToken);
-                await Task.Delay(TimeSpan.FromHours(1), stoppingToken);
+                await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
             }
 
         }

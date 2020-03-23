@@ -217,7 +217,8 @@ namespace FundooAppBackend.Controllers
                 string message;
                 int count;
                 DateTime currentTime = DateTime.Now;
-                DateTime EndTime = currentTime.AddHours(1);
+                //DateTime EndTime = currentTime.AddHours(1);
+                DateTime EndTime = currentTime.AddMinutes(1);
 
                 List<ReminderNotificationResponseModel> data = _userBusiness.ReminderNotification(currentTime, EndTime);
 

@@ -232,7 +232,7 @@ namespace FundooAppBackend.Controllers
                         message = "Notification send Successfully";
                         return Ok(new { status, message });
                     }
-                    message = "Unablt to Notify all the user";
+                    message = "Unable to Notify all the user";
                     return Ok(new { status, message  });
                 }
                 else

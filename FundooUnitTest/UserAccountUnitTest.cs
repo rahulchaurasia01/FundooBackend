@@ -5,6 +5,7 @@ using FundooCommonLayer.Model;
 using FundooRepositoryLayer.Interface;
 using FundooRepositoryLayer.ModelContext;
 using FundooRepositoryLayer.Service;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -19,22 +20,24 @@ namespace FundooUnitTest
         private readonly IUserBusiness _userBusiness;
         private readonly IUserRepository _userRepository;
         private readonly IConfiguration _configuration;
+        private readonly IHostingEnvironment _hostingEnvironment;
 
-        public static DbContextOptions<ApplicationContext> dbContext { get;  }
+        public static DbContextOptions<ApplicationContext> DbContext { get;  }
 
         public static string sqlConnection = "server=.; database=FundooDB; Integrated Security=true";
 
 
         static UserAccountUnitTest()
         {
-            dbContext = new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(sqlConnection).Options;
+            DbContext = new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(sqlConnection).Options;
         }
 
-        public UserAccountUnitTest()
+        public UserAccountUnitTest(IHostingEnvironment hostingEnvironment)
         {
-            var context = new ApplicationContext(dbContext);
+            var context = new ApplicationContext(DbContext);
             _userRepository = new UserRepository(context);
             _userBusiness = new UserBusiness(_userRepository);
+            _hostingEnvironment = hostingEnvironment;
 
             IConfigurationBuilder configuration = new ConfigurationBuilder();
 
@@ -48,10 +51,10 @@ namespace FundooUnitTest
         [Fact]
         public void Task_LoginUser_ValidLoginData_Return_OkResult()
         {
-            var controller = new UserController(_userBusiness, _configuration);
+            var controller = new UserController(_userBusiness, _configuration, _hostingEnvironment);
             var Logindata = new LoginRequest
             {
-                EmailId = "rahulchaurasia92@hotmail.com",
+                EmailId = "rahulchaurasia08@gmail.com",
                 Password = "123456789"
             };
 
@@ -64,7 +67,7 @@ namespace FundooUnitTest
         [Fact]
         public void Task_LoginUser_InvalidLoginData_Return_NotFoundResult()
         {
-            var controller = new UserController(_userBusiness, _configuration);
+            var controller = new UserController(_userBusiness, _configuration, _hostingEnvironment);
             var Logindata = new LoginRequest
             {
                 EmailId = "Lucy@hotmail.com",
@@ -79,7 +82,7 @@ namespace FundooUnitTest
         [Fact]
         public void Task_LoginUser_PasswordEmpty_Return_BadRequest()
         {
-            var controller = new UserController(_userBusiness, _configuration);
+            var controller = new UserController(_userBusiness, _configuration, _hostingEnvironment);
             var Logindata = new LoginRequest
             {
                 EmailId = "Lucy@hotmail.com",
@@ -94,7 +97,7 @@ namespace FundooUnitTest
         [Fact]
         public void Task_LoginUser_EmailEmpty_Return_BadRequest()
         {
-            var controller = new UserController(_userBusiness, _configuration);
+            var controller = new UserController(_userBusiness, _configuration, _hostingEnvironment);
             var Logindata = new LoginRequest
             {
                 EmailId = "",
@@ -109,7 +112,7 @@ namespace FundooUnitTest
         [Fact]
         public void Task_LoginUser_Email_At_Return_BadRequest()
         {
-            var controller = new UserController(_userBusiness, _configuration);
+            var controller = new UserController(_userBusiness, _configuration, _hostingEnvironment);
             var Logindata = new LoginRequest
             {
                 EmailId = "rahulchaurasiahotmail.com",
@@ -124,7 +127,7 @@ namespace FundooUnitTest
         [Fact]
         public void Task_LoginUser_Email_Dot_Return_BadRequest()
         {
-            var controller = new UserController(_userBusiness, _configuration);
+            var controller = new UserController(_userBusiness, _configuration, _hostingEnvironment);
             var Logindata = new LoginRequest
             {
                 EmailId = "rahulchaurasia92@hotmailcom",
@@ -139,7 +142,7 @@ namespace FundooUnitTest
         [Fact]
         public void Task_LoginUser_Password_L5_Return_BadRequest()
         {
-            var controller = new UserController(_userBusiness, _configuration);
+            var controller = new UserController(_userBusiness, _configuration, _hostingEnvironment);
             var Logindata = new LoginRequest
             {
                 EmailId = "rahulchaurasia92@hotmail.com",
@@ -154,7 +157,7 @@ namespace FundooUnitTest
         [Fact]
         public void Task_LoginUser_Null_Return_BadRequest()
         {
-            var controller = new UserController(_userBusiness, _configuration);
+            var controller = new UserController(_userBusiness, _configuration, _hostingEnvironment);
             LoginRequest Logindata = null;
 
             var data = controller.Login(Logindata);
@@ -169,7 +172,7 @@ namespace FundooUnitTest
         [Fact]
         public async void Task_RegisterUser_Return_OkResult()
         {
-            var controller = new UserController(_userBusiness, _configuration);
+            var controller = new UserController(_userBusiness, _configuration, _hostingEnvironment);
             var newUserData = new RegisterRequest
             {
                 FirstName = "Lucy",
@@ -187,7 +190,7 @@ namespace FundooUnitTest
         [Fact]
         public async void Task_RegisterUser_Null_Return_BadRequest()
         {
-            var controller = new UserController(_userBusiness, _configuration);
+            var controller = new UserController(_userBusiness, _configuration, _hostingEnvironment);
             RegisterRequest newUserData = null;
 
             var data = await controller.Registration(newUserData);
@@ -198,7 +201,7 @@ namespace FundooUnitTest
         [Fact]
         public async void Task_RegisterUser_AllEmptyField_Return_BadRequest()
         {
-            var controller = new UserController(_userBusiness, _configuration);
+            var controller = new UserController(_userBusiness, _configuration, _hostingEnvironment);
             var newUserData = new RegisterRequest
             {
                 FirstName = "",
@@ -216,7 +219,7 @@ namespace FundooUnitTest
         [Fact]
         public async void Task_RegisterUser_FN_L3_Return_BadRequest()
         {
-            var controller = new UserController(_userBusiness, _configuration);
+            var controller = new UserController(_userBusiness, _configuration, _hostingEnvironment);
             var newUserData = new RegisterRequest
             {
                 FirstName = "sa",
@@ -234,7 +237,7 @@ namespace FundooUnitTest
         [Fact]
         public async void Task_RegisterUser_FN_G12_Return_BadRequest()
         {
-            var controller = new UserController(_userBusiness, _configuration);
+            var controller = new UserController(_userBusiness, _configuration, _hostingEnvironment);
             var newUserData = new RegisterRequest
             {
                 FirstName = "LucyRahulSonu",
@@ -252,7 +255,7 @@ namespace FundooUnitTest
         [Fact]
         public async void Task_RegisterUser_LN_L3_Return_BadRequest()
         {
-            var controller = new UserController(_userBusiness, _configuration);
+            var controller = new UserController(_userBusiness, _configuration, _hostingEnvironment);
             var newUserData = new RegisterRequest
             {
                 FirstName = "Lucy",
@@ -270,7 +273,7 @@ namespace FundooUnitTest
         [Fact]
         public async void Task_RegisterUser_LN_G12_Return_BadRequest()
         {
-            var controller = new UserController(_userBusiness, _configuration);
+            var controller = new UserController(_userBusiness, _configuration, _hostingEnvironment);
             var newUserData = new RegisterRequest
             {
                 FirstName = "Lucy",
@@ -288,7 +291,7 @@ namespace FundooUnitTest
         [Fact]
         public async void Task_RegisterUser_Email_At_Return_BadRequest()
         {
-            var controller = new UserController(_userBusiness, _configuration);
+            var controller = new UserController(_userBusiness, _configuration, _hostingEnvironment);
             var newUserData = new RegisterRequest
             {
                 FirstName = "Lucy",
@@ -306,7 +309,7 @@ namespace FundooUnitTest
         [Fact]
         public async void Task_RegisterUser_Email_Dot_Return_BadRequest()
         {
-            var controller = new UserController(_userBusiness, _configuration);
+            var controller = new UserController(_userBusiness, _configuration, _hostingEnvironment);
             var newUserData = new RegisterRequest
             {
                 FirstName = "Lucy",
@@ -324,7 +327,7 @@ namespace FundooUnitTest
         [Fact]
         public async void Task_RegisterUser_EmailRepeated_Return_BadRequest()
         {
-            var controller = new UserController(_userBusiness, _configuration);
+            var controller = new UserController(_userBusiness, _configuration, _hostingEnvironment);
             var newUserData = new RegisterRequest
             {
                 FirstName = "Lucy",
@@ -342,7 +345,7 @@ namespace FundooUnitTest
         [Fact]
         public async void Task_RegisterUser_Password_L5_Return_BadRequest()
         {
-            var controller = new UserController(_userBusiness, _configuration);
+            var controller = new UserController(_userBusiness, _configuration, _hostingEnvironment);
             var newUserData = new RegisterRequest
             {
                 FirstName = "Lucy",
@@ -360,7 +363,7 @@ namespace FundooUnitTest
         [Fact]
         public async void Task_RegisterUser_NotDefinedType__Return_BadRequest()
         {
-            var controller = new UserController(_userBusiness, _configuration);
+            var controller = new UserController(_userBusiness, _configuration, _hostingEnvironment);
             var newUserData = new RegisterRequest
             {
                 FirstName = "Lucy",
@@ -382,7 +385,7 @@ namespace FundooUnitTest
         [Fact]
         public void Task_ForgetPassword_ValidEmailData_Return_OkResult()
         {
-            var controller = new UserController(_userBusiness, _configuration);
+            var controller = new UserController(_userBusiness, _configuration, _hostingEnvironment);
             var forgetPassword = new ForgetPasswordRequest
             {
                 EmailId = "rahulchaurasia92@hotmail.com"
@@ -397,7 +400,7 @@ namespace FundooUnitTest
         [Fact]
         public void Task_ForgetPassword_InValidEmailData_Return_NotFoundResult()
         {
-            var controller = new UserController(_userBusiness, _configuration);
+            var controller = new UserController(_userBusiness, _configuration, _hostingEnvironment);
             var forgetPassword = new ForgetPasswordRequest
             {
                 EmailId = "holaAdios@hotmail.com"
@@ -412,7 +415,7 @@ namespace FundooUnitTest
         [Fact]
         public void Task_ForgetPassword_Null_Return_BadRequest()
         {
-            var controller = new UserController(_userBusiness, _configuration);
+            var controller = new UserController(_userBusiness, _configuration, _hostingEnvironment);
             ForgetPasswordRequest forgetPassword = null;
 
             var data = controller.ForgetPassword(forgetPassword);
@@ -424,7 +427,7 @@ namespace FundooUnitTest
         [Fact]
         public void Task_ForgetPassword_EmailEmpty_Return_BadRequest()
         {
-            var controller = new UserController(_userBusiness, _configuration);
+            var controller = new UserController(_userBusiness, _configuration, _hostingEnvironment);
             var forgetPassword = new ForgetPasswordRequest
             {
                 EmailId = ""
@@ -439,7 +442,7 @@ namespace FundooUnitTest
         [Fact]
         public void Task_ForgetPassword_Email_At_Return_BadRequest()
         {
-            var controller = new UserController(_userBusiness, _configuration);
+            var controller = new UserController(_userBusiness, _configuration, _hostingEnvironment);
             var forgetPassword = new ForgetPasswordRequest
             {
                 EmailId = "rahulchaurasia92hotmail.com"
@@ -454,7 +457,7 @@ namespace FundooUnitTest
         [Fact]
         public void Task_ForgetPassword_Email_Dot_Return_BadRequest()
         {
-            var controller = new UserController(_userBusiness, _configuration);
+            var controller = new UserController(_userBusiness, _configuration, _hostingEnvironment);
             var forgetPassword = new ForgetPasswordRequest
             {
                 EmailId = "rahulchaurasia92@hotmailcom"
@@ -473,7 +476,7 @@ namespace FundooUnitTest
         [Fact]
         public async void Task_ResetPassword_ValidPassword_Return_OkResult()
         {
-            var controller = new UserController(_userBusiness, _configuration);
+            var controller = new UserController(_userBusiness, _configuration, _hostingEnvironment);
             var resetPassword = new ResetPasswordRequest
             {
                 Password = "789456123"
@@ -488,7 +491,7 @@ namespace FundooUnitTest
         [Fact]
         public async void Task_ResetPassword_Password_L5_Return_BadRequest()
         {
-            var controller = new UserController(_userBusiness, _configuration);
+            var controller = new UserController(_userBusiness, _configuration, _hostingEnvironment);
             var resetPassword = new ResetPasswordRequest
             {
                 Password = "7885"
@@ -503,7 +506,7 @@ namespace FundooUnitTest
         [Fact]
         public async void Task_ResetPassword_Null_Return_BadRequest()
         {
-            var controller = new UserController(_userBusiness, _configuration);
+            var controller = new UserController(_userBusiness, _configuration, _hostingEnvironment);
             ResetPasswordRequest resetPassword = null;
 
             var data = await controller.ResetPassword(resetPassword);
@@ -515,7 +518,7 @@ namespace FundooUnitTest
         [Fact]
         public async void Task_ResetPassword_PasswordEmpty_Return_BadRequest()
         {
-            var controller = new UserController(_userBusiness, _configuration);
+            var controller = new UserController(_userBusiness, _configuration, _hostingEnvironment);
             var resetPassword = new ResetPasswordRequest
             {
                 Password = ""

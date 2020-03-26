@@ -54,7 +54,7 @@ namespace FundooUnitTest
             var controller = new UserController(_userBusiness, _configuration, _hostingEnvironment);
             var Logindata = new LoginRequest
             {
-                EmailId = "rahulchaurasia08@gmail.com",
+                EmailId = "abc4508@gmail.com",
                 Password = "123456789"
             };
 
@@ -115,7 +115,7 @@ namespace FundooUnitTest
             var controller = new UserController(_userBusiness, _configuration, _hostingEnvironment);
             var Logindata = new LoginRequest
             {
-                EmailId = "rahulchaurasiahotmail.com",
+                EmailId = "ashckahotmail.com",
                 Password = "123456789"
             };
 
@@ -130,7 +130,7 @@ namespace FundooUnitTest
             var controller = new UserController(_userBusiness, _configuration, _hostingEnvironment);
             var Logindata = new LoginRequest
             {
-                EmailId = "rahulchaurasia92@hotmailcom",
+                EmailId = "abscuka@hotmailcom",
                 Password = "123456789"
             };
 
@@ -145,7 +145,7 @@ namespace FundooUnitTest
             var controller = new UserController(_userBusiness, _configuration, _hostingEnvironment);
             var Logindata = new LoginRequest
             {
-                EmailId = "rahulchaurasia92@hotmail.com",
+                EmailId = "rasvja92@hotmail.com",
                 Password = "1239"
             };
 
@@ -240,7 +240,7 @@ namespace FundooUnitTest
             var controller = new UserController(_userBusiness, _configuration, _hostingEnvironment);
             var newUserData = new RegisterRequest
             {
-                FirstName = "LucyRahulSonu",
+                FirstName = "LucySonu",
                 LastName = "Nelson",
                 EmailId = "lucynelson12@gmail.com",
                 Password = "789456123",
@@ -277,7 +277,7 @@ namespace FundooUnitTest
             var newUserData = new RegisterRequest
             {
                 FirstName = "Lucy",
-                LastName = "chaurasiaDamodare",
+                LastName = "hilavuytygh",
                 EmailId = "lucynelson12@gmail.com",
                 Password = "789456123",
                 Type = "Basic"
@@ -388,7 +388,7 @@ namespace FundooUnitTest
             var controller = new UserController(_userBusiness, _configuration, _hostingEnvironment);
             var forgetPassword = new ForgetPasswordRequest
             {
-                EmailId = "rahulchaurasia92@hotmail.com"
+                EmailId = "asdjcjna2@hotmail.com"
             };
 
             var data = controller.ForgetPassword(forgetPassword);
@@ -445,7 +445,7 @@ namespace FundooUnitTest
             var controller = new UserController(_userBusiness, _configuration, _hostingEnvironment);
             var forgetPassword = new ForgetPasswordRequest
             {
-                EmailId = "rahulchaurasia92hotmail.com"
+                EmailId = "asdnjasdk@gmail.com"
             };
 
             var data = controller.ForgetPassword(forgetPassword);
@@ -460,7 +460,7 @@ namespace FundooUnitTest
             var controller = new UserController(_userBusiness, _configuration, _hostingEnvironment);
             var forgetPassword = new ForgetPasswordRequest
             {
-                EmailId = "rahulchaurasia92@hotmailcom"
+                EmailId = "asdjnkmvn@gmailcom"
             };
 
             var data = controller.ForgetPassword(forgetPassword);
